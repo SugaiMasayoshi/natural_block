@@ -6,7 +6,7 @@ class NaturalBlockParser {
   NaturalBlockParser();
 
   ColumnNode parse(String source) {
-    final List<ColumnNode> children = [];
+    final List<ColumnNode> columnChildren = [];
     final List<NaturalBlockNode> rowChildren = [];
     final reader = NaturalBlockReader(source: source);
     Delimiter previousDelimiter = Delimiter.none;
@@ -22,7 +22,7 @@ class NaturalBlockParser {
         case (Delimiter.row, Delimiter.column):
         case (Delimiter.row, Delimiter.none):
           wasRow = true;
-          rowChildren.add(ColumnNode(children: _parseLines(result.text)));
+          rowChildren.addAll(_parseRowContents(result.text));
           break;
 
         case (Delimiter.column, Delimiter.column):
@@ -30,20 +30,32 @@ class NaturalBlockParser {
         case (Delimiter.none, Delimiter.column):
         case (Delimiter.none, Delimiter.none):
           if (!wasRow) {
-            children.add(ColumnNode(children: _parseLines(result.text)));
+            columnChildren.addAll(_parseColumnContents(result.text));
             break;
           }
           wasRow = false;
 
-          final topChildren = children.isEmpty
-              ? []
-              : children.removeLast().children;
-          final rowNode = RowNode(children: [...rowChildren]);
+          final List<NaturalBlockNode> topChildren = columnChildren.isNotEmpty
+              ? columnChildren.removeLast().children
+              : [];
+          final rowNodeChildren = [...rowChildren];
           rowChildren.clear();
           final downChildren = _parseLines(result.text);
-          children.add(
-            ColumnNode(children: [...topChildren, rowNode, ...downChildren]),
-          );
+
+          if (topChildren.isNotEmpty ||
+              rowNodeChildren.isNotEmpty ||
+              downChildren.isNotEmpty) {
+            columnChildren.add(
+              ColumnNode(
+                children: [
+                  ...topChildren,
+                  if (rowNodeChildren.isNotEmpty)
+                    RowNode(children: rowNodeChildren),
+                  ...downChildren,
+                ],
+              ),
+            );
+          }
 
           break;
       }
@@ -52,15 +64,49 @@ class NaturalBlockParser {
     }
 
     if (wasRow) {
-      final topChildren = children.isEmpty
-          ? []
-          : children.removeLast().children;
-      final rowNode = RowNode(children: [...rowChildren]);
+      final List<NaturalBlockNode> topChildren = columnChildren.isNotEmpty
+          ? columnChildren.removeLast().children
+          : [];
+      final rowNodeChildren = [...rowChildren];
       rowChildren.clear();
-      children.add(ColumnNode(children: [...topChildren, rowNode]));
+
+      if (topChildren.isNotEmpty || rowNodeChildren.isNotEmpty) {
+        columnChildren.add(
+          ColumnNode(
+            children: [
+              ...topChildren,
+              if (rowNodeChildren.isNotEmpty)
+                RowNode(children: rowNodeChildren),
+            ],
+          ),
+        );
+      }
     }
 
-    return ColumnNode(children: children);
+    return ColumnNode(children: columnChildren);
+  }
+
+  List<NaturalBlockNode> _parseRowContents(String linesText) {
+    final contents = _parseLines(linesText);
+
+    if (contents.isEmpty) {
+      return [];
+    }
+
+    if (contents.length == 1) {
+      return [contents.first];
+    }
+
+    return [ColumnNode(children: contents)];
+  }
+
+  List<ColumnNode> _parseColumnContents(String linesText) {
+    final contents = _parseLines(linesText);
+    if (contents.isEmpty) {
+      return [];
+    }
+
+    return [ColumnNode(children: contents)];
   }
 
   List<ContentNode> _parseLines(String linesText) {

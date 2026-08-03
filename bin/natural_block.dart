@@ -1,23 +1,33 @@
 import 'package:natural_block/parser.dart';
 
-// TODO:余計なColumnNodeが入る問題を修正
-// children.add系を.addAllにして_parseLinesを空Listか1つColumnが入ったリストを返すようにする
 void main(List<String> arguments) {
-  final node = NaturalBlockParser().parse('''|
-A
-|''');
+  final node = NaturalBlockParser().parse('''
+|
+++ タイトル
+こんにちは
+|
+左
+だよ
+=
+右
+だよ
+|
+１ページ終了
+|
+
+|
+|
+左
+だよ
+=
+右
+だよ
+|
+|
+''');
 
   print(node);
 }
-
-/**
- * start->pipe
- * pipe->end
- * の時にもColumnの範囲なためそこで空Columnが作成されている
- * この問題を修正する
- * 
- * そもそも空のColumnが必要な時はどんな時？　
- */
 
 /**
  * 以下パターンを統一
