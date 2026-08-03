@@ -14,8 +14,8 @@ void main(List<String> arguments) {
 |
 １ページ終了
 |
-
 |
+AAAAA
 |
 左
 だよ
