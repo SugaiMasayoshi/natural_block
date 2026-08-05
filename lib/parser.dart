@@ -6,10 +6,11 @@ class NaturalBlockParser {
   NaturalBlockParser();
 
   ColumnNode parse(String source) {
+    final trimmedSource = source.trim();
     final List<ColumnNode> pages = [];
     final List<NaturalBlockNode> columnChildren = [];
     final List<NaturalBlockNode> rowChildren = [];
-    final reader = NaturalBlockReader(source: source);
+    final reader = NaturalBlockReader(source: trimmedSource);
     Delimiter previousDelimiter = Delimiter.none;
 
     while (!reader.isEnd) {
