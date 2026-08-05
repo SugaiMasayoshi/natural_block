@@ -14,8 +14,8 @@ void main(List<String> arguments) {
 |
 １ページ終了
 |
-
 |
+AAAAA
 |
 左
 だよ
@@ -32,7 +32,6 @@ void main(List<String> arguments) {
 /**
  * 以下パターンを統一
  * _parseLines関数に入るものは区切り文字から区切り文字まで
- * その時に入った１つめか空、最後が空ならそれを消せばよいのでは？
  * 
  * |
  * A
