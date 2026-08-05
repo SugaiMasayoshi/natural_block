@@ -1,10 +1,5 @@
 sealed class NaturalBlockNode {}
 
-class ErrorNode extends NaturalBlockNode {
-  final String message;
-  ErrorNode(this.message);
-}
-
 sealed class LayoutNode extends NaturalBlockNode {
   final List<NaturalBlockNode> children;
   LayoutNode({required this.children});
@@ -14,7 +9,7 @@ class ColumnNode extends LayoutNode {
   ColumnNode({required super.children});
   @override
   String toString() {
-    return children.map((child) => child.toString()).join(" ");
+    return "ColumnNode(${children.map((child) => child.toString()).join(" ")})";
   }
 }
 
@@ -23,7 +18,7 @@ class RowNode extends LayoutNode {
 
   @override
   String toString() {
-    return children.map((child) => child.toString()).join(" ");
+    return "RowNode(${children.map((child) => child.toString()).join(" ")})";
   }
 }
 
@@ -35,6 +30,6 @@ class TextNode extends ContentNode {
 
   @override
   String toString() {
-    return text;
+    return "TextNode($text)";
   }
 }

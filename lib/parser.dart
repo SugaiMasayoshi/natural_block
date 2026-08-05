@@ -14,7 +14,6 @@ class NaturalBlockParser {
 
     while (!reader.isEnd) {
       final result = reader.readUntilDelimiter();
-      print(result.delimiter);
       switch ((previousDelimiter, result.delimiter)) {
         case (Delimiter.none, Delimiter.row):
         case (Delimiter.column, Delimiter.row):
