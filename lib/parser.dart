@@ -1,4 +1,4 @@
-import 'package:natural_block/delimiter.dart';
+import 'package:natural_block/layout/delimiter.dart';
 import 'package:natural_block/nodes.dart';
 import 'package:natural_block/reader.dart';
 
@@ -11,23 +11,23 @@ class NaturalBlockParser {
     final List<NaturalBlockNode> columnChildren = [];
     final List<NaturalBlockNode> rowChildren = [];
     final reader = NaturalBlockReader(source: trimmedSource);
-    Delimiter previousDelimiter = Delimiter.none;
+    LayoutDelimiter previousDelimiter = LayoutDelimiter.none;
 
     while (!reader.isEnd) {
       final result = reader.readUntilDelimiter();
       switch ((previousDelimiter, result.delimiter)) {
-        case (Delimiter.none, Delimiter.row):
-        case (Delimiter.column, Delimiter.row):
-        case (Delimiter.row, Delimiter.row):
-        case (Delimiter.row, Delimiter.column):
-        case (Delimiter.row, Delimiter.none):
+        case (LayoutDelimiter.none, LayoutDelimiter.row):
+        case (LayoutDelimiter.column, LayoutDelimiter.row):
+        case (LayoutDelimiter.row, LayoutDelimiter.row):
+        case (LayoutDelimiter.row, LayoutDelimiter.column):
+        case (LayoutDelimiter.row, LayoutDelimiter.none):
           rowChildren.addAll(_parseRowContents(result.text));
           break;
 
-        case (Delimiter.column, Delimiter.column):
-        case (Delimiter.column, Delimiter.none):
-        case (Delimiter.none, Delimiter.column):
-        case (Delimiter.none, Delimiter.none):
+        case (LayoutDelimiter.column, LayoutDelimiter.column):
+        case (LayoutDelimiter.column, LayoutDelimiter.none):
+        case (LayoutDelimiter.none, LayoutDelimiter.column):
+        case (LayoutDelimiter.none, LayoutDelimiter.none):
           if (rowChildren.isNotEmpty) {
             final topChildren = [...columnChildren];
             columnChildren.clear();
