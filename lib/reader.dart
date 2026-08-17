@@ -1,4 +1,4 @@
-import 'package:natural_block/layout/delimiter.dart';
+import 'package:natural_block/delimiter/parser.dart';
 
 class NaturalBlockReader {
   final String source;
@@ -8,13 +8,15 @@ class NaturalBlockReader {
 
   bool get isEnd => _position >= source.length;
 
-  ({LayoutDelimiter delimiter, String text}) readUntilDelimiter() {
+  ({T delimiter, String text}) readUntilDelimiter<T>(
+    MapDelimiterParser<T> parser,
+  ) {
     final startPosition = _position;
 
     while (!isEnd) {
       final char = source[_position];
-      final delimiter = LayoutDelimiter.fromChar(char);
-      if (delimiter != LayoutDelimiter.none) {
+      final delimiter = parser.parse(char);
+      if (delimiter != parser.fallback) {
         final text = source.substring(startPosition, _position);
         _position += 1;
         return (delimiter: delimiter, text: text);
@@ -24,6 +26,6 @@ class NaturalBlockReader {
     }
 
     final text = source.substring(startPosition, _position);
-    return (delimiter: LayoutDelimiter.none, text: text);
+    return (delimiter: parser.fallback, text: text);
   }
 }

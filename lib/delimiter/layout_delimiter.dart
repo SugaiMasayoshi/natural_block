@@ -1,3 +1,5 @@
+import 'package:natural_block/delimiter/parser.dart';
+
 enum LayoutDelimiter {
   column("|"),
   row("="),
@@ -11,7 +13,7 @@ enum LayoutDelimiter {
     "=": LayoutDelimiter.row,
   };
 
-  static LayoutDelimiter fromChar(String char) {
-    return _map[char] ?? LayoutDelimiter.none;
+  static MapDelimiterParser<LayoutDelimiter> parser() {
+    return MapDelimiterParser(_map, fallback: LayoutDelimiter.none);
   }
 }

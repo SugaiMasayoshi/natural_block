@@ -1,4 +1,4 @@
-import 'package:natural_block/layout/delimiter.dart';
+import 'package:natural_block/delimiter/layout_delimiter.dart';
 import 'package:natural_block/nodes.dart';
 import 'package:natural_block/reader.dart';
 
@@ -14,7 +14,7 @@ class NaturalBlockParser {
     LayoutDelimiter previousDelimiter = LayoutDelimiter.none;
 
     while (!reader.isEnd) {
-      final result = reader.readUntilDelimiter();
+      final result = reader.readUntilDelimiter(LayoutDelimiter.parser());
       switch ((previousDelimiter, result.delimiter)) {
         case (LayoutDelimiter.none, LayoutDelimiter.row):
         case (LayoutDelimiter.column, LayoutDelimiter.row):
