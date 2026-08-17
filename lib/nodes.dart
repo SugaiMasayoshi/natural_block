@@ -26,7 +26,9 @@ sealed class ContentNode extends NaturalBlockNode {}
 
 class TextNode extends ContentNode {
   final String text;
-  TextNode({required this.text});
+  final int size;
+  final List<TextNode> children;
+  TextNode({required this.text, this.size = 0, this.children = const []});
 
   @override
   String toString() {
