@@ -3,7 +3,7 @@ import 'package:natural_block/delimiter/parser.dart';
 enum LayoutDelimiter {
   column("|"),
   row("="),
-  none("none");
+  none("");
 
   final String char;
   const LayoutDelimiter(this.char);
