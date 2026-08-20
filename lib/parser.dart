@@ -1,5 +1,5 @@
-import 'package:natural_block/delimiter/layout_delimiter.dart';
-import 'package:natural_block/delimiter/semantic_role.dart';
+import 'package:natural_block/symbol/layout_symbol.dart';
+import 'package:natural_block/symbol/semantic_symbol.dart';
 import 'package:natural_block/nodes.dart';
 import 'package:natural_block/reader.dart';
 
@@ -12,23 +12,23 @@ class NaturalBlockParser {
     final List<NaturalBlockNode> columnChildren = [];
     final List<NaturalBlockNode> rowChildren = [];
     final reader = NaturalBlockReader(source: trimmedSource);
-    LayoutDelimiter previousDelimiter = LayoutDelimiter.none;
+    LayoutSymbol previousDelimiter = LayoutSymbol.none;
 
     while (!reader.isEnd) {
-      final result = reader.readUntilDelimiter(LayoutDelimiter.parser());
+      final result = reader.readUntilDelimiter(LayoutSymbol.parser());
       switch ((previousDelimiter, result.delimiter)) {
-        case (LayoutDelimiter.none, LayoutDelimiter.row):
-        case (LayoutDelimiter.column, LayoutDelimiter.row):
-        case (LayoutDelimiter.row, LayoutDelimiter.row):
-        case (LayoutDelimiter.row, LayoutDelimiter.column):
-        case (LayoutDelimiter.row, LayoutDelimiter.none):
+        case (LayoutSymbol.none, LayoutSymbol.row):
+        case (LayoutSymbol.column, LayoutSymbol.row):
+        case (LayoutSymbol.row, LayoutSymbol.row):
+        case (LayoutSymbol.row, LayoutSymbol.column):
+        case (LayoutSymbol.row, LayoutSymbol.none):
           rowChildren.addAll(_parseRowContents(result.text));
           break;
 
-        case (LayoutDelimiter.column, LayoutDelimiter.column):
-        case (LayoutDelimiter.column, LayoutDelimiter.none):
-        case (LayoutDelimiter.none, LayoutDelimiter.column):
-        case (LayoutDelimiter.none, LayoutDelimiter.none):
+        case (LayoutSymbol.column, LayoutSymbol.column):
+        case (LayoutSymbol.column, LayoutSymbol.none):
+        case (LayoutSymbol.none, LayoutSymbol.column):
+        case (LayoutSymbol.none, LayoutSymbol.none):
           if (rowChildren.isNotEmpty) {
             final topChildren = [...columnChildren];
             columnChildren.clear();

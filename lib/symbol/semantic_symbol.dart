@@ -1,4 +1,4 @@
-import 'package:natural_block/delimiter/parser.dart';
+import 'package:natural_block/symbol/parser.dart';
 
 enum SemanticRole {
   danger("!"),
