@@ -7,7 +7,7 @@ void main() {
   group("Columnの改行トリム検証", () {
     // 期待値: ルートの Column 2重構造を維持
     const expected =
-        "ColumnNode(ColumnNode(TextNode(TextSpanNode(text:本文,style:SemanticRole.none))))";
+        "ColumnNode(ColumnNode(TextNode(TextSpanNode(text:本文,style:SemanticSymbol.none))))";
 
     const cases = [
       "|本文|",
@@ -30,7 +30,7 @@ void main() {
   group("Rowの改行トリム検証", () {
     // 期待値: ルートの Column 2重構造 + Row 直下は直接 TextNode
     const expected =
-        "ColumnNode(ColumnNode(RowNode(TextNode(TextSpanNode(text:左,style:SemanticRole.none)) TextNode(TextSpanNode(text:右,style:SemanticRole.none)))))";
+        "ColumnNode(ColumnNode(RowNode(TextNode(TextSpanNode(text:左,style:SemanticSymbol.none)) TextNode(TextSpanNode(text:右,style:SemanticSymbol.none)))))";
 
     const cases = [
       "||左=右||",
