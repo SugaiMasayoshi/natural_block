@@ -1,3 +1,5 @@
+import 'package:natural_block/delimiter/semantic_role.dart';
+
 sealed class NaturalBlockNode {}
 
 sealed class LayoutNode extends NaturalBlockNode {
@@ -24,14 +26,29 @@ class RowNode extends LayoutNode {
 
 sealed class ContentNode extends NaturalBlockNode {}
 
-class TextNode extends ContentNode {
+class TextSpanNode extends ContentNode {
   final String text;
   final int size;
-  final List<TextNode> children;
-  TextNode({required this.text, this.size = 0, this.children = const []});
+  final SemanticRole style;
+
+  TextSpanNode({
+    required this.text,
+    this.size = 0,
+    this.style = SemanticRole.none,
+  });
 
   @override
   String toString() {
-    return "TextNode($text)";
+    return "TextSpanNode(text:$text,style:$style)";
+  }
+}
+
+class TextNode extends ContentNode {
+  final List<TextSpanNode> children;
+  TextNode({this.children = const []});
+
+  @override
+  String toString() {
+    return "TextNode(${children.map((child) => child.toString()).join(" ")})";
   }
 }
