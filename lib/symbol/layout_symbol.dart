@@ -13,7 +13,7 @@ enum LayoutSymbol {
     "=": LayoutSymbol.row,
   };
 
-  static MapDelimiterParser<LayoutSymbol> parser() {
-    return MapDelimiterParser(_map, fallback: LayoutSymbol.none);
+  static MapSymbolParser<LayoutSymbol> parser() {
+    return MapSymbolParser(_map, fallback: LayoutSymbol.none);
   }
 }

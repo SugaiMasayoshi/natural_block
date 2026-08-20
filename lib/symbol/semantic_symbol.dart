@@ -17,7 +17,7 @@ enum SemanticRole {
     "*": SemanticRole.emphasis,
   };
 
-  static MapDelimiterParser<SemanticRole> parser() {
-    return MapDelimiterParser(_map, fallback: SemanticRole.none);
+  static MapSymbolParser<SemanticRole> parser() {
+    return MapSymbolParser(_map, fallback: SemanticRole.none);
   }
 }

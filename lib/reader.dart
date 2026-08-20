@@ -9,7 +9,7 @@ class NaturalBlockReader {
   bool get isEnd => _position >= source.length;
 
   ({T delimiter, String text}) readUntilDelimiter<T>(
-    MapDelimiterParser<T> parser,
+    MapSymbolParser<T> parser,
   ) {
     final startPosition = _position;
 
