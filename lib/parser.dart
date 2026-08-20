@@ -1,4 +1,5 @@
 import 'package:natural_block/delimiter/layout_delimiter.dart';
+import 'package:natural_block/delimiter/semantic_role.dart';
 import 'package:natural_block/nodes.dart';
 import 'package:natural_block/reader.dart';
 
@@ -108,6 +109,24 @@ class NaturalBlockParser {
   }
 
   ContentNode _parseContent(String contentText) {
-    return TextNode(text: contentText);
+    final List<TextSpanNode> children = [];
+    final reader = NaturalBlockReader(source: contentText);
+    SemanticRole previousDelimiter = SemanticRole.none;
+
+    while (!reader.isEnd) {
+      final result = reader.readUntilDelimiter(SemanticRole.parser());
+
+      if (result.text.isNotEmpty) {
+        children.add(TextSpanNode(text: result.text, style: previousDelimiter));
+      }
+
+      if (result.delimiter == previousDelimiter) {
+        previousDelimiter = SemanticRole.none;
+      } else {
+        previousDelimiter = result.delimiter;
+      }
+    }
+
+    return TextNode(children: children);
   }
 }
