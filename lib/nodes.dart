@@ -1,4 +1,4 @@
-import 'package:natural_block/delimiter/semantic_role.dart';
+import 'package:natural_block/symbol/semantic_symbol.dart';
 
 sealed class NaturalBlockNode {}
 
