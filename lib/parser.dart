@@ -111,17 +111,17 @@ class NaturalBlockParser {
   ContentNode _parseContent(String contentText) {
     final List<TextSpanNode> children = [];
     final reader = NaturalBlockReader(source: contentText);
-    SemanticRole previousDelimiter = SemanticRole.none;
+    SemanticSymbol previousDelimiter = SemanticSymbol.none;
 
     while (!reader.isEnd) {
-      final result = reader.readUntilDelimiter(SemanticRole.parser());
+      final result = reader.readUntilDelimiter(SemanticSymbol.parser());
 
       if (result.text.isNotEmpty) {
         children.add(TextSpanNode(text: result.text, style: previousDelimiter));
       }
 
       if (result.delimiter == previousDelimiter) {
-        previousDelimiter = SemanticRole.none;
+        previousDelimiter = SemanticSymbol.none;
       } else {
         previousDelimiter = result.delimiter;
       }

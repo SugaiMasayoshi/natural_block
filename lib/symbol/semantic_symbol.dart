@@ -1,6 +1,6 @@
 import 'package:natural_block/symbol/parser.dart';
 
-enum SemanticRole {
+enum SemanticSymbol {
   danger("!"),
   success("%"),
   info("?"),
@@ -8,16 +8,16 @@ enum SemanticRole {
   none("");
 
   final String char;
-  const SemanticRole(this.char);
+  const SemanticSymbol(this.char);
 
-  static const Map<String, SemanticRole> _map = {
-    "!": SemanticRole.danger,
-    "%": SemanticRole.success,
-    "?": SemanticRole.info,
-    "*": SemanticRole.emphasis,
+  static const Map<String, SemanticSymbol> _map = {
+    "!": SemanticSymbol.danger,
+    "%": SemanticSymbol.success,
+    "?": SemanticSymbol.info,
+    "*": SemanticSymbol.emphasis,
   };
 
-  static MapSymbolParser<SemanticRole> parser() {
-    return MapSymbolParser(_map, fallback: SemanticRole.none);
+  static MapSymbolParser<SemanticSymbol> parser() {
+    return MapSymbolParser(_map, fallback: SemanticSymbol.none);
   }
 }

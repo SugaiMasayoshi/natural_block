@@ -29,12 +29,12 @@ sealed class ContentNode extends NaturalBlockNode {}
 class TextSpanNode extends ContentNode {
   final String text;
   final int size;
-  final SemanticRole style;
+  final SemanticSymbol style;
 
   TextSpanNode({
     required this.text,
     this.size = 0,
-    this.style = SemanticRole.none,
+    this.style = SemanticSymbol.none,
   });
 
   @override
