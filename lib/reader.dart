@@ -8,24 +8,38 @@ class NaturalBlockReader {
 
   bool get isEnd => _position >= source.length;
 
-  ({T delimiter, String text}) readUntilDelimiter<T>(
-    MapSymbolParser<T> parser,
-  ) {
-    final startPosition = _position;
+  ({T symbol, String text}) readUntilSymbol<T>(MapSymbolParser<T> parser) {
+    int startPosition = _position;
+    StringBuffer? buffer;
 
     while (!isEnd) {
       final char = source[_position];
-      final delimiter = parser.parse(char);
-      if (delimiter != parser.fallback) {
-        final text = source.substring(startPosition, _position);
+      final symbol = parser.parse(char);
+
+      if (symbol != parser.fallback) {
+        if (_position > 0 && source[_position - 1] == r'\') {
+          buffer ??= StringBuffer();
+          buffer.write(source.substring(startPosition, _position - 1));
+          buffer.write(char);
+          _position += 1;
+          startPosition = _position;
+          continue;
+        }
+
+        final text = buffer != null
+            ? (buffer..write(source.substring(startPosition, _position)))
+                  .toString()
+            : source.substring(startPosition, _position);
         _position += 1;
-        return (delimiter: delimiter, text: text);
+        return (symbol: symbol, text: text);
       }
 
       _position += 1;
     }
 
-    final text = source.substring(startPosition, _position);
-    return (delimiter: parser.fallback, text: text);
+    final text = buffer != null
+        ? (buffer..write(source.substring(startPosition, _position))).toString()
+        : source.substring(startPosition, _position);
+    return (symbol: parser.fallback, text: text);
   }
 }

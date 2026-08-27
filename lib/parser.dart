@@ -2,95 +2,41 @@ import 'package:natural_block/symbol/layout_symbol.dart';
 import 'package:natural_block/symbol/semantic_symbol.dart';
 import 'package:natural_block/nodes.dart';
 import 'package:natural_block/reader.dart';
+import 'package:natural_block/symbol/size_symbol.dart';
 
 class NaturalBlockParser {
   NaturalBlockParser();
 
   ColumnNode parse(String source) {
     final trimmedSource = source.trim();
-    final List<ColumnNode> pages = [];
-    final List<NaturalBlockNode> columnChildren = [];
-    final List<NaturalBlockNode> rowChildren = [];
+    final List<NaturalBlockNode> children = [];
     final reader = NaturalBlockReader(source: trimmedSource);
-    LayoutSymbol previousDelimiter = LayoutSymbol.none;
-
+    LayoutSymbol previousSymbol = LayoutSymbol.none;
     while (!reader.isEnd) {
-      final result = reader.readUntilDelimiter(LayoutSymbol.parser());
-      switch ((previousDelimiter, result.delimiter)) {
-        case (LayoutSymbol.none, LayoutSymbol.row):
-        case (LayoutSymbol.column, LayoutSymbol.row):
-        case (LayoutSymbol.row, LayoutSymbol.row):
-        case (LayoutSymbol.row, LayoutSymbol.column):
-        case (LayoutSymbol.row, LayoutSymbol.none):
-          rowChildren.addAll(_parseRowContents(result.text));
-          break;
+      final result = reader.readUntilSymbol(LayoutSymbol.parser());
 
-        case (LayoutSymbol.column, LayoutSymbol.column):
-        case (LayoutSymbol.column, LayoutSymbol.none):
-        case (LayoutSymbol.none, LayoutSymbol.column):
-        case (LayoutSymbol.none, LayoutSymbol.none):
-          if (rowChildren.isNotEmpty) {
-            final topChildren = [...columnChildren];
-            columnChildren.clear();
-            final middleRowChildren = [...rowChildren];
-            rowChildren.clear();
-            final downChildren = _parseLines(result.text);
+      if (previousSymbol == LayoutSymbol.row) {
+        final contentNodes = _parseLines(result.text);
+        final rowNode = RowNode(children: contentNodes);
+        children.add(rowNode);
+      } else {
+        switch (result.symbol) {
+          case LayoutSymbol.column:
+          case LayoutSymbol.none:
+            final contentNodes = _parseLines(result.text);
+            children.addAll(contentNodes);
 
-            final List<NaturalBlockNode> combineList = [
-              ...topChildren,
-              if (middleRowChildren.isNotEmpty)
-                RowNode(children: middleRowChildren),
-              ...downChildren,
-            ];
-            pages.add(ColumnNode(children: combineList));
-            break;
-          }
-
-          pages.addAll(_parseColumnContents([...columnChildren]));
-          columnChildren.clear();
-          columnChildren.addAll(_parseLines(result.text));
-          break;
+          case LayoutSymbol.row:
+            final contentNodes = _parseLines(result.text);
+            final rowNode = RowNode(children: contentNodes);
+            children.add(rowNode);
+        }
       }
 
-      previousDelimiter = result.delimiter;
+      previousSymbol = result.symbol;
     }
 
-    if (rowChildren.isNotEmpty || columnChildren.isNotEmpty) {
-      final topChildren = [...columnChildren];
-      columnChildren.clear();
-      final middleRowChildren = [...rowChildren];
-      rowChildren.clear();
-      final List<NaturalBlockNode> combineList = [
-        ...topChildren,
-        if (middleRowChildren.isNotEmpty) RowNode(children: middleRowChildren),
-      ];
-
-      pages.add(ColumnNode(children: combineList));
-    }
-
-    return ColumnNode(children: pages);
-  }
-
-  List<NaturalBlockNode> _parseRowContents(String linesText) {
-    final contents = _parseLines(linesText);
-
-    if (contents.isEmpty) {
-      return [];
-    }
-
-    if (contents.length == 1) {
-      return [contents.first];
-    }
-
-    return [ColumnNode(children: contents)];
-  }
-
-  List<ColumnNode> _parseColumnContents(List<NaturalBlockNode> children) {
-    if (children.isEmpty) {
-      return [];
-    }
-
-    return [ColumnNode(children: children)];
+    return ColumnNode(children: children);
   }
 
   List<ContentNode> _parseLines(String linesText) {
@@ -111,22 +57,55 @@ class NaturalBlockParser {
   ContentNode _parseContent(String contentText) {
     final List<TextSpanNode> children = [];
     final reader = NaturalBlockReader(source: contentText);
-    SemanticSymbol previousDelimiter = SemanticSymbol.none;
+    int sizeOffset = 0;
 
     while (!reader.isEnd) {
-      final result = reader.readUntilDelimiter(SemanticSymbol.parser());
+      final result = reader.readUntilSymbol(SizeSymbol.parser());
 
       if (result.text.isNotEmpty) {
-        children.add(TextSpanNode(text: result.text, style: previousDelimiter));
+        children.addAll(_parseSemantic(result.text, sizeOffset));
       }
 
-      if (result.delimiter == previousDelimiter) {
-        previousDelimiter = SemanticSymbol.none;
-      } else {
-        previousDelimiter = result.delimiter;
+      switch (result.symbol) {
+        case SizeSymbol.plus:
+          sizeOffset += 1;
+          break;
+        case SizeSymbol.minus:
+          sizeOffset -= 1;
+          break;
+        case SizeSymbol.none:
+          break;
       }
     }
 
     return TextNode(children: children);
+  }
+
+  List<TextSpanNode> _parseSemantic(String contentText, int sizeOffset) {
+    final List<TextSpanNode> children = [];
+    final reader = NaturalBlockReader(source: contentText);
+    SemanticSymbol previousSymbol = SemanticSymbol.none;
+
+    while (!reader.isEnd) {
+      final result = reader.readUntilSymbol(SemanticSymbol.parser());
+
+      if (result.text.isNotEmpty) {
+        children.add(
+          TextSpanNode(
+            text: result.text,
+            style: previousSymbol,
+            sizeOffset: sizeOffset,
+          ),
+        );
+      }
+
+      if (result.symbol == previousSymbol) {
+        previousSymbol = SemanticSymbol.none;
+      } else {
+        previousSymbol = result.symbol;
+      }
+    }
+
+    return children;
   }
 }
