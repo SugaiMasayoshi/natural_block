@@ -1,9 +1,9 @@
-import 'package:natural_block/symbol/semantic_symbol.dart';
+﻿import 'package:natural_block/symbol/semantic_symbol.dart';
 
-sealed class NaturalBlockNode {}
+sealed class Node {}
 
-sealed class LayoutNode extends NaturalBlockNode {
-  final List<NaturalBlockNode> children;
+sealed class LayoutNode extends Node {
+  final List<Node> children;
   LayoutNode({required this.children});
 }
 
@@ -11,20 +11,19 @@ class ColumnNode extends LayoutNode {
   ColumnNode({required super.children});
   @override
   String toString() {
-    return "ColumnNode(${children.map((child) => child.toString()).join(" ")})";
+    return 'ColumnNode()';
   }
 }
 
 class RowNode extends LayoutNode {
   RowNode({required super.children});
-
   @override
   String toString() {
-    return "RowNode(${children.map((child) => child.toString()).join(" ")})";
+    return 'RowNode()';
   }
 }
 
-sealed class ContentNode extends NaturalBlockNode {}
+sealed class ContentNode extends Node {}
 
 class TextSpanNode extends ContentNode {
   final String text;
@@ -39,7 +38,7 @@ class TextSpanNode extends ContentNode {
 
   @override
   String toString() {
-    return "TextSpanNode(text:$text,sizeOffset:$sizeOffset,style:$style)";
+    return 'TextSpanNode(text:,sizeOffset:,style:)';
   }
 }
 
@@ -49,6 +48,6 @@ class TextNode extends ContentNode {
 
   @override
   String toString() {
-    return "TextNode(${children.map((child) => child.toString()).join(" ")})";
+    return 'TextNode()';
   }
 }

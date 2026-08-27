@@ -1,36 +1,26 @@
-import 'package:natural_block/symbol/layout_symbol.dart';
+﻿import 'package:natural_block/symbol/layout_symbol.dart';
 import 'package:natural_block/symbol/semantic_symbol.dart';
-import 'package:natural_block/nodes.dart';
-import 'package:natural_block/reader.dart';
+import 'package:natural_block/node/node.dart';
+import 'package:natural_block/scanner.dart';
 import 'package:natural_block/symbol/size_symbol.dart';
 
-class NaturalBlockParser {
-  NaturalBlockParser();
+class Parser {
+  Parser();
 
   ColumnNode parse(String source) {
     final trimmedSource = source.trim();
-    final List<NaturalBlockNode> children = [];
-    final reader = NaturalBlockReader(source: trimmedSource);
+    final List<Node> children = [];
+    final scanner = Scanner(source: trimmedSource);
     LayoutSymbol previousSymbol = LayoutSymbol.none;
-    while (!reader.isEnd) {
-      final result = reader.readUntilSymbol(LayoutSymbol.parser());
 
-      if (previousSymbol == LayoutSymbol.row) {
-        final contentNodes = _parseLines(result.text);
-        final rowNode = RowNode(children: contentNodes);
-        children.add(rowNode);
+    while (!scanner.isEnd) {
+      final result = scanner.scanUntil(LayoutSymbol.scanner);
+      final contentNodes = _parseBlock(result.text);
+
+      if (previousSymbol == LayoutSymbol.row || result.symbol == LayoutSymbol.row) {
+        children.add(RowNode(children: contentNodes));
       } else {
-        switch (result.symbol) {
-          case LayoutSymbol.column:
-          case LayoutSymbol.none:
-            final contentNodes = _parseLines(result.text);
-            children.addAll(contentNodes);
-
-          case LayoutSymbol.row:
-            final contentNodes = _parseLines(result.text);
-            final rowNode = RowNode(children: contentNodes);
-            children.add(rowNode);
-        }
+        children.addAll(contentNodes);
       }
 
       previousSymbol = result.symbol;
@@ -39,40 +29,32 @@ class NaturalBlockParser {
     return ColumnNode(children: children);
   }
 
-  List<ContentNode> _parseLines(String linesText) {
-    final lines = linesText.split("\n");
+  List<ContentNode> _parseBlock(String blockText) {
+    final lines = blockText.split('\n');
 
-    if (lines.firstOrNull == "") {
-      lines.removeAt(0);
-    }
-    if (lines.lastOrNull == "") {
-      lines.removeLast();
-    }
+    if (lines.firstOrNull == '') lines.removeAt(0);
+    if (lines.lastOrNull == '') lines.removeLast();
 
-    final children = lines.map((line) => _parseContent(line)).toList();
-
-    return children;
+    return lines.map(_parseLine).toList();
   }
 
-  ContentNode _parseContent(String contentText) {
+  ContentNode _parseLine(String lineText) {
     final List<TextSpanNode> children = [];
-    final reader = NaturalBlockReader(source: contentText);
+    final scanner = Scanner(source: lineText);
     int sizeOffset = 0;
 
-    while (!reader.isEnd) {
-      final result = reader.readUntilSymbol(SizeSymbol.parser());
+    while (!scanner.isEnd) {
+      final result = scanner.scanUntil(SizeSymbol.scanner);
 
       if (result.text.isNotEmpty) {
-        children.addAll(_parseSemantic(result.text, sizeOffset));
+        children.addAll(_parseSpans(result.text, sizeOffset));
       }
 
       switch (result.symbol) {
-        case SizeSymbol.plus:
+        case SizeSymbol.larger:
           sizeOffset += 1;
-          break;
-        case SizeSymbol.minus:
+        case SizeSymbol.smaller:
           sizeOffset -= 1;
-          break;
         case SizeSymbol.none:
           break;
       }
@@ -81,31 +63,30 @@ class NaturalBlockParser {
     return TextNode(children: children);
   }
 
-  List<TextSpanNode> _parseSemantic(String contentText, int sizeOffset) {
+  List<TextSpanNode> _parseSpans(String spanText, int sizeOffset) {
     final List<TextSpanNode> children = [];
-    final reader = NaturalBlockReader(source: contentText);
-    SemanticSymbol previousSymbol = SemanticSymbol.none;
+    final scanner = Scanner(source: spanText);
+    SemanticSymbol currentStyle = SemanticSymbol.none;
 
-    while (!reader.isEnd) {
-      final result = reader.readUntilSymbol(SemanticSymbol.parser());
+    while (!scanner.isEnd) {
+      final result = scanner.scanUntil(SemanticSymbol.scanner);
 
       if (result.text.isNotEmpty) {
-        children.add(
-          TextSpanNode(
-            text: result.text,
-            style: previousSymbol,
-            sizeOffset: sizeOffset,
-          ),
-        );
+        children.add(TextSpanNode(
+          text: result.text,
+          style: currentStyle,
+          sizeOffset: sizeOffset,
+        ));
       }
 
-      if (result.symbol == previousSymbol) {
-        previousSymbol = SemanticSymbol.none;
-      } else {
-        previousSymbol = result.symbol;
-      }
+      currentStyle = result.symbol == currentStyle
+          ? SemanticSymbol.none
+          : result.symbol;
     }
 
     return children;
   }
 }
+
+// 後方互換エイリアス（段階的移行用）
+typedef NaturalBlockParser = Parser;

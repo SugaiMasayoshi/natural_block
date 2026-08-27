@@ -1,23 +1,21 @@
-import 'package:natural_block/symbol/parser.dart';
+﻿import 'package:natural_block/symbol/symbol_scanner.dart';
 
 enum SemanticSymbol {
-  danger("!"),
-  success("%"),
-  info("?"),
-  emphasis("*"),
-  none("");
+  danger('!'),
+  success('%'),
+  info('?'),
+  emphasis('*'),
+  none('');
 
   final String char;
   const SemanticSymbol(this.char);
 
   static const Map<String, SemanticSymbol> _map = {
-    "!": SemanticSymbol.danger,
-    "%": SemanticSymbol.success,
-    "?": SemanticSymbol.info,
-    "*": SemanticSymbol.emphasis,
+    '!': SemanticSymbol.danger,
+    '%': SemanticSymbol.success,
+    '?': SemanticSymbol.info,
+    '*': SemanticSymbol.emphasis,
   };
 
-  static MapSymbolParser<SemanticSymbol> parser() {
-    return MapSymbolParser(_map, fallback: SemanticSymbol.none);
-  }
+  static const scanner = SymbolScanner(_map, none: SemanticSymbol.none);
 }

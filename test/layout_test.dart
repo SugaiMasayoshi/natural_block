@@ -1,9 +1,9 @@
-import 'package:natural_block/nodes.dart';
+import 'package:natural_block/node/node.dart';
 import 'package:natural_block/parser.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final parser = NaturalBlockParser();
+  final parser = Parser();
 
   group("Columnの改行トリム検証", () {
     // 期待値: ルートの Column 2重構造を維持

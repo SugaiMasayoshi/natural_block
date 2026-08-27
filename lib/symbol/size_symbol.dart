@@ -1,19 +1,17 @@
-import 'package:natural_block/symbol/parser.dart';
+﻿import 'package:natural_block/symbol/symbol_scanner.dart';
 
 enum SizeSymbol {
-  plus("+"),
-  minus("-"),
-  none("");
+  larger('+'),
+  smaller('-'),
+  none('');
 
   final String char;
   const SizeSymbol(this.char);
 
   static const Map<String, SizeSymbol> _map = {
-    "+": SizeSymbol.plus,
-    "-": SizeSymbol.minus,
+    '+': SizeSymbol.larger,
+    '-': SizeSymbol.smaller,
   };
 
-  static MapSymbolParser<SizeSymbol> parser() {
-    return MapSymbolParser(_map, fallback: SizeSymbol.none);
-  }
+  static const scanner = SymbolScanner(_map, none: SizeSymbol.none);
 }

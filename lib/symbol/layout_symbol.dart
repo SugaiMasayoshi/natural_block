@@ -1,19 +1,17 @@
-import 'package:natural_block/symbol/parser.dart';
+﻿import 'package:natural_block/symbol/symbol_scanner.dart';
 
 enum LayoutSymbol {
-  column("|"),
-  row("="),
-  none("");
+  column('|'),
+  row('='),
+  none('');
 
   final String char;
   const LayoutSymbol(this.char);
 
   static const Map<String, LayoutSymbol> _map = {
-    "|": LayoutSymbol.column,
-    "=": LayoutSymbol.row,
+    '|': LayoutSymbol.column,
+    '=': LayoutSymbol.row,
   };
 
-  static MapSymbolParser<LayoutSymbol> parser() {
-    return MapSymbolParser(_map, fallback: LayoutSymbol.none);
-  }
+  static const scanner = SymbolScanner(_map, none: LayoutSymbol.none);
 }
