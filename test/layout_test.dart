@@ -1,3 +1,4 @@
+import 'package:natural_block/nodes.dart';
 import 'package:natural_block/parser.dart';
 import 'package:test/test.dart';
 
@@ -6,10 +7,16 @@ void main() {
 
   group("Columnの改行トリム検証", () {
     // 期待値: ルートの Column 2重構造を維持
-    const expected =
-        "ColumnNode(ColumnNode(TextNode(TextSpanNode(text:本文,style:SemanticSymbol.none))))";
+    final expected = ColumnNode(
+      children: [
+        TextNode(children: [TextSpanNode(text: "本文")]),
+      ],
+    ).toString();
 
     const cases = [
+      "本文",
+      "|本文",
+      "本文|",
       "|本文|",
       "|\n本文|",
       "|本文\n|",
@@ -29,10 +36,27 @@ void main() {
 
   group("Rowの改行トリム検証", () {
     // 期待値: ルートの Column 2重構造 + Row 直下は直接 TextNode
-    const expected =
-        "ColumnNode(ColumnNode(RowNode(TextNode(TextSpanNode(text:左,style:SemanticSymbol.none)) TextNode(TextSpanNode(text:右,style:SemanticSymbol.none)))))";
+    final expected = ColumnNode(
+      children: [
+        RowNode(
+          children: [
+            TextNode(children: [TextSpanNode(text: "左")]),
+          ],
+        ),
+        RowNode(
+          children: [
+            TextNode(children: [TextSpanNode(text: "右")]),
+          ],
+        ),
+      ],
+    ).toString();
 
     const cases = [
+      "左=右",
+      "|左=右",
+      "|左=右|",
+      "||左=右|",
+      "|左=右||",
       "||左=右||",
       "||\n左=右||",
       "||左=右\n||",
