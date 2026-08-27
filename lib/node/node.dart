@@ -1,9 +1,9 @@
 ﻿import 'package:natural_block/symbol/semantic_symbol.dart';
 
-sealed class Node {}
+sealed class NaturalBlockNode {}
 
-sealed class LayoutNode extends Node {
-  final List<Node> children;
+sealed class LayoutNode extends NaturalBlockNode {
+  final List<NaturalBlockNode> children;
   LayoutNode({required this.children});
 }
 
@@ -23,7 +23,7 @@ class RowNode extends LayoutNode {
   }
 }
 
-sealed class ContentNode extends Node {}
+sealed class ContentNode extends NaturalBlockNode {}
 
 class TextSpanNode extends ContentNode {
   final String text;

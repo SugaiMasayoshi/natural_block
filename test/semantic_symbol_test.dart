@@ -4,7 +4,7 @@ import 'package:natural_block/symbol/semantic_symbol.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final parser = Parser();
+  final parser = NaturalBlockParser();
 
   group("SemanticSymbol & Toggle Parsing Edge Cases", () {
     test("複数スタイルの連続切り替え", () {

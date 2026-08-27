@@ -4,12 +4,12 @@ import 'package:natural_block/node/node.dart';
 import 'package:natural_block/scanner.dart';
 import 'package:natural_block/symbol/size_symbol.dart';
 
-class Parser {
-  Parser();
+class NaturalBlockParser {
+  NaturalBlockParser();
 
   ColumnNode parse(String source) {
     final trimmedSource = source.trim();
-    final List<Node> children = [];
+    final List<NaturalBlockNode> children = [];
     final scanner = Scanner(source: trimmedSource);
     LayoutSymbol previousSymbol = LayoutSymbol.none;
 
@@ -87,6 +87,3 @@ class Parser {
     return children;
   }
 }
-
-// 後方互換エイリアス（段階的移行用）
-typedef NaturalBlockParser = Parser;

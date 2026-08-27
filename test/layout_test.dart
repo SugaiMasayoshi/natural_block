@@ -3,7 +3,7 @@ import 'package:natural_block/parser.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final parser = Parser();
+  final parser = NaturalBlockParser();
 
   group("Columnの改行トリム検証", () {
     // 期待値: ルートの Column 2重構造を維持
