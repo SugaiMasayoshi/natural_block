@@ -28,18 +28,18 @@ sealed class ContentNode extends NaturalBlockNode {}
 
 class TextSpanNode extends ContentNode {
   final String text;
-  final int size;
+  final int sizeOffset;
   final SemanticSymbol style;
 
   TextSpanNode({
     required this.text,
-    this.size = 0,
+    this.sizeOffset = 0,
     this.style = SemanticSymbol.none,
   });
 
   @override
   String toString() {
-    return "TextSpanNode(text:$text,style:$style)";
+    return "TextSpanNode(text:$text,sizeOffset:$sizeOffset,style:$style)";
   }
 }
 
