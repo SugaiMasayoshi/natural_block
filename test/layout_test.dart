@@ -79,6 +79,50 @@ void main() {
       final nodes = parser.parse(input);
       expect(nodes.children.isEmpty, isTrue);
     });
+
+    // A Row cell is a position, not just content: the cells around it are
+    // laid out relative to it, so a blank one has to survive. This is what
+    // makes a deliberately empty middle cell expressible at all -- without
+    // it, "左==右" and "左=右" would parse identically.
+    test("an empty Row cell between two filled ones is kept as a position", () {
+      const input = "左==右";
+      final expected = ColumnNode(
+        children: [
+          RowNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "左")]),
+            ],
+          ),
+          RowNode(children: []),
+          RowNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "右")]),
+            ],
+          ),
+        ],
+      );
+
+      expect(parser.parse(input), expected);
+      expect(
+        parser.parse("左==右"),
+        isNot(parser.parse("左=右")),
+        reason: "an extra empty cell must change the result",
+      );
+    });
+
+    // The mirror of the case above: a Column block is content, so an empty
+    // one contributes no node at all rather than a blank entry.
+    test("an empty Column block contributes no node", () {
+      const input = "左||右";
+      final expected = ColumnNode(
+        children: [
+          TextNode(children: [TextSpanNode(text: "左")]),
+          TextNode(children: [TextSpanNode(text: "右")]),
+        ],
+      );
+
+      expect(parser.parse(input), expected);
+    });
   });
 
   group("Trailing separator edge cases (pinned current behavior)", () {

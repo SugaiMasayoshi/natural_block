@@ -36,6 +36,23 @@ class NaturalBlockParser {
     LayoutSymbol? previousSymbol;
     var hasPendingBlock = false;
 
+    // An empty block is treated differently depending on which kind it is,
+    // and the difference is deliberate rather than an artifact of `add` vs
+    // `addAll`:
+    //
+    // - A Column block is *content*. Nothing in it means nothing to show, so
+    //   it contributes no node at all (`左||右` yields two text nodes, not
+    //   three).
+    // - A Row cell is a *position*. The surrounding cells are laid out
+    //   relative to it, so the cell survives even when blank -- that is what
+    //   lets `左==右` mean "three cells, middle one empty". Dropping empty
+    //   cells would make `左=右` and `左==右` indistinguishable and leave no
+    //   way to write a deliberately blank cell.
+    //
+    // Note the RowNode is emitted empty (`children: []`) rather than holding
+    // a placeholder empty TextNode: "a cell exists with no content" is what
+    // the source actually says, whereas an empty TextNode would additionally
+    // claim the cell contains one blank line.
     void emitBlock(String text, LayoutSymbol? endedBy) {
       final contentNodes = _parseBlock(text);
       final belongsToRow =
