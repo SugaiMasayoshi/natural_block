@@ -1,5 +1,5 @@
-﻿export 'package:natural_block/node/node.dart';
-export 'package:natural_block/parser.dart';
-export 'package:natural_block/symbol/layout_symbol.dart';
-export 'package:natural_block/symbol/size_symbol.dart';
-export 'package:natural_block/symbol/semantic_symbol.dart';
+library;
+
+export 'src/node.dart';
+export 'src/parser/parser.dart';
+export 'src/semantic_color.dart';
