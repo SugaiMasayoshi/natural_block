@@ -67,7 +67,9 @@ void main() {
               children: [
                 ColumnNode(
                   children: [
-                    TextNode(children: [TextSpanNode(text: "10-20人がA+の評価、1+1")]),
+                    TextNode(
+                      children: [TextSpanNode(text: "10-20人がA+の評価、1+1")],
+                    ),
                   ],
                 ),
                 ColumnNode(
@@ -194,7 +196,9 @@ void main() {
               children: [
                 ColumnNode(
                   children: [
-                    TextNode(children: [TextSpanNode(text: "大きい", sizeOffset: 2)]),
+                    TextNode(
+                      children: [TextSpanNode(text: "大きい", sizeOffset: 2)],
+                    ),
                   ],
                 ),
                 ColumnNode(

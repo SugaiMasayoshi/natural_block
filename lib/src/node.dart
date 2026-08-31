@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 
+import 'block_align.dart';
 import 'semantic_color.dart';
 
 /// Deep, order-sensitive equality (and matching hash) for a node's
@@ -23,22 +24,29 @@ sealed class LayoutNode<T extends NaturalBlockNode> extends NaturalBlockNode {
 /// children can be any node -- including further layout nodes -- since
 /// columns are the outermost structure the parser always returns.
 class ColumnNode extends LayoutNode<NaturalBlockNode> {
-  ColumnNode({required super.children});
+  /// How this column's children are aligned horizontally, set by an
+  /// alignment marker (`<`, `^`, `>`) written immediately after the layout
+  /// separator that opened this block. Defaults to [BlockAlign.start] when
+  /// no marker was given.
+  final BlockAlign align;
+
+  ColumnNode({required super.children, this.align = BlockAlign.start});
   @override
   String toString() {
-    return 'ColumnNode(children: $children)';
+    return 'ColumnNode(children: $children, align: $align)';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is ColumnNode &&
+        align == other.align &&
         _childrenEquality.equals(children, other.children);
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, _childrenEquality.hash(children));
+      Object.hash(runtimeType, align, _childrenEquality.hash(children));
 }
 
 /// A horizontal arrangement, produced by the `=` separator.

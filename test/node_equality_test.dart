@@ -22,12 +22,20 @@ void main() {
     test("equal RowNodes have equal hashCode", () {
       final a = RowNode(
         children: [
-          ColumnNode(children: [TextNode(children: [TextSpanNode(text: "左")])]),
+          ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "左")]),
+            ],
+          ),
         ],
       );
       final b = RowNode(
         children: [
-          ColumnNode(children: [TextNode(children: [TextSpanNode(text: "左")])]),
+          ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "左")]),
+            ],
+          ),
         ],
       );
 
@@ -65,16 +73,21 @@ void main() {
       expect(a.hashCode, b.hashCode);
     });
 
-    test("a ColumnNode and a RowNode with identical children never compare equal", () {
-      final child = ColumnNode(
-        children: [TextNode(children: [TextSpanNode(text: "本文")])],
-      );
-      final column = ColumnNode(children: [child]);
-      final row = RowNode(children: [child]);
+    test(
+      "a ColumnNode and a RowNode with identical children never compare equal",
+      () {
+        final child = ColumnNode(
+          children: [
+            TextNode(children: [TextSpanNode(text: "本文")]),
+          ],
+        );
+        final column = ColumnNode(children: [child]);
+        final row = RowNode(children: [child]);
 
-      // ignore: unrelated_type_equality_checks
-      expect(column == row, isFalse);
-    });
+        // ignore: unrelated_type_equality_checks
+        expect(column == row, isFalse);
+      },
+    );
 
     test("differing in just one TextSpanNode field breaks equality", () {
       final base = TextSpanNode(

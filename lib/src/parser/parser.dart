@@ -1,3 +1,4 @@
+import '../block_align.dart';
 import '../node.dart';
 import 'decoration_parser.dart';
 import 'layout_symbol.dart';
@@ -30,11 +31,27 @@ class NaturalBlockParser {
   /// holding that cell's lines. The row is emitted as one node as soon as
   /// the run of `=`-joined cells ends, so `a=b|c=d` produces two RowNodes,
   /// not one four-cell row.
+  ///
+  /// An alignment marker -- `<` (start), `^` (center), or `>` (end) -- may
+  /// appear immediately after an unescaped `|` or `=`, configuring the
+  /// [BlockAlign] of the block that starts there. That position is the
+  /// entire trigger: anywhere else, `<`, `^`, and `>` are ordinary literal
+  /// text (essential, since `a > b`, `->`, `=>`, and `List<String>` are
+  /// everywhere in normal prose). The marker is only recognized right after
+  /// a separator that was itself recognized as markup, so an escaped
+  /// separator (`\=`) leaves a following `>` untouched as well, with no
+  /// special-case needed -- the scan loop simply never reaches the
+  /// marker-check when the separator itself was escaped. A row cell always
+  /// carries a [BlockAlign] (defaulting to [BlockAlign.start] when no
+  /// marker was given); a plain, non-row block is left as a bare list of
+  /// lines unless a marker was given, in which case it is wrapped in a
+  /// [ColumnNode] carrying that alignment.
   ColumnNode parse(String source) {
     final scanner = LiteralScanner(source.trim());
     final children = <NaturalBlockNode>[];
     var currentRow = <ColumnNode>[];
     var hasPendingBlock = false;
+    BlockAlign? pendingAlign;
 
     void flushRow() {
       if (currentRow.isNotEmpty) {
@@ -62,9 +79,15 @@ class NaturalBlockParser {
     // TextNode would additionally claim the cell contains one blank line.
     void emitBlock(String text, LayoutSymbol? endedBy) {
       final lines = _parseBlock(text);
+      final align = pendingAlign;
+      pendingAlign = null;
       if (currentRow.isNotEmpty || endedBy == LayoutSymbol.row) {
-        currentRow.add(ColumnNode(children: lines));
+        currentRow.add(
+          ColumnNode(children: lines, align: align ?? BlockAlign.start),
+        );
         if (endedBy != LayoutSymbol.row) flushRow();
+      } else if (align != null) {
+        children.add(ColumnNode(children: lines, align: align));
       } else {
         children.addAll(lines);
       }
@@ -80,6 +103,13 @@ class NaturalBlockParser {
       }
       emitBlock(scanner.consume(), symbol);
       hasPendingBlock = false;
+
+      final align = BlockAlign.byChar[scanner.peekNext];
+      if (align != null) {
+        scanner.readChar();
+        scanner.markConsumed();
+        pendingAlign = align;
+      }
     }
     if (hasPendingBlock) emitBlock(scanner.flushRemaining(), null);
     flushRow();
