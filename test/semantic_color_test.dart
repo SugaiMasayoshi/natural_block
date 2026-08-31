@@ -103,16 +103,20 @@ void main() {
         children: [
           RowNode(
             children: [
-              TextNode(
+              ColumnNode(
                 children: [
-                  TextSpanNode(text: "左は危険", color: SemanticColor.danger),
+                  TextNode(
+                    children: [
+                      TextSpanNode(text: "左は危険", color: SemanticColor.danger),
+                    ],
+                  ),
                 ],
               ),
-            ],
-          ),
-          RowNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "右は通常")]),
+              ColumnNode(
+                children: [
+                  TextNode(children: [TextSpanNode(text: "右は通常")]),
+                ],
+              ),
             ],
           ),
         ],
@@ -141,15 +145,19 @@ void main() {
           TextNode(children: [TextSpanNode(text: "補足事項", emphasis: true)]),
           RowNode(
             children: [
-              TextNode(children: [TextSpanNode(text: "エラーコード: 500")]),
-            ],
-          ),
-          RowNode(
-            children: [
-              TextNode(
+              ColumnNode(
                 children: [
-                  TextSpanNode(text: "解決策: "),
-                  TextSpanNode(text: "管理者へ連絡", color: SemanticColor.info),
+                  TextNode(children: [TextSpanNode(text: "エラーコード: 500")]),
+                ],
+              ),
+              ColumnNode(
+                children: [
+                  TextNode(
+                    children: [
+                      TextSpanNode(text: "解決策: "),
+                      TextSpanNode(text: "管理者へ連絡", color: SemanticColor.info),
+                    ],
+                  ),
                 ],
               ),
             ],

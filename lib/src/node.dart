@@ -18,7 +18,8 @@ sealed class LayoutNode<T extends NaturalBlockNode> extends NaturalBlockNode {
   LayoutNode({required this.children});
 }
 
-/// A vertical arrangement, produced by the `|` separator. A [ColumnNode]'s
+/// A vertical arrangement, produced by the `|` separator, and also used to
+/// hold the stacked lines of a single [RowNode] cell. A [ColumnNode]'s
 /// children can be any node -- including further layout nodes -- since
 /// columns are the outermost structure the parser always returns.
 class ColumnNode extends LayoutNode<NaturalBlockNode> {
@@ -40,13 +41,14 @@ class ColumnNode extends LayoutNode<NaturalBlockNode> {
       Object.hash(runtimeType, _childrenEquality.hash(children));
 }
 
-/// One cell of a horizontal arrangement, produced by the `=` separator.
+/// A horizontal arrangement, produced by the `=` separator.
 ///
-/// A [RowNode] holds only the content of a single cell -- the parser never
-/// emits one node holding an entire row's cells. Consecutive [RowNode]
-/// siblings in a parent's children list are what together form one visual
-/// row; grouping them back up is left to whatever consumes the tree.
-class RowNode extends LayoutNode<ContentNode> {
+/// A [RowNode] holds every cell of one visual row -- each child is a
+/// [ColumnNode] holding that cell's stacked lines (a cell with a single line
+/// is simply a one-child [ColumnNode]). The row boundary is therefore
+/// explicit structure: there is no convention of grouping sibling nodes back
+/// up to find where one row ends and the next begins.
+class RowNode extends LayoutNode<ColumnNode> {
   RowNode({required super.children});
   @override
   String toString() {

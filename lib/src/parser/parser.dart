@@ -25,16 +25,23 @@ class NaturalBlockParser {
   /// [TextNode], while still preserving genuine blank lines in the middle of
   /// a block.
   ///
-  /// The output convention for rows is important: the parser never emits a
-  /// single node that holds every cell of a row. Instead, it emits one
-  /// [RowNode] per cell, and it is *consecutive* [RowNode] siblings in the
-  /// resulting children list that together represent one visual row --
-  /// consumers are expected to group them back up when rendering.
+  /// The output shape for rows: a run of cells separated by `=` is collected
+  /// into a single [RowNode], with each cell wrapped in a [ColumnNode]
+  /// holding that cell's lines. The row is emitted as one node as soon as
+  /// the run of `=`-joined cells ends, so `a=b|c=d` produces two RowNodes,
+  /// not one four-cell row.
   ColumnNode parse(String source) {
     final scanner = LiteralScanner(source.trim());
     final children = <NaturalBlockNode>[];
-    LayoutSymbol? previousSymbol;
+    var currentRow = <ColumnNode>[];
     var hasPendingBlock = false;
+
+    void flushRow() {
+      if (currentRow.isNotEmpty) {
+        children.add(RowNode(children: currentRow));
+        currentRow = [];
+      }
+    }
 
     // An empty block is treated differently depending on which kind it is,
     // and the difference is deliberate rather than an artifact of `add` vs
@@ -49,20 +56,18 @@ class NaturalBlockParser {
     //   cells would make `左=右` and `左==右` indistinguishable and leave no
     //   way to write a deliberately blank cell.
     //
-    // Note the RowNode is emitted empty (`children: []`) rather than holding
-    // a placeholder empty TextNode: "a cell exists with no content" is what
-    // the source actually says, whereas an empty TextNode would additionally
-    // claim the cell contains one blank line.
+    // Note the cell is emitted as an empty ColumnNode (`children: []`)
+    // rather than holding a placeholder empty TextNode: "a cell exists with
+    // no content" is what the source actually says, whereas an empty
+    // TextNode would additionally claim the cell contains one blank line.
     void emitBlock(String text, LayoutSymbol? endedBy) {
-      final contentNodes = _parseBlock(text);
-      final belongsToRow =
-          previousSymbol == LayoutSymbol.row || endedBy == LayoutSymbol.row;
-      if (belongsToRow) {
-        children.add(RowNode(children: contentNodes));
+      final lines = _parseBlock(text);
+      if (currentRow.isNotEmpty || endedBy == LayoutSymbol.row) {
+        currentRow.add(ColumnNode(children: lines));
+        if (endedBy != LayoutSymbol.row) flushRow();
       } else {
-        children.addAll(contentNodes);
+        children.addAll(lines);
       }
-      previousSymbol = endedBy;
     }
 
     while (!scanner.isEnd) {
@@ -77,6 +82,7 @@ class NaturalBlockParser {
       hasPendingBlock = false;
     }
     if (hasPendingBlock) emitBlock(scanner.flushRemaining(), null);
+    flushRow();
 
     return ColumnNode(children: children);
   }

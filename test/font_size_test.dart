@@ -65,12 +65,16 @@ void main() {
           children: [
             RowNode(
               children: [
-                TextNode(children: [TextSpanNode(text: "10-20人がA+の評価、1+1")]),
-              ],
-            ),
-            RowNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "2も普通の文章")]),
+                ColumnNode(
+                  children: [
+                    TextNode(children: [TextSpanNode(text: "10-20人がA+の評価、1+1")]),
+                  ],
+                ),
+                ColumnNode(
+                  children: [
+                    TextNode(children: [TextSpanNode(text: "2も普通の文章")]),
+                  ],
+                ),
               ],
             ),
           ],
@@ -188,12 +192,18 @@ void main() {
           children: [
             RowNode(
               children: [
-                TextNode(children: [TextSpanNode(text: "大きい", sizeOffset: 2)]),
-              ],
-            ),
-            RowNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "右は標準", sizeOffset: 0)]),
+                ColumnNode(
+                  children: [
+                    TextNode(children: [TextSpanNode(text: "大きい", sizeOffset: 2)]),
+                  ],
+                ),
+                ColumnNode(
+                  children: [
+                    TextNode(
+                      children: [TextSpanNode(text: "右は標準", sizeOffset: 0)],
+                    ),
+                  ],
+                ),
               ],
             ),
           ],

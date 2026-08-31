@@ -42,12 +42,16 @@ void main() {
           children: [
             RowNode(
               children: [
-                TextNode(children: [TextSpanNode(text: "C++言語、1+1")]),
-              ],
-            ),
-            RowNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "2")]),
+                ColumnNode(
+                  children: [
+                    TextNode(children: [TextSpanNode(text: "C++言語、1+1")]),
+                  ],
+                ),
+                ColumnNode(
+                  children: [
+                    TextNode(children: [TextSpanNode(text: "2")]),
+                  ],
+                ),
               ],
             ),
           ],

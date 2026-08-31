@@ -21,10 +21,14 @@ void main() {
 
     test("equal RowNodes have equal hashCode", () {
       final a = RowNode(
-        children: [TextNode(children: [TextSpanNode(text: "左")])],
+        children: [
+          ColumnNode(children: [TextNode(children: [TextSpanNode(text: "左")])]),
+        ],
       );
       final b = RowNode(
-        children: [TextNode(children: [TextSpanNode(text: "左")])],
+        children: [
+          ColumnNode(children: [TextNode(children: [TextSpanNode(text: "左")])]),
+        ],
       );
 
       expect(a, b);
@@ -62,7 +66,9 @@ void main() {
     });
 
     test("a ColumnNode and a RowNode with identical children never compare equal", () {
-      final child = TextNode(children: [TextSpanNode(text: "本文")]);
+      final child = ColumnNode(
+        children: [TextNode(children: [TextSpanNode(text: "本文")])],
+      );
       final column = ColumnNode(children: [child]);
       final row = RowNode(children: [child]);
 
