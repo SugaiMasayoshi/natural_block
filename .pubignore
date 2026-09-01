@@ -1,0 +1,5 @@
+# Nothing here needs to reach a consumer of the package.
+tool/
+.dart_tool/
+.idea/
+*.iml

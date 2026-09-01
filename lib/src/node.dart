@@ -7,6 +7,7 @@
 // 【解説】   ├ BlockNode    … 文書に直接並べられるもの(sealed)
 // 【解説】   │   ├ TextNode  （1行）
 // 【解説】   │   ├ RowNode   （横並び。= が作る）
+// 【解説】   │   ├ TableNode （行の並び。|~ が宣言する）
 // 【解説】   │   └ ColumnNode（行の塊＋寄せ。| が作る。セルでもある）
 // 【解説】   └ TextSpanNode … 行の中の断片。ブロックにはなれない
 // 【解説】
@@ -51,7 +52,10 @@ sealed class NaturalBlockNode {}
 /// node kind, and an `align` field on the root that was never anything but
 /// its default.
 class DocumentNode extends NaturalBlockNode {
+  /// The blocks making up the document, in the order they were written.
   final List<BlockNode> children;
+
+  /// Creates a document holding [children].
   DocumentNode({this.children = const []});
 
   @override
@@ -87,7 +91,11 @@ sealed class BlockNode extends NaturalBlockNode {}
 /// explicit structure: there is no convention of grouping sibling nodes back
 /// up to find where one row ends and the next begins.
 class RowNode extends BlockNode {
+  /// The cells of this row, left to right; each holds that cell's stacked
+  /// lines.
   final List<ColumnNode> children;
+
+  /// Creates a row of [children] cells.
   RowNode({this.children = const []});
 
   @override
@@ -122,6 +130,9 @@ class RowNode extends BlockNode {
 /// a table, not of the text inside it, and the decoration syntax has no way
 /// to say them.
 class TableNode extends BlockNode {
+  /// The rows of the table, top to bottom. Every one holds the same number
+  /// of cells -- a row of a different width ends the table rather than
+  /// joining it.
   final List<RowNode> children;
 
   /// How the table as a whole is positioned, from an alignment character in
@@ -130,6 +141,7 @@ class TableNode extends BlockNode {
   /// so there is room around it to be positioned within.
   final BlockAlign align;
 
+  /// Creates a table of [children] rows, positioned by [align].
   TableNode({this.children = const [], this.align = BlockAlign.start});
 
   @override
@@ -160,6 +172,7 @@ class TableNode extends BlockNode {
 /// later decision to allow it a deliberate, visible change rather than
 /// something that silently was always possible.
 class ColumnNode extends BlockNode {
+  /// The lines of this block, top to bottom.
   final List<TextNode> children;
 
   /// How these lines are aligned horizontally, set by an alignment marker
@@ -168,6 +181,7 @@ class ColumnNode extends BlockNode {
   /// given.
   final BlockAlign align;
 
+  /// Creates a block of [children] lines, positioned by [align].
   ColumnNode({this.children = const [], this.align = BlockAlign.start});
 
   @override
@@ -189,7 +203,11 @@ class ColumnNode extends BlockNode {
 /// A single line of text, broken into one or more [TextSpanNode] children
 /// wherever its decoration state changes partway through.
 class TextNode extends BlockNode {
+  /// The runs making up this line, left to right. A line is split into more
+  /// than one wherever its decoration changes partway through.
   final List<TextSpanNode> children;
+
+  /// Creates a line made of [children] runs.
   TextNode({this.children = const []});
 
   @override
