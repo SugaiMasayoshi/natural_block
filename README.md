@@ -29,7 +29,13 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   Alignment markers combine with it in the same cluster (`|~^` is a centered table, meaningful because a table is sized to its content). Inside a table, each column takes its alignment from the first row, so `|~Item=>Price|` right-aligns the price column for every row without repeating the marker; a marker on an individual cell overrides just that cell.
 * **Escape characters**
-  Use `\` to escape the three symbols that are otherwise always active: `\|`, `\=`, and `\:` render as literal `|`, `=`, and `:`. A backslash before any other character (e.g. `\+`, `\!`) is *not* an escape sequence -- the backslash itself is kept in the output text.
+  Use `\` to escape the symbols that are otherwise always active: `\|`, `\=`, and `\:` render as literal `|`, `=`, and `:`, and `\\` renders as a literal `\`. A backslash before any other character (e.g. `\+`, `\!`) is *not* an escape sequence -- the backslash itself is kept in the output text.
+
+  Escaping the backslash is what makes it possible to put one immediately before a separator: `\\=` is a cell holding `\` followed by a real separator, where `\=` would just be a literal `=`.
+* **Filesystem paths need no escaping**
+  Because a backslash only escapes what would otherwise be markup, `C:\Users\you\a.png` comes through untouched. The one thing to know is that a doubled backslash collapses to one, so a UNC path has to be written `\\\\server` to come out as `\\server`.
+
+  Forward slashes avoid the question entirely and work on Windows too, so prefer `C:/Users/you/a.png`.
 
 ## Getting started
 
