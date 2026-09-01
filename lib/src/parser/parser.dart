@@ -4,7 +4,7 @@
 // 【解説】 各行を decoration_parser に渡すだけ。難しいのは「行」の組み立て方。
 // 【解説】
 // 【解説】 currentRow に = で繋がったセルを溜め、= の連なりが切れた瞬間に
-// 【解説】 flushRow() で1つの RowNode として吐き出す。だから a=b|c=d は|c=d は
+// 【解説】 flushRow() で1つの RowNode として吐き出す。だから a=b|c=d は
 // 【解説】 2つの RowNode になる(1つの4セル行にならない)。
 // 【解説】
 // 【解説】 emitBlock の上にある長いコメントが、この言語の設計の要。
@@ -15,11 +15,19 @@
 // 【解説】 寄せマーカー(< ^ >)は「記号として認識された | = の直後」でだけ読む。
 // 【解説】 だから \= のようにエスケープされた区切りの後ろの > は素通しになる。
 // 【解説】 特別扱いのコードは無く、ループがその地点に到達しないだけ、という作り。
-// 【解説】 → ここは今後 |~（表の宣言）を足すなら手を入れる場所でもある。
+// 【解説】
+// 【解説】 マーカーはクラスタとして読む。~ が表の開始/終了をトグルし、< ^ > は
+// 【解説】 開かれるブロックの寄せを決める。だから |~^ は「中央寄せの表」になる。
+// 【解説】 表の間は RowNode を tableRows に溜め、列数が変わる / 行以外が来る /
+// 【解説】 もう一度 |~ が来る / 入力が終わる のいずれかで TableNode にして吐く。
+// 【解説】 currentRowExplicit があるのは、寄せを「明示されたか」で区別するため。
+// 【解説】 明示されなかったセルだけが列の寄せを継承する(align だけでは
+// 【解説】 明示の < と既定値がどちらも start で区別できない)。
 // 【解説】 次: natural_block_flutter 側へ。lib/natural_block_flutter.dart
 
 import '../block_align.dart';
 import '../node.dart';
+import 'block_marker.dart';
 import 'decoration_parser.dart';
 import 'layout_symbol.dart';
 import 'literal_scanner.dart';
@@ -66,18 +74,97 @@ class NaturalBlockParser {
   /// marker was given); a plain, non-row block is left as a bare list of
   /// lines unless a marker was given, in which case it is wrapped in a
   /// [ColumnNode] carrying that alignment.
+  ///
+  /// Markers are read as a cluster, so one separator can carry more than
+  /// one: `~` ([BlockMarker.table]) declares that the block opening here is
+  /// a table and the run of rows that follows belongs to it, while an
+  /// alignment character says how that block sits -- `|~^` is a centered
+  /// table. Writing `~` again closes the table; the alignment in *that*
+  /// cluster belongs to the block being opened after it, not to the table
+  /// that just ended.
+  ///
+  /// A table also ends on its own at the first thing that cannot belong to
+  /// it: a row of a different cell count, anything that is not a row, or
+  /// the end of the source. An *empty* block is not such a thing -- it
+  /// contributes no node at all, so letting one close a table would make
+  /// `||` an invisible separator. Inside a table, a cell that carries no
+  /// alignment marker of its own inherits its column's alignment from the
+  /// first row, which is why the parser tracks whether each cell's
+  /// alignment was stated rather than defaulted.
   DocumentNode parse(String source) {
     final scanner = LiteralScanner(source.trim());
     final children = <BlockNode>[];
     var currentRow = <ColumnNode>[];
+    // Whether each cell of `currentRow` got its alignment from a marker of
+    // its own, as opposed to falling back to the default. Only a cell that
+    // said nothing inherits its column's alignment inside a table, so the
+    // two cases have to stay distinguishable -- `ColumnNode.align` alone
+    // cannot, since an explicit `<` and an unstated default are both
+    // `BlockAlign.start`.
+    var currentRowExplicit = <bool>[];
     var hasPendingBlock = false;
     BlockAlign? pendingAlign;
 
-    void flushRow() {
-      if (currentRow.isNotEmpty) {
-        children.add(RowNode(children: currentRow));
-        currentRow = [];
+    // Table state. `columnAligns` is set from the first row and then serves
+    // as both the alignment each column inherits and the cell count every
+    // later row must match to stay part of the table.
+    var inTable = false;
+    var tableAlign = BlockAlign.start;
+    var tableRows = <RowNode>[];
+    List<BlockAlign>? columnAligns;
+
+    void flushTable() {
+      if (tableRows.isNotEmpty) {
+        children.add(TableNode(children: tableRows, align: tableAlign));
+        tableRows = [];
       }
+      columnAligns = null;
+      tableAlign = BlockAlign.start;
+      inTable = false;
+    }
+
+    void flushRow() {
+      if (currentRow.isEmpty) return;
+      final cells = currentRow;
+      final explicit = currentRowExplicit;
+      currentRow = [];
+      currentRowExplicit = [];
+
+      if (!inTable) {
+        children.add(RowNode(children: cells));
+        return;
+      }
+
+      final aligns = columnAligns;
+      if (aligns == null) {
+        // The first row fixes the shape: how many columns the table has, and
+        // what each of them is aligned as by default.
+        columnAligns = [for (final cell in cells) cell.align];
+        tableRows.add(RowNode(children: cells));
+        return;
+      }
+
+      if (cells.length != aligns.length) {
+        // A row of a different width cannot be part of the same table --
+        // columns would have nothing to line up against, and the renderer's
+        // Table requires every row to have the same number of cells. So the
+        // table ends here and this row stands on its own.
+        flushTable();
+        children.add(RowNode(children: cells));
+        return;
+      }
+
+      tableRows.add(
+        RowNode(
+          children: [
+            for (var i = 0; i < cells.length; i++)
+              if (explicit[i])
+                cells[i]
+              else
+                ColumnNode(children: cells[i].children, align: aligns[i]),
+          ],
+        ),
+      );
     }
 
     // An empty block is treated differently depending on which kind it is,
@@ -105,10 +192,19 @@ class NaturalBlockParser {
         currentRow.add(
           ColumnNode(children: lines, align: align ?? BlockAlign.start),
         );
+        currentRowExplicit.add(align != null);
         if (endedBy != LayoutSymbol.row) flushRow();
       } else if (align != null) {
+        flushTable();
         children.add(ColumnNode(children: lines, align: align));
-      } else {
+      } else if (lines.isNotEmpty) {
+        // Anything that is not a row ends the table -- a TableNode holds
+        // rows, so there is nowhere for a paragraph to go inside one. The
+        // `isNotEmpty` guard keeps an *empty* block from doing that: an
+        // empty Column block contributes no node at all, so letting one end
+        // a table would mean an invisible separator, and `||` would silently
+        // split a table in two.
+        flushTable();
         children.addAll(lines);
       }
     }
@@ -132,15 +228,51 @@ class NaturalBlockParser {
       emitBlock(scanner.consume(), symbol);
       hasPendingBlock = false;
 
-      final align = BlockAlign.byChar[scanner.peekNext];
-      if (align != null) {
-        scanner.readChar();
-        scanner.markConsumed();
-        pendingAlign = align;
+      // Markers are read as a cluster, the same way decoration characters
+      // share one `:` -- `|~^` is a centered table. They describe different
+      // things about the one block the separator opens: `~` says what kind
+      // of block it is, an alignment character says how it sits.
+      BlockAlign? clusterAlign;
+      var tableToggles = 0;
+      while (true) {
+        final next = scanner.peekNext;
+        final markerAlign = BlockAlign.byChar[next];
+        if (markerAlign != null) {
+          scanner.readChar();
+          scanner.markConsumed();
+          clusterAlign = markerAlign;
+          continue;
+        }
+        // A table is a run of rows, so it can only be declared at a `|`.
+        // After a `=`, which separates cells within one row, `~` is
+        // ordinary text.
+        if (symbol == LayoutSymbol.column &&
+            BlockMarker.byChar[next] == BlockMarker.table) {
+          scanner.readChar();
+          scanner.markConsumed();
+          tableToggles += 1;
+          continue;
+        }
+        break;
+      }
+
+      if (tableToggles.isOdd) {
+        if (inTable) {
+          // Closing: the alignment belongs to the block being opened after
+          // the table, not to the table that just ended.
+          flushTable();
+          pendingAlign = clusterAlign;
+        } else {
+          inTable = true;
+          tableAlign = clusterAlign ?? BlockAlign.start;
+        }
+      } else {
+        pendingAlign = clusterAlign;
       }
     }
     if (hasPendingBlock) emitBlock(scanner.flushRemaining(), null);
     flushRow();
+    flushTable();
 
     return DocumentNode(children: children);
   }

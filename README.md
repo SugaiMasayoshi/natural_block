@@ -22,6 +22,12 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   None of them resets another. A size change survives a following color/emphasis symbol and vice versa; only a layout symbol (`|` or `=`) resets everything.
 * **Bare punctuation is always literal -- no escaping needed**
   A `+`, `-`, `!`, `%`, `?`, or `*` with no `:` immediately before it is always ordinary text. This is the whole point of the `:` prefix: everyday prose like `C++`, `10-20`, `100%`, `well-known`, or `Really?!` renders completely unchanged, in both Japanese and English, with zero escaping.
+* **Tables (`|~`)**
+  Writing `~` immediately after a `|` declares that the rows which follow are a table, and writing `|~` again closes it. A table's columns are as wide as their content and line up across every row; plain rows, by contrast, split the available width evenly. That difference is why a table has to be *declared* rather than inferred -- `Left==Right` is three cells with an empty middle, written that way to push `Right` to the far edge, and it only does that because plain rows divide the width.
+
+  A table also ends on its own at the first thing that cannot belong to it: a row with a different number of cells, anything that is not a row, or the end of the document. The explicit `|~` is for the one case those cannot cover -- more rows of the same shape that are not part of the table.
+
+  Alignment markers combine with it in the same cluster (`|~^` is a centered table, meaningful because a table is sized to its content). Inside a table, each column takes its alignment from the first row, so `|~Item=>Price|` right-aligns the price column for every row without repeating the marker; a marker on an individual cell overrides just that cell.
 * **Escape characters**
   Use `\` to escape the three symbols that are otherwise always active: `\|`, `\=`, and `\:` render as literal `|`, `=`, and `:`. A backslash before any other character (e.g. `\+`, `\!`) is *not* an escape sequence -- the backslash itself is kept in the output text.
 
