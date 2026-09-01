@@ -173,6 +173,83 @@ void main() {
       );
     });
 
+    group("Escaping a decoration character inside a cluster", () {
+      // A decoration character is markup only while a cluster is open, so
+      // that is exactly where a backslash in front of one has work to do.
+      // Without it there is no way to butt literal text starting with a
+      // decoration character right up against a cluster -- a space would be
+      // the only separator, and a space is often not what you want.
+      test(
+        "an escaped decoration character ends the cluster and stays literal",
+        () {
+          const input = r":+++100:---\%off";
+          final expected = ColumnNode(
+            children: [
+              TextNode(
+                children: [
+                  TextSpanNode(text: "100", sizeOffset: 3),
+                  TextSpanNode(text: "%off"),
+                ],
+              ),
+            ],
+          );
+
+          expect(parser.parse(input), expected);
+        },
+      );
+
+      test("one backslash is enough, since the cluster is over after it", () {
+        const input = r":---\%%%off";
+        final expected = ColumnNode(
+          children: [
+            TextNode(children: [TextSpanNode(text: "%%%off", sizeOffset: -3)]),
+          ],
+        );
+
+        expect(parser.parse(input), expected);
+      });
+
+      test("a backslash before a non-decoration character is left alone", () {
+        // Nothing needed escaping, so the backslash is ordinary text -- the
+        // same reason a Windows path survives untouched.
+        const input = r":---\abc";
+        final expected = ColumnNode(
+          children: [
+            TextNode(children: [TextSpanNode(text: r"\abc", sizeOffset: -3)]),
+          ],
+        );
+
+        expect(parser.parse(input), expected);
+      });
+
+      test(
+        "a bare decoration character outside a cluster still needs no escape",
+        () {
+          // Escaping only engages where the character is actually markup, so
+          // this is unchanged: the backslash stays in the output.
+          const input = r"100\%off";
+          final expected = ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: r"100\%off")]),
+            ],
+          );
+
+          expect(parser.parse(input), expected);
+        },
+      );
+
+      test("a Windows path keeps every backslash", () {
+        const input = r"C:\Users\sugai";
+        final expected = ColumnNode(
+          children: [
+            TextNode(children: [TextSpanNode(text: r"C:\Users\sugai")]),
+          ],
+        );
+
+        expect(parser.parse(input), expected);
+      });
+    });
+
     group("Escaping inside a decoration block", () {
       test(
         "an escaped :! symbol inside a decoration block does not close it",

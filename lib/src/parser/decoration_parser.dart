@@ -72,6 +72,29 @@ TextNode parseDecoratedLine(String lineText) {
     final char = scanner.readChar();
 
     if (inCluster) {
+      // Inside a cluster the decoration characters are live, so a backslash
+      // in front of one escapes it -- the mirror of `\:` outside a cluster,
+      // where `:` is the character that would otherwise be markup. Ending
+      // the cluster is what makes the escape work: past it every decoration
+      // character is ordinary text again, so `:---\%%%` needs the one
+      // backslash rather than one per character.
+      //
+      // The `peekNext` check keeps this from eating backslashes it has no
+      // business eating: a `\` before something that was never markup (as
+      // in a Windows path) stays put, exactly as it does outside a cluster.
+      //
+      // `\:` is deliberately excluded. A `:` is markup on both sides of a
+      // cluster boundary, and the escape below already handles it -- the
+      // cluster ends at the backslash either way, so by the time the `:`
+      // is read the ordinary path takes over. Intercepting it here would
+      // mean the same backslash gets dropped twice.
+      if (char == r'\' &&
+          scanner.peekNext != ':' &&
+          DecorationAction.byChar.containsKey(scanner.peekNext)) {
+        inCluster = false;
+        scanner.markConsumed();
+        continue;
+      }
       if (DecorationAction.byChar.containsKey(char)) {
         apply(char);
       } else {
