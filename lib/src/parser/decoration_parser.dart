@@ -26,6 +26,7 @@
 import '../node.dart';
 import '../semantic_color.dart';
 import 'decoration_action.dart';
+import 'layout_symbol.dart';
 import 'literal_scanner.dart';
 
 /// Parses a single line for `:`-led decoration clusters (e.g. `:!`, `:+++`,
@@ -109,9 +110,22 @@ TextNode parseDecoratedLine(String lineText) {
   /// `+`, `!`, `%`... is ordinary text there, which is the whole point of
   /// the `:` prefix). A backslash before anything else is just a backslash,
   /// so a Windows path like `C:\Users` survives untouched.
-  bool escapesNext() => inCluster
-      ? DecorationAction.byChar.containsKey(scanner.peekNext)
-      : scanner.peekNext == ':';
+  bool escapesNext() {
+    final next = scanner.peekNext;
+    // A backslash escapes itself, which is the only way to write a literal
+    // backslash immediately before something that would otherwise be
+    // markup -- `\\=` is a cell holding `\`, followed by a real separator,
+    // where a lone `\=` would just be a literal `=`.
+    if (next == r'\') return true;
+    // The layout separators reach this function still carrying their
+    // backslash: the layout scan uses it to decide not to split there, but
+    // leaves the pair intact so that this -- the single place that resolves
+    // escapes -- is what actually removes it.
+    if (LayoutSymbol.byChar.containsKey(next)) return true;
+    return inCluster
+        ? DecorationAction.byChar.containsKey(next)
+        : next == ':';
+  }
 
   while (!scanner.isEnd) {
     final char = scanner.readChar();

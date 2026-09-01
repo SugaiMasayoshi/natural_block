@@ -213,12 +213,21 @@ class NaturalBlockParser {
       hasPendingBlock = true;
       final char = scanner.readChar();
 
-      // The same escape rule the decoration parser uses, with this level's
-      // own notion of what counts as markup: `|` and `=`. Drop the
-      // backslash, then read the separator it escapes so it joins the
-      // literal run instead of splitting a block.
-      if (char == r'\' && LayoutSymbol.byChar.containsKey(scanner.peekNext)) {
-        scanner.dropCurrentChar();
+      // An escaped separator must not split a block -- but the backslash is
+      // deliberately *kept* here rather than dropped, and both characters
+      // are handed on as literal text.
+      //
+      // Escapes are resolved in exactly one place, [parseDecoratedLine],
+      // which sees every character of every block. Dropping backslashes
+      // here as well would mean two passes both rewriting the same text:
+      // `\\` would be collapsed to `\` at this level, and the lone
+      // backslash left behind would then be read as an escape again by the
+      // next pass, silently eating whatever followed it. Deciding
+      // boundaries here and resolving escapes there keeps each character
+      // rewritten at most once.
+      if (char == r'\' &&
+          (LayoutSymbol.byChar.containsKey(scanner.peekNext) ||
+              scanner.peekNext == r'\')) {
         scanner.readChar();
         continue;
       }

@@ -285,5 +285,90 @@ void main() {
         expect(nodes, expected);
       });
     });
+
+    group("Escaping the backslash itself", () {
+      // Built up from a named single backslash rather than written inline:
+      // these tests are entirely about *how many* backslashes there are,
+      // and a string literal full of them is exactly where a miscount hides.
+      const bs = r'\';
+
+      TextNode line(String text) =>
+          TextNode(children: [TextSpanNode(text: text)]);
+      ColumnNode cell(String text) => ColumnNode(children: [line(text)]);
+
+      test("`\\\\` before a separator is a literal backslash, and the "
+          "separator still separates", () {
+        // The case this rule exists for: without it there is no way to end a
+        // cell with a backslash, because `\\=` escapes the separator and
+        // yields one cell holding `=` instead of two cells split after `\`.
+        expect(
+          parser.parse('$bs$bs=B'),
+          DocumentNode(
+            children: [
+              RowNode(children: [cell(bs), cell('B')]),
+            ],
+          ),
+        );
+      });
+
+      test("the same holds for a Column separator", () {
+        expect(
+          parser.parse('$bs$bs|B'),
+          DocumentNode(children: [line(bs), line('B')]),
+        );
+      });
+
+      test("a single `\\` before a separator still escapes it", () {
+        expect(parser.parse('$bs=B'), DocumentNode(children: [line('=B')]));
+      });
+
+      test("three backslashes are a literal one plus an escaped separator", () {
+        expect(
+          parser.parse('$bs$bs$bs=B'),
+          DocumentNode(children: [line('$bs=B')]),
+        );
+      });
+
+      test("a literal backslash survives in front of a decoration cluster", () {
+        // Resolving escapes in one place is what makes this work: were the
+        // layout scan to collapse `\\` too, the lone backslash it left
+        // behind would be read as an escape again here and swallow the `:`.
+        final spans = (parser.parse('$bs$bs:*x').children.single as TextNode)
+            .children;
+
+        expect(spans.first.text, bs);
+        expect(spans.first.emphasis, isFalse);
+        expect(spans.last.text, 'x');
+        expect(spans.last.emphasis, isTrue);
+      });
+
+      test("a backslash before an ordinary character is still kept", () {
+        // Unchanged, and the reason Windows paths need no escaping at all.
+        expect(
+          parser.parse('C:${bs}Users${bs}sugai'),
+          DocumentNode(children: [line('C:${bs}Users${bs}sugai')]),
+        );
+        expect(parser.parse('$bs!'), DocumentNode(children: [line('$bs!')]));
+      });
+
+      test("a lone trailing backslash is literal", () {
+        expect(parser.parse(bs), DocumentNode(children: [line(bs)]));
+      });
+
+      test("a doubled backslash collapses even away from any markup", () {
+        // The accepted cost of making `\` escapable: a UNC-style `\\server`
+        // now reads as `\server`. Escaping one backslash is the price of
+        // being able to write one before a separator at all.
+        expect(parser.parse('A$bs${bs}B'), DocumentNode(children: [line('A${bs}B')]));
+      });
+
+      test("it works inside a table cell too", () {
+        final table = parser.parse('|~x=y|$bs$bs=z|').children.single
+            as TableNode;
+
+        expect(table.children[1].children.first, cell(bs));
+        expect(table.children[1].children.last, cell('z'));
+      });
+    });
   });
 }
