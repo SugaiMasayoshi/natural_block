@@ -9,9 +9,14 @@
 // 【解説】 エスケープが無ければ _buffer は作られず、substring 一発で済む。
 // 【解説】
 // 【解説】 呼び分けの使い分けが読みどころ:
-// 【解説】   何も呼ばない … 普通の文字(既にリテラルの一部なので何もしなくてよい)
-// 【解説】   markConsumed … 記号だったが、手前に吐き出すリテラルが無い場合
-// 【解説】   consume      … 記号で、手前のリテラルを1つの塊として取り出したい場合
+// 【解説】   何も呼ばない   … 普通の文字(既にリテラルの一部なので何もしなくてよい)
+// 【解説】   markConsumed   … 記号だったが、手前に吐き出すリテラルが無い場合
+// 【解説】   consume        … 記号で、手前のリテラルを1つの塊として取り出したい場合
+// 【解説】   dropCurrentChar… 今読んだ文字だけを無かったことにする(エスケープの \)
+// 【解説】
+// 【解説】 以前は lastWasEscaped(1つ戻って \ か見る) と dropPrecedingChar が
+// 【解説】 あったが、パーサ側を前向き判定に統一したので不要になり、
+// 【解説】 dropCurrentChar 1つに置き換わった。
 // 【解説】 次: lib/src/parser/decoration_parser.dart（このスキャナの最初の利用者）
 
 /// A character-by-character cursor over [source] that accumulates literal
@@ -45,21 +50,14 @@ class LiteralScanner {
     return char;
   }
 
-  /// Whether the character just read (via [readChar]) was itself preceded
-  /// by a backslash. Assumes `\` is never itself markup -- if it ever
-  /// became one, this check would need to also confirm the backslash
-  /// wasn't consumed as that.
-  bool get lastWasEscaped => _position >= 2 && source[_position - 2] == r'\';
-
-  /// Drops the single character right before the one just read (e.g. an
-  /// escaping backslash), keeping the character just read -- and
-  /// everything after it -- as literal text. Only valid right after
-  /// [lastWasEscaped] is true, which guarantees a preceding character
-  /// exists.
-  void dropPrecedingChar() {
-    assert(_position >= 2);
-    _bufferUpTo(_position - 2);
-    _textStart = _position - 1;
+  /// Drops the character just read (via [readChar]) from the literal run,
+  /// keeping everything before and after it. Used for an escaping backslash:
+  /// the caller reads the `\`, decides from [peekNext] that it escapes what
+  /// follows, drops it with this, and reads the escaped character normally
+  /// so it lands in the literal run as ordinary text.
+  void dropCurrentChar() {
+    _bufferUpTo(_position - 1);
+    _textStart = _position;
   }
 
   /// Ensures [_buffer] exists and has the literal text from [_textStart]

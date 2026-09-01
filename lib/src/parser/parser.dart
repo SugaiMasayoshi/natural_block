@@ -115,12 +115,20 @@ class NaturalBlockParser {
 
     while (!scanner.isEnd) {
       hasPendingBlock = true;
-      final symbol = LayoutSymbol.byChar[scanner.readChar()];
-      if (symbol == null) continue;
-      if (scanner.lastWasEscaped) {
-        scanner.dropPrecedingChar();
+      final char = scanner.readChar();
+
+      // The same escape rule the decoration parser uses, with this level's
+      // own notion of what counts as markup: `|` and `=`. Drop the
+      // backslash, then read the separator it escapes so it joins the
+      // literal run instead of splitting a block.
+      if (char == r'\' && LayoutSymbol.byChar.containsKey(scanner.peekNext)) {
+        scanner.dropCurrentChar();
+        scanner.readChar();
         continue;
       }
+
+      final symbol = LayoutSymbol.byChar[char];
+      if (symbol == null) continue;
       emitBlock(scanner.consume(), symbol);
       hasPendingBlock = false;
 

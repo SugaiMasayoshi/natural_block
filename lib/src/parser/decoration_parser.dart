@@ -8,9 +8,20 @@
 // 【解説】 サイズだけが加算(+1/-1)で、色・強調・アクションはトグルなのに注意。
 // 【解説】 :: (reset) は色・強調・アクションを消すがサイズは消さない。軸が独立。
 // 【解説】
-// 【解説】 一番ややこしいのは while ループ内のエスケープ処理。
-// 【解説】 実装より先に、なぜ3つの条件が要るのかを下の inline【解説】で追うとよい。
-// 【解説】 次: lib/src/parser/parser.dart
+// 【解説】 while ループは特例なしの3規則だけで、上から順に読める:
+// 【解説】   1. \ が記号を打ち消すなら、\ を捨てて次の文字を文字として読む
+// 【解説】   2. クラスタ内なら、装飾文字は適用、それ以外で抜ける
+// 【解説】   3. クラスタ外なら、: の次が装飾文字のときだけクラスタに入る
+// 【解説】
+// 【解説】 以前はエスケープの判定が2方式に分かれていた。\ の時点で先読みする
+// 【解説】 前向きと、: の時点で1つ戻って見る後ろ向きが混在し、同じ \ に両方が
+// 【解説】 発火するのを止めるためだけの peekNext != ':' という特例が要った。
+// 【解説】 今は「\ の時点で、次が記号かどうかだけ見る」の一方式に統一してある。
+// 【解説】
+// 【解説】 何が記号かは escapesNext() の1箇所だけが知っていて、クラスタ内なら
+// 【解説】 装飾文字、外なら : と答える。装飾文字を増やしても byChar に足すだけで
+// 【解説】 エスケープが自動的に追従する。
+// 【解説】 次: lib/src/parser/parser.dart（同じ書き方が | と = に対して出てくる）
 
 import '../node.dart';
 import '../semantic_color.dart';
@@ -88,41 +99,39 @@ TextNode parseDecoratedLine(String lineText) {
     scanner.markConsumed();
   }
 
+  /// Whether a backslash immediately before [next] is an escape rather than
+  /// an ordinary backslash -- that is, whether [next] would be markup here
+  /// if left alone.
+  ///
+  /// Which characters those are is exactly what differs between the two
+  /// states, and it is the only thing that differs: inside a cluster every
+  /// decoration character is live, while outside one only `:` is (a bare
+  /// `+`, `!`, `%`... is ordinary text there, which is the whole point of
+  /// the `:` prefix). A backslash before anything else is just a backslash,
+  /// so a Windows path like `C:\Users` survives untouched.
+  bool escapesNext() => inCluster
+      ? DecorationAction.byChar.containsKey(scanner.peekNext)
+      : scanner.peekNext == ':';
+
   while (!scanner.isEnd) {
     final char = scanner.readChar();
 
+    // One escape rule, checked at the backslash itself, for both states.
+    // Drop the backslash, then read the character it escapes so it joins
+    // the literal run as ordinary text -- reading it here is what stops it
+    // being re-examined as markup on the next turn of the loop.
+    //
+    // Leaving the cluster is what lets one backslash cover a whole run:
+    // past it every decoration character is ordinary text again, so
+    // `:---\%%%` needs one backslash rather than one per character.
+    if (char == r'\' && escapesNext()) {
+      scanner.dropCurrentChar();
+      scanner.readChar();
+      inCluster = false;
+      continue;
+    }
+
     if (inCluster) {
-      // Inside a cluster the decoration characters are live, so a backslash
-      // in front of one escapes it -- the mirror of `\:` outside a cluster,
-      // where `:` is the character that would otherwise be markup. Ending
-      // the cluster is what makes the escape work: past it every decoration
-      // character is ordinary text again, so `:---\%%%` needs the one
-      // backslash rather than one per character.
-      //
-      // The `peekNext` check keeps this from eating backslashes it has no
-      // business eating: a `\` before something that was never markup (as
-      // in a Windows path) stays put, exactly as it does outside a cluster.
-      //
-      // `\:` is deliberately excluded. A `:` is markup on both sides of a
-      // cluster boundary, and the escape below already handles it -- the
-      // cluster ends at the backslash either way, so by the time the `:`
-      // is read the ordinary path takes over. Intercepting it here would
-      // mean the same backslash gets dropped twice.
-      // 【解説】 3つの条件が全部必要な理由。1つでも欠けると壊れる:
-      // 【解説】  char == '\'      … これがエスケープの合図
-      // 【解説】  peekNext != ':'  … 無いと \: が二重処理される。クラスタはここで
-      // 【解説】                      終わり、下の通常経路でも \: が処理されるため
-      // 【解説】  次が装飾文字     … 無いと C:\Users\sugai の \ まで食べてしまい
-      // 【解説】                      C:Userssugai になる(実際に一度そうなった)
-      // 【解説】 解決したい例は :+++100:---\%off。\ でクラスタを抜けるので、以降の
-      // 【解説】 装飾文字は全部ただの文字に戻る。だから %off の % 1つに \ を1つで済む。
-      if (char == r'\' &&
-          scanner.peekNext != ':' &&
-          DecorationAction.byChar.containsKey(scanner.peekNext)) {
-        inCluster = false;
-        scanner.markConsumed();
-        continue;
-      }
       if (DecorationAction.byChar.containsKey(char)) {
         apply(char);
       } else {
@@ -131,17 +140,10 @@ TextNode parseDecoratedLine(String lineText) {
       continue;
     }
 
-    if (char != ':') continue;
-
-    if (scanner.lastWasEscaped) {
-      scanner.dropPrecedingChar();
-      continue;
+    if (char == ':' && DecorationAction.byChar.containsKey(scanner.peekNext)) {
+      flushSpan(scanner.consume());
+      inCluster = true;
     }
-
-    if (!DecorationAction.byChar.containsKey(scanner.peekNext)) continue;
-
-    flushSpan(scanner.consume());
-    inCluster = true;
   }
   flushSpan(scanner.flushRemaining());
 
