@@ -10,6 +10,7 @@ enum DecorationAction {
   success('%'),
   info('?'),
   emphasis('*'),
+  action('@'),
   reset(':');
 
   final String char;

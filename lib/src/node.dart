@@ -99,16 +99,28 @@ class TextSpanNode extends ContentNode {
   /// Whether emphasis (`:*`) is active for this run.
   final bool emphasis;
 
+  /// Whether this run is actionable (`:@`) -- something the reader can tap.
+  ///
+  /// The parser records only *that* the run is actionable, never what
+  /// tapping it should do: that decision belongs entirely to the consuming
+  /// app (open a URL, jump to a section, open a mention, run a command...).
+  /// The tapped payload is simply this run's own [text] -- there is no
+  /// separate target field, deliberately, the same way [color] records a
+  /// semantic meaning like [SemanticColor.danger] and leaves it to the
+  /// theme to decide what red means.
+  final bool isAction;
+
   TextSpanNode({
     required this.text,
     this.sizeOffset = 0,
     this.color = SemanticColor.none,
     this.emphasis = false,
+    this.isAction = false,
   });
 
   @override
   String toString() {
-    return 'TextSpanNode(text: $text, sizeOffset: $sizeOffset, color: $color, emphasis: $emphasis)';
+    return 'TextSpanNode(text: $text, sizeOffset: $sizeOffset, color: $color, emphasis: $emphasis, isAction: $isAction)';
   }
 
   @override
@@ -118,11 +130,13 @@ class TextSpanNode extends ContentNode {
         text == other.text &&
         sizeOffset == other.sizeOffset &&
         color == other.color &&
-        emphasis == other.emphasis;
+        emphasis == other.emphasis &&
+        isAction == other.isAction;
   }
 
   @override
-  int get hashCode => Object.hash(text, sizeOffset, color, emphasis);
+  int get hashCode =>
+      Object.hash(text, sizeOffset, color, emphasis, isAction);
 }
 
 /// A single line of text, broken into one or more [TextSpanNode] children

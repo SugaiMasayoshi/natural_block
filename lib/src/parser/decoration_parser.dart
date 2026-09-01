@@ -7,16 +7,17 @@ import 'literal_scanner.dart';
 /// or the combined `:!*`), applying each character in a cluster in order.
 /// A cluster keeps extending for as long as the next character is a
 /// recognized decoration character (including a further `:`, which resets
-/// color/emphasis -- `::` is just a cluster whose only character is that
-/// reset). Size, color, and emphasis are otherwise independent axes -- no
-/// symbol resets another -- and color/emphasis can each also be closed by
-/// repeating the symbol that opened it.
+/// color/emphasis/action -- `::` is just a cluster whose only character is
+/// that reset). Size, color, emphasis, and action are otherwise independent
+/// axes -- no symbol resets another -- and color/emphasis/action can each
+/// also be closed by repeating the symbol that opened it.
 ///
-/// A bare `+`, `-`, `!`, `%`, `?`, or `*` with no `:` right before it is
+/// A bare `+`, `-`, `!`, `%`, `?`, `*`, or `@` with no `:` right before it is
 /// always just a literal character -- these are extremely common in
 /// ordinary prose (hyphenated words, numeric ranges, exclamations,
-/// percentages...) in both Japanese and English, and the `:` prefix is what
-/// makes markup unambiguous without needing to guess from context.
+/// percentages, email addresses/mentions...) in both Japanese and English,
+/// and the `:` prefix is what makes markup unambiguous without needing to
+/// guess from context.
 TextNode parseDecoratedLine(String lineText) {
   final scanner = LiteralScanner(lineText);
   final spans = <TextSpanNode>[];
@@ -24,6 +25,7 @@ TextNode parseDecoratedLine(String lineText) {
   var sizeOffset = 0;
   var color = SemanticColor.none;
   var emphasis = false;
+  var isAction = false;
   var inCluster = false;
 
   void flushSpan(String text) {
@@ -34,6 +36,7 @@ TextNode parseDecoratedLine(String lineText) {
           sizeOffset: sizeOffset,
           color: color,
           emphasis: emphasis,
+          isAction: isAction,
         ),
       );
     }
@@ -61,9 +64,12 @@ TextNode parseDecoratedLine(String lineText) {
             : SemanticColor.info;
       case DecorationAction.emphasis:
         emphasis = !emphasis;
+      case DecorationAction.action:
+        isAction = !isAction;
       case DecorationAction.reset:
         color = SemanticColor.none;
         emphasis = false;
+        isAction = false;
     }
     scanner.markConsumed();
   }
