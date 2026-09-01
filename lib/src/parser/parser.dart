@@ -23,6 +23,13 @@
 // 【解説】 currentRowExplicit があるのは、寄せを「明示されたか」で区別するため。
 // 【解説】 明示されなかったセルだけが列の寄せを継承する(align だけでは
 // 【解説】 明示の < と既定値がどちらも start で区別できない)。
+// 【解説】
+// 【解説】 parse は static で、クラスは abstract final。状態を持たないのに
+// 【解説】 インスタンスを作らせる形をやめた(NaturalBlockImages と同じ形)。
+// 【解説】 入口で CRLF を LF に正規化しているのも要点。しないと「開き記号を
+// 【解説】 単独行に置ける」規則が Windows で書かれた文書に効かなくなる。
+// 【解説】 前後の空白を削るのに trim() を使っていないのは、全角スペースを
+// 【解説】 消さないため。日本語の字下げを壊さないという判断。
 // 【解説】 次: natural_block_flutter 側へ。lib/natural_block_flutter.dart
 
 import '../block_align.dart';
@@ -37,8 +44,14 @@ import 'literal_scanner.dart';
 /// This is the package's main entry point: it drives the top-level layout
 /// scan (splitting on `|` and `=`) and delegates each resulting line to
 /// [parseDecoratedLine] for inline decoration parsing.
-class NaturalBlockParser {
-  NaturalBlockParser();
+abstract final class NaturalBlockParser {
+  /// Characters stripped from either end of a source before parsing.
+  ///
+  /// Deliberately *not* `String.trim`, which strips every Unicode space --
+  /// including U+3000, the ideographic space Japanese prose indents with,
+  /// and which this language explicitly means to carry unharmed. Only the
+  /// ASCII whitespace that surrounds a document by accident is removed.
+  static final RegExp _surroundingWhitespace = RegExp(r'^[ \t\r\n]+|[ \t\r\n]+$');
 
   /// Parses [source] into a [DocumentNode] tree.
   ///
@@ -87,12 +100,29 @@ class NaturalBlockParser {
   /// it: a row of a different cell count, anything that is not a row, or
   /// the end of the source. An *empty* block is not such a thing -- it
   /// contributes no node at all, so letting one close a table would make
-  /// `||` an invisible separator. Inside a table, a cell that carries no
+  /// `||` an invisible separator.
+  ///
+  /// Because `~` toggles, a `|~` written *after* something already ended
+  /// the table opens a new one rather than closing anything. That is the
+  /// right reading for the document people write -- "table, note, table"
+  /// wants the second `|~` to start a second table, and it does -- and it
+  /// is the same property the decoration symbols have, where `:!` turns
+  /// danger on when it is already off. A table that is never given a row
+  /// contributes no node, so a redundant close is harmless on its own. Inside a table, a cell that carries no
   /// alignment marker of its own inherits its column's alignment from the
   /// first row, which is why the parser tracks whether each cell's
   /// alignment was stated rather than defaulted.
-  DocumentNode parse(String source) {
-    final scanner = LiteralScanner(source.trim());
+  static DocumentNode parse(String source) {
+    // CRLF is normalized before anything looks at the text. `_parseBlock`
+    // splits on `\n` and then compares lines against `''` to drop a single
+    // blank one at each end -- the rule that lets a block's opening symbol
+    // sit on its own line. Under CRLF that leading line is `'\r'`, not
+    // `''`, so the rule silently stops applying and every line keeps a
+    // trailing `\r`. Any document written by a Windows editor is affected.
+    final normalized = source
+        .replaceAll('\r\n', '\n')
+        .replaceAll(_surroundingWhitespace, '');
+    final scanner = LiteralScanner(normalized);
     final children = <BlockNode>[];
     var currentRow = <ColumnNode>[];
     // Whether each cell of `currentRow` got its alignment from a marker of
@@ -194,16 +224,23 @@ class NaturalBlockParser {
         );
         currentRowExplicit.add(align != null);
         if (endedBy != LayoutSymbol.row) flushRow();
+      } else if (lines.isEmpty) {
+        // An empty Column block contributes no node at all, and a marker
+        // does not change that: there is nothing inside to be aligned.
+        // Without this, `a||b` gave two nodes but `a|>|b` gave three, the
+        // middle one an empty ColumnNode -- contradicting the rule stated
+        // just above. Note this branch comes first so it also keeps an
+        // empty block from ending a table (see the next branch).
       } else if (align != null) {
         flushTable();
         children.add(ColumnNode(children: lines, align: align));
-      } else if (lines.isNotEmpty) {
+      } else {
         // Anything that is not a row ends the table -- a TableNode holds
-        // rows, so there is nowhere for a paragraph to go inside one. The
-        // `isNotEmpty` guard keeps an *empty* block from doing that: an
-        // empty Column block contributes no node at all, so letting one end
-        // a table would mean an invisible separator, and `||` would silently
-        // split a table in two.
+        // rows, so there is nowhere for a paragraph to go inside one.
+        // Reaching here means the block has content: an empty one was
+        // already handled above, which is what keeps it from ending a
+        // table. Otherwise `||` would be an invisible separator, silently
+        // splitting a table in two on something the AST does not record.
         flushTable();
         children.addAll(lines);
       }
@@ -286,7 +323,7 @@ class NaturalBlockParser {
     return DocumentNode(children: children);
   }
 
-  List<TextNode> _parseBlock(String blockText) {
+  static List<TextNode> _parseBlock(String blockText) {
     final lines = blockText.split('\n');
 
     if (lines.firstOrNull == '') lines.removeAt(0);

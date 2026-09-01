@@ -2,7 +2,6 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final parser = NaturalBlockParser();
 
   group("actionable text (:@)", () {
     test("toggles on and off", () {
@@ -18,7 +17,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -35,7 +34,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -60,7 +59,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -76,14 +75,14 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
     test("a bare @ is never markup", () {
       const input1 = "user@example.com";
       expect(
-        parser.parse(input1),
+        NaturalBlockParser.parse(input1),
         DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "user@example.com")]),
@@ -93,7 +92,7 @@ void main() {
 
       const input2 = "@mention";
       expect(
-        parser.parse(input2),
+        NaturalBlockParser.parse(input2),
         DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "@mention")]),
@@ -103,7 +102,7 @@ void main() {
 
       const input3 = "メール: a@b.jp";
       expect(
-        parser.parse(input3),
+        NaturalBlockParser.parse(input3),
         DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "メール: a@b.jp")]),
@@ -124,7 +123,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -142,7 +141,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
   });

@@ -2,7 +2,6 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final parser = NaturalBlockParser();
 
   group("Column newline trimming", () {
     // Expected: root keeps its Column wrapper
@@ -27,7 +26,7 @@ void main() {
 
     for (final (index, input) in cases.indexed) {
       test("Column newline trim pattern $index", () {
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
     }
@@ -72,7 +71,7 @@ void main() {
 
     for (final (index, input) in cases.indexed) {
       test("Row newline trim pattern $index", () {
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
     }
@@ -81,7 +80,7 @@ void main() {
   group("Boundary and special cases", () {
     test("empty blocks are ignored / handled safely", () {
       const input = "|||";
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes.children.isEmpty, isTrue);
     });
 
@@ -111,10 +110,10 @@ void main() {
         ],
       );
 
-      expect(parser.parse(input), expected);
+      expect(NaturalBlockParser.parse(input), expected);
       expect(
-        parser.parse("左==右"),
-        isNot(parser.parse("左=右")),
+        NaturalBlockParser.parse("左==右"),
+        isNot(NaturalBlockParser.parse("左=右")),
         reason: "an extra empty cell must change the result",
       );
     });
@@ -130,7 +129,7 @@ void main() {
         ],
       );
 
-      expect(parser.parse(input), expected);
+      expect(NaturalBlockParser.parse(input), expected);
     });
   });
 
@@ -162,7 +161,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -190,7 +189,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -217,7 +216,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -236,7 +235,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -262,7 +261,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
   });
@@ -303,7 +302,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -329,7 +328,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -355,7 +354,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -381,7 +380,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
   });
@@ -410,7 +409,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -427,7 +426,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -454,7 +453,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -466,7 +465,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -478,7 +477,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -491,7 +490,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected, reason: input);
       }
     });
@@ -509,7 +508,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -530,8 +529,33 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
+    });
+  });
+
+  group("An empty block contributes nothing, marker or not", () {
+    test("an alignment marker does not materialize an empty block", () {
+      // An empty Column block contributes no node at all; a marker cannot
+      // change that, because there is nothing inside to be aligned.
+      // Previously `a||b` gave two nodes while `a|>|b` gave three, the
+      // middle one an empty ColumnNode -- contradicting the stated rule.
+      expect(
+        NaturalBlockParser.parse(r"a|>|b"),
+        NaturalBlockParser.parse(r"a||b"),
+      );
+    });
+
+    test("this holds for every alignment marker", () {
+      final plain = NaturalBlockParser.parse("a||b");
+
+      for (final marker in ["<", "^", ">"]) {
+        expect(
+          NaturalBlockParser.parse("a|$marker|b"),
+          plain,
+          reason: "an empty block marked `$marker` is still nothing",
+        );
+      }
     });
   });
 }

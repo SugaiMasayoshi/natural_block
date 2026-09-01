@@ -2,7 +2,6 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final parser = NaturalBlockParser();
 
   group("Font size change and reset behavior", () {
     test("inline size change is held without a closing symbol", () {
@@ -19,7 +18,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -37,7 +36,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -55,7 +54,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -82,7 +81,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
     });
@@ -107,7 +106,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -134,7 +133,7 @@ void main() {
             ],
           );
 
-          final nodes = parser.parse(input);
+          final nodes = NaturalBlockParser.parse(input);
           expect(nodes, expected);
         },
       );
@@ -161,7 +160,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -182,7 +181,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
     });
@@ -213,7 +212,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -226,7 +225,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
     });

@@ -2,7 +2,6 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final parser = NaturalBlockParser();
 
   group("Escape handling", () {
     group("Layout symbol escaping", () {
@@ -14,7 +13,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -26,7 +25,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
     });
@@ -57,7 +56,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -69,7 +68,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
       test("a bare exclamation mark is literal, no escaping needed", () {
@@ -80,7 +79,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -92,7 +91,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -104,7 +103,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -116,7 +115,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
     });
@@ -134,7 +133,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -152,7 +151,7 @@ void main() {
             ],
           );
 
-          final nodes = parser.parse(input);
+          final nodes = NaturalBlockParser.parse(input);
           expect(nodes, expected);
         },
       );
@@ -167,7 +166,7 @@ void main() {
             ],
           );
 
-          final nodes = parser.parse(input);
+          final nodes = NaturalBlockParser.parse(input);
           expect(nodes, expected);
         },
       );
@@ -194,7 +193,7 @@ void main() {
             ],
           );
 
-          expect(parser.parse(input), expected);
+          expect(NaturalBlockParser.parse(input), expected);
         },
       );
 
@@ -206,7 +205,7 @@ void main() {
           ],
         );
 
-        expect(parser.parse(input), expected);
+        expect(NaturalBlockParser.parse(input), expected);
       });
 
       test("a backslash before a non-decoration character is left alone", () {
@@ -219,7 +218,7 @@ void main() {
           ],
         );
 
-        expect(parser.parse(input), expected);
+        expect(NaturalBlockParser.parse(input), expected);
       });
 
       test(
@@ -234,7 +233,7 @@ void main() {
             ],
           );
 
-          expect(parser.parse(input), expected);
+          expect(NaturalBlockParser.parse(input), expected);
         },
       );
 
@@ -246,7 +245,7 @@ void main() {
           ],
         );
 
-        expect(parser.parse(input), expected);
+        expect(NaturalBlockParser.parse(input), expected);
       });
     });
 
@@ -265,7 +264,7 @@ void main() {
             ],
           );
 
-          final nodes = parser.parse(input);
+          final nodes = NaturalBlockParser.parse(input);
           expect(nodes, expected);
         },
       );
@@ -281,7 +280,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
     });
@@ -302,7 +301,7 @@ void main() {
         // cell with a backslash, because `\\=` escapes the separator and
         // yields one cell holding `=` instead of two cells split after `\`.
         expect(
-          parser.parse('$bs$bs=B'),
+          NaturalBlockParser.parse('$bs$bs=B'),
           DocumentNode(
             children: [
               RowNode(children: [cell(bs), cell('B')]),
@@ -313,18 +312,18 @@ void main() {
 
       test("the same holds for a Column separator", () {
         expect(
-          parser.parse('$bs$bs|B'),
+          NaturalBlockParser.parse('$bs$bs|B'),
           DocumentNode(children: [line(bs), line('B')]),
         );
       });
 
       test("a single `\\` before a separator still escapes it", () {
-        expect(parser.parse('$bs=B'), DocumentNode(children: [line('=B')]));
+        expect(NaturalBlockParser.parse('$bs=B'), DocumentNode(children: [line('=B')]));
       });
 
       test("three backslashes are a literal one plus an escaped separator", () {
         expect(
-          parser.parse('$bs$bs$bs=B'),
+          NaturalBlockParser.parse('$bs$bs$bs=B'),
           DocumentNode(children: [line('$bs=B')]),
         );
       });
@@ -333,7 +332,7 @@ void main() {
         // Resolving escapes in one place is what makes this work: were the
         // layout scan to collapse `\\` too, the lone backslash it left
         // behind would be read as an escape again here and swallow the `:`.
-        final spans = (parser.parse('$bs$bs:*x').children.single as TextNode)
+        final spans = (NaturalBlockParser.parse('$bs$bs:*x').children.single as TextNode)
             .children;
 
         expect(spans.first.text, bs);
@@ -345,25 +344,25 @@ void main() {
       test("a backslash before an ordinary character is still kept", () {
         // Unchanged, and the reason Windows paths need no escaping at all.
         expect(
-          parser.parse('C:${bs}Users${bs}sugai'),
+          NaturalBlockParser.parse('C:${bs}Users${bs}sugai'),
           DocumentNode(children: [line('C:${bs}Users${bs}sugai')]),
         );
-        expect(parser.parse('$bs!'), DocumentNode(children: [line('$bs!')]));
+        expect(NaturalBlockParser.parse('$bs!'), DocumentNode(children: [line('$bs!')]));
       });
 
       test("a lone trailing backslash is literal", () {
-        expect(parser.parse(bs), DocumentNode(children: [line(bs)]));
+        expect(NaturalBlockParser.parse(bs), DocumentNode(children: [line(bs)]));
       });
 
       test("a doubled backslash collapses even away from any markup", () {
         // The accepted cost of making `\` escapable: a UNC-style `\\server`
         // now reads as `\server`. Escaping one backslash is the price of
         // being able to write one before a separator at all.
-        expect(parser.parse('A$bs${bs}B'), DocumentNode(children: [line('A${bs}B')]));
+        expect(NaturalBlockParser.parse('A$bs${bs}B'), DocumentNode(children: [line('A${bs}B')]));
       });
 
       test("it works inside a table cell too", () {
-        final table = parser.parse('|~x=y|$bs$bs=z|').children.single
+        final table = NaturalBlockParser.parse('|~x=y|$bs$bs=z|').children.single
             as TableNode;
 
         expect(table.children[1].children.first, cell(bs));

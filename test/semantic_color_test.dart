@@ -2,7 +2,6 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final parser = NaturalBlockParser();
 
   group("SemanticColor & toggle parsing edge cases", () {
     test("switching between multiple styles in sequence", () {
@@ -26,7 +25,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -47,7 +46,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -70,7 +69,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -91,7 +90,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -122,7 +121,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -166,7 +165,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -188,7 +187,7 @@ void main() {
         ],
       );
 
-      final nodes = parser.parse(input);
+      final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
 
@@ -204,7 +203,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -225,7 +224,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -242,7 +241,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
     });
@@ -269,7 +268,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -290,7 +289,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
 
@@ -324,8 +323,8 @@ void main() {
           ],
         );
 
-        expect(parser.parse(combined), combinedExpected);
-        expect(parser.parse(adjacentSeparate), separateExpected);
+        expect(NaturalBlockParser.parse(combined), combinedExpected);
+        expect(NaturalBlockParser.parse(adjacentSeparate), separateExpected);
       });
 
       test("a : right before :: ends its own cluster rather than being swallowed by the reset", () {
@@ -343,7 +342,7 @@ void main() {
           ],
         );
 
-        final nodes = parser.parse(input);
+        final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
     });

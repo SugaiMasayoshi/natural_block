@@ -14,6 +14,6 @@ void main() {
 |:?INFO: Context Is Everything=:%SUCCESS: 100% Type-Safe|
 Try typing C++ or -100 points without breaking layout!
 ''';
-  final naturalBlock = NaturalBlockParser().parse(source);
+  final naturalBlock = NaturalBlockParser.parse(source);
   print(naturalBlock);
 }

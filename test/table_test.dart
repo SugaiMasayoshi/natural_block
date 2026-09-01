@@ -9,7 +9,6 @@ ColumnNode cell(String text, [BlockAlign align = BlockAlign.start]) =>
     ColumnNode(children: [line(text)], align: align);
 
 void main() {
-  final parser = NaturalBlockParser();
 
   /// The alignment of every cell of every row, as a grid -- the thing column
   /// inheritance is about.
@@ -18,12 +17,12 @@ void main() {
   ];
 
   TableNode onlyTable(String source) =>
-      parser.parse(source).children.single as TableNode;
+      NaturalBlockParser.parse(source).children.single as TableNode;
 
   group('declaring a table', () {
     test('`|~` turns a run of rows into one TableNode', () {
       expect(
-        parser.parse('|~A=B|C=D|'),
+        NaturalBlockParser.parse('|~A=B|C=D|'),
         DocumentNode(
           children: [
             TableNode(
@@ -42,7 +41,7 @@ void main() {
       // idiom that depends on plain rows splitting the width evenly, so a
       // run of rows must not silently become a table.
       expect(
-        parser.parse('A=B|C=D|'),
+        NaturalBlockParser.parse('A=B|C=D|'),
         DocumentNode(
           children: [
             RowNode(children: [cell('A'), cell('B')]),
@@ -56,13 +55,13 @@ void main() {
       // A table is a run of rows, so it is only declarable at a `|`. After
       // a `=` -- which separates cells within one row -- a table would mean
       // a cell that is itself a table, which the language does not express.
-      final row = parser.parse('A=~B|').children.single as RowNode;
+      final row = NaturalBlockParser.parse('A=~B|').children.single as RowNode;
 
       expect(row.children[1], cell('~B'));
     });
 
     test('an escaped separator leaves the marker as text', () {
-      final row = parser.parse(r'\|~A=B|').children.single as RowNode;
+      final row = NaturalBlockParser.parse(r'\|~A=B|').children.single as RowNode;
 
       expect(row.children.first, cell('|~A'));
     });
@@ -73,7 +72,7 @@ void main() {
       // The case that makes an explicit closer necessary: rows of the same
       // shape following a table, which no implicit rule could separate --
       // an empty block between them would not survive parsing.
-      final document = parser.parse('|~A=B|C=D|~E=F|');
+      final document = NaturalBlockParser.parse('|~A=B|C=D|~E=F|');
 
       expect(document.children, hasLength(2));
       expect((document.children[0] as TableNode).children, hasLength(2));
@@ -84,14 +83,14 @@ void main() {
       // Not merely a preference: rows of differing width have nothing to
       // line up against, and the renderer's Table requires every row to
       // hold the same number of cells.
-      final document = parser.parse('|~A=B|C=D|E=F=G|');
+      final document = NaturalBlockParser.parse('|~A=B|C=D|E=F=G|');
 
       expect((document.children[0] as TableNode).children, hasLength(2));
       expect((document.children[1] as RowNode).children, hasLength(3));
     });
 
     test('anything that is not a row ends it', () {
-      final document = parser.parse('|~A=B|paragraph|C=D|');
+      final document = NaturalBlockParser.parse('|~A=B|paragraph|C=D|');
 
       expect(document.children[0], isA<TableNode>());
       expect(document.children[1], line('paragraph'));
@@ -111,6 +110,67 @@ void main() {
 
     test('the end of the document closes it', () {
       expect(onlyTable('|~A=B|').children, hasLength(1));
+    });
+
+    test('after an implicit end, the next `|~` opens rather than closes', () {
+      // Pinned deliberately, not a bug. `~` toggles a state the author
+      // cannot see -- the same property decoration symbols already have
+      // (`:!` flips danger on when it is already off). Once a paragraph has
+      // implicitly ended the table, table mode is off, so the next `|~`
+      // reads as an opening.
+      //
+      // That is the right answer for the document people actually write:
+      // "table, note, table" wants the second `|~` to start a second table,
+      // which is exactly what happens. What it costs is that a *redundant*
+      // close -- one written after something already ended the table --
+      // opens instead, and a table given no rows contributes nothing.
+      //
+      // Giving `~` a second state ("declared but not accumulating") would
+      // fix only that redundant case and would add permanent complexity to
+      // the parser for it.
+      final twoTables = NaturalBlockParser.parse('|~A=B|note|~C=D|');
+      expect(twoTables.children[0], isA<TableNode>());
+      expect(twoTables.children[1], line('note'));
+      expect(
+        twoTables.children[2],
+        isA<TableNode>(),
+        reason: 'the second `|~` starts a second table',
+      );
+
+      // A redundant close with nothing after it is harmless: it opens a
+      // table that never receives a row, which emits no node.
+      final harmless = NaturalBlockParser.parse('|~A=B|note|~');
+      expect(harmless.children, hasLength(2));
+    });
+
+    test('a table given no rows contributes no node', () {
+      expect(NaturalBlockParser.parse('|~text').children, [line('text')]);
+      expect(NaturalBlockParser.parse('a|~').children, [line('a')]);
+    });
+
+    test('a run of single-cell blocks is not a table', () {
+      // A block with no `=` never enters a row, so it cannot be a one-column
+      // table -- such a table is currently not expressible. Pinned so the
+      // limitation is visible rather than discovered.
+      final document = NaturalBlockParser.parse('|~A|B|');
+
+      expect(document.children, [line('A'), line('B')]);
+    });
+  });
+
+  group('degenerate marker clusters', () {
+    test('`~` twice in one cluster cancels out', () {
+      // `~` toggles, so writing it twice in the same cluster is two
+      // toggles and leaves table mode off. Nothing in the language gives
+      // that a meaning; pinned so the behaviour is at least defined.
+      expect(NaturalBlockParser.parse('|~~A=B|').children.single, isA<RowNode>());
+      expect(NaturalBlockParser.parse('|~~~A=B|').children.single, isA<TableNode>());
+    });
+
+    test('contradictory alignment markers keep the last one', () {
+      final table = onlyTable('|~<^>A=B|');
+
+      expect(table.align, BlockAlign.end);
     });
   });
 
@@ -167,7 +227,7 @@ void main() {
     });
 
     test('closing a table aligns the block that follows, not the table', () {
-      final document = parser.parse('|~A=B|~^after');
+      final document = NaturalBlockParser.parse('|~A=B|~^after');
 
       expect((document.children[0] as TableNode).align, BlockAlign.start);
       expect((document.children[1] as ColumnNode).align, BlockAlign.center);

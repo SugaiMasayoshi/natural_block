@@ -3,6 +3,31 @@ import 'package:test/test.dart';
 
 void main() {
   group("Node equality and hashCode contract", () {
+    test("equal TableNodes have equal hashCode, and align is part of it", () {
+      TableNode table({BlockAlign align = BlockAlign.start}) => TableNode(
+        align: align,
+        children: [
+          RowNode(
+            children: [
+              ColumnNode(
+                children: [
+                  TextNode(children: [TextSpanNode(text: "セル")]),
+                ],
+              ),
+            ],
+          ),
+        ],
+      );
+
+      expect(table(), table());
+      expect(table().hashCode, table().hashCode);
+      expect(
+        table(),
+        isNot(table(align: BlockAlign.center)),
+        reason: 'a centered table is not the same node as a start-aligned one',
+      );
+    });
+
     test("equal ColumnNodes have equal hashCode", () {
       final a = DocumentNode(
         children: [
