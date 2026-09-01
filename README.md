@@ -42,7 +42,7 @@ dart pub add natural_block
 
 ## Usage
 
-Create an instance of `NaturalBlockParser` and pass your markup text to the `parse` method. It will return a syntax tree (`ColumnNode`, `RowNode`, `TextNode`, `TextSpanNode`) that you can easily map to Flutter widgets like `Column`, `Row`, and `RichText`.
+Create an instance of `NaturalBlockParser` and pass your markup text to the `parse` method. It will return a syntax tree (a `DocumentNode` holding `ColumnNode`, `RowNode`, `TextNode`, and `TextSpanNode`) that you can easily map to Flutter widgets like `Column`, `Row`, and `RichText`.
 
 ```dart
 import 'package:natural_block/natural_block.dart';

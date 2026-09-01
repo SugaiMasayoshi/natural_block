@@ -8,7 +8,7 @@ void main() {
     group("Layout symbol escaping", () {
       test("an escaped pipe is parsed as a literal character, not a Column separator", () {
         const input = r"|A\|B|";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "A|B")]),
           ],
@@ -20,7 +20,7 @@ void main() {
 
       test("an escaped equals sign is parsed as a single literal text, not a Row separator", () {
         const input = r"左\=右";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "左=右")]),
           ],
@@ -38,7 +38,7 @@ void main() {
       // English -- is always literal text on its own, with no escaping.
       test("a bare plus sign is literal, no escaping needed", () {
         const input = "C++言語、1+1=2";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             RowNode(
               children: [
@@ -63,7 +63,7 @@ void main() {
 
       test("a bare minus sign is literal, no escaping needed", () {
         const input = "-100点、10-20人";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "-100点、10-20人")]),
           ],
@@ -74,7 +74,7 @@ void main() {
       });
       test("a bare exclamation mark is literal, no escaping needed", () {
         const input = "こんにちは!世界";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "こんにちは!世界")]),
           ],
@@ -86,7 +86,7 @@ void main() {
 
       test("a bare question mark is literal, no escaping needed", () {
         const input = "本当ですか?はい";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "本当ですか?はい")]),
           ],
@@ -98,7 +98,7 @@ void main() {
 
       test("a bare percent sign is literal, no escaping needed", () {
         const input = "進捗100%完了";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "進捗100%完了")]),
           ],
@@ -110,7 +110,7 @@ void main() {
 
       test("a bare asterisk is literal, no escaping needed", () {
         const input = "*太字にしない*";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "*太字にしない*")]),
           ],
@@ -124,7 +124,7 @@ void main() {
     group("Escaping the `:`-prefixed decoration tokens", () {
       test("an escaped :! is parsed as two literal characters, not danger coloring", () {
         const input = r"こんにちは\:!世界";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(
               children: [
@@ -142,7 +142,7 @@ void main() {
         "an escaped :: is parsed as two literal characters, not a reset",
         () {
           const input = r":!危険\::普通:!";
-          final expected = ColumnNode(
+          final expected = DocumentNode(
             children: [
               TextNode(
                 children: [
@@ -161,7 +161,7 @@ void main() {
         "an escaped :+ is parsed as two literal characters, not a size change",
         () {
           const input = r"サイズ\:+固定";
-          final expected = ColumnNode(
+          final expected = DocumentNode(
             children: [
               TextNode(children: [TextSpanNode(text: "サイズ:+固定")]),
             ],
@@ -183,7 +183,7 @@ void main() {
         "an escaped decoration character ends the cluster and stays literal",
         () {
           const input = r":+++100:---\%off";
-          final expected = ColumnNode(
+          final expected = DocumentNode(
             children: [
               TextNode(
                 children: [
@@ -200,7 +200,7 @@ void main() {
 
       test("one backslash is enough, since the cluster is over after it", () {
         const input = r":---\%%%off";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "%%%off", sizeOffset: -3)]),
           ],
@@ -213,7 +213,7 @@ void main() {
         // Nothing needed escaping, so the backslash is ordinary text -- the
         // same reason a Windows path survives untouched.
         const input = r":---\abc";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: r"\abc", sizeOffset: -3)]),
           ],
@@ -228,7 +228,7 @@ void main() {
           // Escaping only engages where the character is actually markup, so
           // this is unchanged: the backslash stays in the output.
           const input = r"100\%off";
-          final expected = ColumnNode(
+          final expected = DocumentNode(
             children: [
               TextNode(children: [TextSpanNode(text: r"100\%off")]),
             ],
@@ -240,7 +240,7 @@ void main() {
 
       test("a Windows path keeps every backslash", () {
         const input = r"C:\Users\sugai";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: r"C:\Users\sugai")]),
           ],
@@ -255,7 +255,7 @@ void main() {
         "an escaped :! symbol inside a decoration block does not close it",
         () {
           const input = r":!重要\:!警告:!";
-          final expected = ColumnNode(
+          final expected = DocumentNode(
             children: [
               TextNode(
                 children: [
@@ -273,7 +273,7 @@ void main() {
       test("an escaped colon right where the backslash itself ends the cluster "
           "still counts as escaped", () {
         const input = r":!\:";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(
               children: [TextSpanNode(text: ":", color: SemanticColor.danger)],

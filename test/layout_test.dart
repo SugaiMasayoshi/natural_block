@@ -6,7 +6,7 @@ void main() {
 
   group("Column newline trimming", () {
     // Expected: root keeps its Column wrapper
-    final expected = ColumnNode(
+    final expected = DocumentNode(
       children: [
         TextNode(children: [TextSpanNode(text: "本文")]),
       ],
@@ -36,7 +36,7 @@ void main() {
   group("Row newline trimming", () {
     // Expected: root Column wraps one RowNode, whose two cells are each a
     // ColumnNode wrapping one TextNode
-    final expected = ColumnNode(
+    final expected = DocumentNode(
       children: [
         RowNode(
           children: [
@@ -91,7 +91,7 @@ void main() {
     // it, "左==右" and "左=右" would parse identically.
     test("an empty Row cell between two filled ones is kept as a position", () {
       const input = "左==右";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           RowNode(
             children: [
@@ -123,7 +123,7 @@ void main() {
     // one contributes no node at all rather than a blank entry.
     test("an empty Column block contributes no node", () {
       const input = "左||右";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(children: [TextSpanNode(text: "左")]),
           TextNode(children: [TextSpanNode(text: "右")]),
@@ -143,7 +143,7 @@ void main() {
     // emits it.
     test("a trailing Row separator does not add a final empty cell", () {
       const input = "左=右=";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           RowNode(
             children: [
@@ -170,7 +170,7 @@ void main() {
         "trailing one does not -- and since nothing but '=' separates them, "
         "all three cells land in a single row", () {
       const input = "=左=右=";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           RowNode(
             children: [
@@ -197,7 +197,7 @@ void main() {
     test("a Row separator followed by a trailing Column separator does "
         "add a final empty cell to the row", () {
       const input = "左=右=|";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           RowNode(
             children: [
@@ -225,7 +225,7 @@ void main() {
         "does produce an empty cell, and since both sides of the '|' are "
         "Row cells they land in the same row", () {
       const input = "=|";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           RowNode(
             children: [
@@ -243,7 +243,7 @@ void main() {
     test("an escaped separator at the very end is literal text, and the "
         "block it ends up in is still emitted", () {
       const input = r"左=右\=";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           RowNode(
             children: [
@@ -270,7 +270,7 @@ void main() {
   group("Row boundaries are explicit, not sibling adjacency", () {
     test("a Column separator between two rows ends the first row", () {
       const input = "a=b|c=d";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           RowNode(
             children: [
@@ -309,7 +309,7 @@ void main() {
 
     test("a row followed by plain text still separates correctly", () {
       const input = "a=b|text";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           RowNode(
             children: [
@@ -335,7 +335,7 @@ void main() {
 
     test("plain text followed by a row still separates correctly", () {
       const input = "text|a=b";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(children: [TextSpanNode(text: "text")]),
           RowNode(
@@ -361,7 +361,7 @@ void main() {
 
     test("a multi-line cell keeps its lines inside one ColumnNode", () {
       const input = "左1\n左2=右";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           RowNode(
             children: [
@@ -389,7 +389,7 @@ void main() {
   group("Block alignment", () {
     test("a marker after each separator aligns the cell it starts", () {
       const input = "|<A=>B|";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           RowNode(
             children: [
@@ -416,7 +416,7 @@ void main() {
 
     test("a marker on a plain block wraps it in a centered ColumnNode", () {
       const input = "|^見出し|";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           ColumnNode(
             children: [
@@ -433,7 +433,7 @@ void main() {
 
     test("a cell with no marker keeps the default start alignment", () {
       const input = "左=右";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           RowNode(
             children: [
@@ -460,7 +460,7 @@ void main() {
 
     test("an unaligned plain block is still a bare TextNode", () {
       const input = "本文";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(children: [TextSpanNode(text: "本文")]),
         ],
@@ -472,7 +472,7 @@ void main() {
 
     test("an escaped separator leaves a following '>' as literal text", () {
       const input = r"x \=> y";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(children: [TextSpanNode(text: "x => y")]),
         ],
@@ -485,7 +485,7 @@ void main() {
     test("'>' in ordinary prose stays literal", () {
       const cases = ["a > b", "List<String>", "->"];
       for (final input in cases) {
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: input)]),
           ],
@@ -498,7 +498,7 @@ void main() {
 
     test("the marker is consumed and never appears in the cell's text", () {
       const input = "|>右寄せ|";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           ColumnNode(
             children: [
@@ -515,7 +515,7 @@ void main() {
 
     test("a marker combines with decoration on the same block", () {
       const input = "|>:!赤い数字|";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           ColumnNode(
             children: [

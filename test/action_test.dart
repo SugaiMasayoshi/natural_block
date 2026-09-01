@@ -7,7 +7,7 @@ void main() {
   group("actionable text (:@)", () {
     test("toggles on and off", () {
       const input = ":@https://example.com:@ を参照してください";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -24,7 +24,7 @@ void main() {
 
     test("an unclosed :@ runs to the end of the line", () {
       const input = "詳細は:@#売上データ に記載";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -44,7 +44,7 @@ void main() {
       // Note: `:@` is not a single-char decoration in this cluster since we
       // build the cluster from ':' followed by consecutive decoration
       // chars -- `!`, `*`, `@` all apply in order.
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -66,7 +66,7 @@ void main() {
 
     test("combined cluster: :@* is both actionable and bold", () {
       const input = ":@*重要:@*";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -84,7 +84,7 @@ void main() {
       const input1 = "user@example.com";
       expect(
         parser.parse(input1),
-        ColumnNode(
+        DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "user@example.com")]),
           ],
@@ -94,7 +94,7 @@ void main() {
       const input2 = "@mention";
       expect(
         parser.parse(input2),
-        ColumnNode(
+        DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "@mention")]),
           ],
@@ -104,7 +104,7 @@ void main() {
       const input3 = "メール: a@b.jp";
       expect(
         parser.parse(input3),
-        ColumnNode(
+        DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "メール: a@b.jp")]),
           ],
@@ -114,7 +114,7 @@ void main() {
 
     test(r"\@ inside a cluster is literal", () {
       const input = r":---\@abc";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -130,7 +130,7 @@ void main() {
 
     test("size is not cleared by :: while action is -- pins the asymmetry", () {
       const input = ":+++大:@押せる::普通";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [

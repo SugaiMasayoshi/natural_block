@@ -1,3 +1,23 @@
+// 【解説】[9/16] パーサ本体。ここが全体を駆動する入口。
+// 【解説】
+// 【解説】 やっていることは単純で、| と = でソースを塊に割り、各塊を行に分け、
+// 【解説】 各行を decoration_parser に渡すだけ。難しいのは「行」の組み立て方。
+// 【解説】
+// 【解説】 currentRow に = で繋がったセルを溜め、= の連なりが切れた瞬間に
+// 【解説】 flushRow() で1つの RowNode として吐き出す。だから a=b|c=d は|c=d は
+// 【解説】 2つの RowNode になる(1つの4セル行にならない)。
+// 【解説】
+// 【解説】 emitBlock の上にある長いコメントが、この言語の設計の要。
+// 【解説】 「Columnブロックは内容、Rowセルは位置」という非対称が意図的で、
+// 【解説】 それが 左==右 を「3セルで真ん中が空」と読ませている。空セルを捨てると
+// 【解説】 左=右 と 左==右 が区別できなくなる。
+// 【解説】
+// 【解説】 寄せマーカー(< ^ >)は「記号として認識された | = の直後」でだけ読む。
+// 【解説】 だから \= のようにエスケープされた区切りの後ろの > は素通しになる。
+// 【解説】 特別扱いのコードは無く、ループがその地点に到達しないだけ、という作り。
+// 【解説】 → ここは今後 |~（表の宣言）を足すなら手を入れる場所でもある。
+// 【解説】 次: natural_block_flutter 側へ。lib/natural_block_flutter.dart
+
 import '../block_align.dart';
 import '../node.dart';
 import 'decoration_parser.dart';
@@ -12,7 +32,7 @@ import 'literal_scanner.dart';
 class NaturalBlockParser {
   NaturalBlockParser();
 
-  /// Parses [source] into a [ColumnNode] tree.
+  /// Parses [source] into a [DocumentNode] tree.
   ///
   /// `|` marks a Column separator and `=` marks a Row separator. The scan
   /// walks [source] left to right, splitting it into blocks at each `|` or
@@ -46,9 +66,9 @@ class NaturalBlockParser {
   /// marker was given); a plain, non-row block is left as a bare list of
   /// lines unless a marker was given, in which case it is wrapped in a
   /// [ColumnNode] carrying that alignment.
-  ColumnNode parse(String source) {
+  DocumentNode parse(String source) {
     final scanner = LiteralScanner(source.trim());
-    final children = <NaturalBlockNode>[];
+    final children = <BlockNode>[];
     var currentRow = <ColumnNode>[];
     var hasPendingBlock = false;
     BlockAlign? pendingAlign;
@@ -114,10 +134,10 @@ class NaturalBlockParser {
     if (hasPendingBlock) emitBlock(scanner.flushRemaining(), null);
     flushRow();
 
-    return ColumnNode(children: children);
+    return DocumentNode(children: children);
   }
 
-  List<ContentNode> _parseBlock(String blockText) {
+  List<TextNode> _parseBlock(String blockText) {
     final lines = blockText.split('\n');
 
     if (lines.firstOrNull == '') lines.removeAt(0);

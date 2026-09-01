@@ -8,7 +8,7 @@ void main() {
     test("inline size change is held without a closing symbol", () {
       // No closing symbol needed: :++ gives +2, :-- gives -2, netting back to 0
       const input = ":++大きい:--標準サイズ";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -26,7 +26,7 @@ void main() {
     test("consecutive size-decreasing runs accumulate", () {
       // ":-少し小さい" gives -1, then ":---" gives -3 more, for a total of -4
       const input = ":-少し小さい:---もっと小さい";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -49,7 +49,7 @@ void main() {
       // ranges like "10-20" and English compounds like "well-known").
       test("a single : followed by a run of the same character stacks", () {
         const input = ":+++大きい";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "大きい", sizeOffset: 3)]),
           ],
@@ -61,7 +61,7 @@ void main() {
 
       test("bare + and - never trigger a size change on their own", () {
         const input = "10-20人がA+の評価、1+1=2も普通の文章";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             RowNode(
               children: [
@@ -92,7 +92,7 @@ void main() {
       // axes: a symbol from one axis never resets the state of another.
       test("size is preserved when a color symbol appears", () {
         const input = ":++大きく:!危険";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(
               children: [
@@ -115,7 +115,7 @@ void main() {
         "a preceding color decoration is preserved when a size symbol appears",
         () {
           const input = ":!危険状態:++大きく";
-          final expected = ColumnNode(
+          final expected = DocumentNode(
             children: [
               TextNode(
                 children: [
@@ -141,7 +141,7 @@ void main() {
 
       test("color and emphasis can be specified at the same time (not mutually exclusive)", () {
         const input = ":!*重要な警告:*危険は継続:!普通";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(
               children: [
@@ -167,7 +167,7 @@ void main() {
 
       test("size, color, and emphasis can all be held at the same time", () {
         const input = ":++!*重要";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(
               children: [
@@ -190,7 +190,7 @@ void main() {
     group("Reset at layout boundaries", () {
       test("the Row layout symbol (=) resets the font size", () {
         const input = ":++大きい=右は標準";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             RowNode(
               children: [
@@ -219,7 +219,7 @@ void main() {
 
       test("the Column layout symbol (|) resets the font size", () {
         const input = "|:++上は大きい|下は標準|";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "上は大きい", sizeOffset: 2)]),
             TextNode(children: [TextSpanNode(text: "下は標準", sizeOffset: 0)]),

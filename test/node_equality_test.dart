@@ -4,12 +4,12 @@ import 'package:test/test.dart';
 void main() {
   group("Node equality and hashCode contract", () {
     test("equal ColumnNodes have equal hashCode", () {
-      final a = ColumnNode(
+      final a = DocumentNode(
         children: [
           TextNode(children: [TextSpanNode(text: "本文")]),
         ],
       );
-      final b = ColumnNode(
+      final b = DocumentNode(
         children: [
           TextNode(children: [TextSpanNode(text: "本文")]),
         ],
@@ -74,18 +74,25 @@ void main() {
     });
 
     test(
-      "a ColumnNode and a RowNode with identical children never compare equal",
+      "two layout nodes with identical children never compare equal",
       () {
+        // DocumentNode vs RowNode is the only pair left that can hold the
+        // same children: a document accepts any BlockNode and a row accepts
+        // ColumnNode cells, so a single ColumnNode fits both. The former
+        // ColumnNode/RowNode version of this test is no longer expressible
+        // -- ColumnNode holds TextNode and RowNode holds ColumnNode, so the
+        // confusion it guarded against is now a compile error rather than
+        // something equality has to rule out.
         final child = ColumnNode(
           children: [
             TextNode(children: [TextSpanNode(text: "本文")]),
           ],
         );
-        final column = ColumnNode(children: [child]);
+        final document = DocumentNode(children: [child]);
         final row = RowNode(children: [child]);
 
         // ignore: unrelated_type_equality_checks
-        expect(column == row, isFalse);
+        expect(document == row, isFalse);
       },
     );
 

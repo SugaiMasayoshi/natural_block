@@ -1,3 +1,19 @@
+// 【解説】[7/16] 文字送りの土台。ここだけは NaturalBlock 言語を一切知らない。
+// 【解説】 「今の文字」を返し、リテラル文字列を溜め、呼び手が『今のは記号だった』と
+// 【解説】 申告したらそれをリテラルから外す、という機械だけを提供する。
+// 【解説】
+// 【解説】 中心にあるのは3つの位置:
+// 【解説】   _position  … 次に読む場所
+// 【解説】   _textStart … 今溜めているリテラルの開始
+// 【解説】   _buffer    … エスケープで文字を捨てたときだけ使う継ぎ足し用
+// 【解説】 エスケープが無ければ _buffer は作られず、substring 一発で済む。
+// 【解説】
+// 【解説】 呼び分けの使い分けが読みどころ:
+// 【解説】   何も呼ばない … 普通の文字(既にリテラルの一部なので何もしなくてよい)
+// 【解説】   markConsumed … 記号だったが、手前に吐き出すリテラルが無い場合
+// 【解説】   consume      … 記号で、手前のリテラルを1つの塊として取り出したい場合
+// 【解説】 次: lib/src/parser/decoration_parser.dart（このスキャナの最初の利用者）
+
 /// A character-by-character cursor over [source] that accumulates literal
 /// text runs (handling backslash-escaped characters) as it goes. Knows
 /// nothing about what any particular character means -- that's for the

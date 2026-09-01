@@ -1,3 +1,7 @@
+// 【解説】[4/16] ブロックの寄せ。この後に出てくる「値から byChar を導出する」
+// 【解説】 書き方の見本でもある(記号表3つが全て同じ形)。
+// 【解説】 left/right ではなく start/end という命名の理由がdocに書いてある。
+
 /// How a block is aligned within the space it's given, and the character
 /// that triggers it when written immediately after an unescaped layout
 /// separator (`|` or `=`). Deriving [byChar] from the enum's own values

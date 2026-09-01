@@ -10,7 +10,7 @@ void main() {
       // toggles on then off in turn, with plain text in between -- verifies
       // they don't interfere with each other across the whole sequence.
       const input = ":!赤:!通常:?青:?通常:%緑:%通常:*太字:*";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -35,7 +35,7 @@ void main() {
       // `::` reset is written in between -- so switching colors mid-stream
       // must not require closing the previous one first.
       const input = ":!危険から:?情報へ切り替え:?最後は通常";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -56,7 +56,7 @@ void main() {
       // all the way to the end of the input rather than being dropped or
       // silently reverting to plain.
       const input = "通常テキスト:!ここから文末までずっと危険状態";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -79,7 +79,7 @@ void main() {
       // immediately off within the same cluster; verifies no empty-text
       // node is created and that it correctly falls back to plain.
       const input = ":!危険:!普通:!!普通";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -99,7 +99,7 @@ void main() {
       // Danger is opened and closed inside the left cell only -- it must
       // not leak across the `=` boundary into the right cell.
       const input = "||:!左は危険:!=右は通常||";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           RowNode(
             children: [
@@ -135,7 +135,7 @@ void main() {
 処理完了
 |""";
 
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -174,7 +174,7 @@ void main() {
       // :!*緊急対応:: -- a combined cluster sets both at once, and the
       // shared reset closes them both together at the end
       const input = ":!*緊急対応::";
-      final expected = ColumnNode(
+      final expected = DocumentNode(
         children: [
           TextNode(
             children: [
@@ -198,7 +198,7 @@ void main() {
       // and English -- never triggers decoration on its own.
       test("ordinary sentences full of !, ?, %, and * stay entirely plain", () {
         const input = "Really?! It's on sale for 50% off, and it's *great*!";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: input)]),
           ],
@@ -210,7 +210,7 @@ void main() {
 
       test("the shared :: reset closes color and emphasis together", () {
         const input = ":!*緊急::普通";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(
               children: [
@@ -231,7 +231,7 @@ void main() {
 
       test(":: resets even when only one of color/emphasis is active", () {
         const input = ":*太字だけ::普通";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(
               children: [
@@ -255,7 +255,7 @@ void main() {
       // "a combined cluster differs from adjacent separate clusters" below).
       test("a combined :!* cluster applies danger and emphasis together", () {
         const input = ":!*緊急対応";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(
               children: [
@@ -275,7 +275,7 @@ void main() {
 
       test("a combined cluster can mix size with color and emphasis", () {
         const input = ":+!*重要";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(
               children: [
@@ -305,7 +305,7 @@ void main() {
         const combined = ":!*結果";
         const adjacentSeparate = ":!:*結果";
 
-        final combinedExpected = ColumnNode(
+        final combinedExpected = DocumentNode(
           children: [
             TextNode(
               children: [
@@ -318,7 +318,7 @@ void main() {
             ),
           ],
         );
-        final separateExpected = ColumnNode(
+        final separateExpected = DocumentNode(
           children: [
             TextNode(children: [TextSpanNode(text: "結果", emphasis: true)]),
           ],
@@ -332,7 +332,7 @@ void main() {
         // ":!" (danger) then "::" (reset) are two separate clusters -- the
         // reset must not be absorbed into the first cluster's payload.
         const input = ":!危険::普通";
-        final expected = ColumnNode(
+        final expected = DocumentNode(
           children: [
             TextNode(
               children: [

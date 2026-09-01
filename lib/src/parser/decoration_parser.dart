@@ -1,3 +1,17 @@
+// 【解説】[8/16] 1行の中の装飾を解析して TextNode を作る。
+// 【解説】
+// 【解説】 状態機械としては2状態しかない:
+// 【解説】   クラスタ外 … : を見つけ、その次が装飾文字ならクラスタに入る
+// 【解説】   クラスタ内 … 装飾文字が続く限り適用し続け、違う文字が来たら抜ける
+// 【解説】 これが :+++ で3段階、:!* で色と太字の同時適用、を同じ規則で説明する。
+// 【解説】
+// 【解説】 サイズだけが加算(+1/-1)で、色・強調・アクションはトグルなのに注意。
+// 【解説】 :: (reset) は色・強調・アクションを消すがサイズは消さない。軸が独立。
+// 【解説】
+// 【解説】 一番ややこしいのは while ループ内のエスケープ処理。
+// 【解説】 実装より先に、なぜ3つの条件が要るのかを下の inline【解説】で追うとよい。
+// 【解説】 次: lib/src/parser/parser.dart
+
 import '../node.dart';
 import '../semantic_color.dart';
 import 'decoration_action.dart';
@@ -94,6 +108,14 @@ TextNode parseDecoratedLine(String lineText) {
       // cluster ends at the backslash either way, so by the time the `:`
       // is read the ordinary path takes over. Intercepting it here would
       // mean the same backslash gets dropped twice.
+      // 【解説】 3つの条件が全部必要な理由。1つでも欠けると壊れる:
+      // 【解説】  char == '\'      … これがエスケープの合図
+      // 【解説】  peekNext != ':'  … 無いと \: が二重処理される。クラスタはここで
+      // 【解説】                      終わり、下の通常経路でも \: が処理されるため
+      // 【解説】  次が装飾文字     … 無いと C:\Users\sugai の \ まで食べてしまい
+      // 【解説】                      C:Userssugai になる(実際に一度そうなった)
+      // 【解説】 解決したい例は :+++100:---\%off。\ でクラスタを抜けるので、以降の
+      // 【解説】 装飾文字は全部ただの文字に戻る。だから %off の % 1つに \ を1つで済む。
       if (char == r'\' &&
           scanner.peekNext != ':' &&
           DecorationAction.byChar.containsKey(scanner.peekNext)) {
