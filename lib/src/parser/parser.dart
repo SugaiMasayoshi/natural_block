@@ -217,7 +217,12 @@ abstract final class NaturalBlockParser {
       // things about the one block the separator opens: `~` says what kind
       // of block it is, an alignment character says how it sits.
       BlockAlign? clusterAlign;
-      var tableToggles = 0;
+      // Whether this cluster asks to cross the table boundary at all. Each
+      // `~` flips it, so a second one in the same cluster cancels the first
+      // -- `|~~` opens nothing. Nothing in the language gives a repeated
+      // `~` a meaning; flipping is just what falls out of `~` being a
+      // toggle, and `table_test` pins the result so it stays defined.
+      var togglesTable = false;
       while (true) {
         final next = scanner.peekNext;
         final markerAlign = BlockAlign.byChar[next];
@@ -234,13 +239,13 @@ abstract final class NaturalBlockParser {
             BlockMarker.byChar[next] == BlockMarker.table) {
           scanner.readChar();
           scanner.markConsumed();
-          tableToggles += 1;
+          togglesTable = !togglesTable;
           continue;
         }
         break;
       }
 
-      if (tableToggles.isOdd) {
+      if (togglesTable) {
         if (builder.inTable) {
           // Closing: the alignment belongs to the block being opened after
           // the table, not to the table that just ended.
