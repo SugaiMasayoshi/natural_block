@@ -1,4 +1,4 @@
-// 【解説】[5.5/16] レイアウト記号の直後に書けるマーカーのうち、寄せではなく
+// 【解説】[6/21] レイアウト記号の直後に書けるマーカーのうち、寄せではなく
 // 【解説】 ブロックの種類そのものを変えるもの。今は表だけ。
 // 【解説】
 // 【解説】 `~` を選んだ理由は消去法。装飾(+ - ! % ? * @ :)、寄せ(< ^ >)、
@@ -7,6 +7,7 @@
 // 【解説】 # は格子に見えて覚えやすいが、#料理|#旅行 のようなタグの並びが
 // 【解説】 黙って壊れる。日本語の範囲表記は全角の 〜(U+301C) なので、
 // 【解説】 ASCII の ~(U+007E) との衝突はほとんど起きない。
+// 【解説】 次: lib/src/parser/verbatim_region.dart
 
 /// A marker that changes what kind of block a layout separator opens, as
 /// opposed to `BlockAlign`, which only changes how that block is positioned.

@@ -1,6 +1,7 @@
-// 【解説】[5/16] レイアウト記号の表。| と = の2つだけ。
+// 【解説】[5/21] レイアウト記号の表。| と = の2つだけ。
 // 【解説】 この2文字と : と \ だけが「常に効く記号」で、他は全て普通の文字。
 // 【解説】 これがこの言語の衝突安全性の核心。
+// 【解説】 次: lib/src/parser/block_marker.dart
 
 /// What a single layout character means, and the character that triggers
 /// it. Deriving [byChar] from the enum's own values (rather than
