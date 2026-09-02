@@ -1,344 +1,47 @@
 // 【解説】[2/23] AST。このライブラリの出力そのもの。ここを先に読むと、
 // 【解説】 パーサの各処理が「何を作ろうとしているか」が分かる。
 // 【解説】
-// 【解説】 階層:
-// 【解説】   NaturalBlockNode（全ての親）
-// 【解説】   ├ DocumentNode … parse() が返す最上位。文書1つにつき1個だけ
-// 【解説】   ├ BlockNode    … 文書に直接並べられるもの(sealed)
-// 【解説】   │   ├ TextNode  （1行）
-// 【解説】   │   ├ RowNode   （横並び。= が作る）
-// 【解説】   │   ├ TableNode （行の並び。|~ が宣言する）
-// 【解説】   │   └ ColumnNode（行の塊＋寄せ。| が作る。セルでもある）
-// 【解説】   └ TextSpanNode … 行の中の断片。ブロックにはなれない
+// 【解説】 このファイル自体は束ねているだけで、中身は node/ に1ノード1ファイル。
+// 【解説】 各ファイルの import が「自分より下のノードと道具だけ」になっていて、
+// 【解説】 それがそのまま階層の証拠になっている。上から下へ読める:
 // 【解説】
-// 【解説】 読みどころは「children の型が全部違う」こと。どのノードも
-// 【解説】 実際に入りうる子の型ちょうどを宣言していて、それ以外は
-// 【解説】 コンパイルエラーになる。以前は全部 List<NaturalBlockNode> で、
-// 【解説】 TextSpanNode を ColumnNode の子に置いても型が通り、描画時に
-// 【解説】 例外も出ず黙って消える、という穴があった。
+// 【解説】   natural_block_node.dart  全ての親
+// 【解説】   children_equality.dart   子リストの構造的等価性（道具）
+// 【解説】   inline_node.dart         行の中に置けるもの
+// 【解説】   ├ text_span_node.dart    装飾された文字の連なり
+// 【解説】   └ verbatim_node.dart     そのままの文字
+// 【解説】   block_node.dart          文書に直接並べられるもの
+// 【解説】   ├ text_node.dart         1行
+// 【解説】   ├ column_node.dart       行の塊＋寄せ（| が作る。セルでもある）
+// 【解説】   ├ row_node.dart          横並び（= が作る）
+// 【解説】   └ table_node.dart        行の並び（|~ が宣言する）
+// 【解説】   document_node.dart       parse() が返す最上位
 // 【解説】
-// 【解説】 DocumentNode を ColumnNode と分けているのが今回の肝。以前は
-// 【解説】 両方 ColumnNode で、「全体を囲うもの」と「中の塊」が同じ型だった。
-// 【解説】 実際には子の集合が違い(ルートは3種類、塊は TextNode だけ)、
-// 【解説】 さらにルートの align は構造上いつも既定値で死んでいた。
+// 【解説】 読みどころは「children の型が全部違う」こと。どのノードも実際に
+// 【解説】 入りうる子の型ちょうどを宣言していて、それ以外はコンパイルエラー。
+// 【解説】 以前は全部 List<NaturalBlockNode> で、TextSpanNode を ColumnNode の
+// 【解説】 子に置いても型が通り、描画時に例外も出ず黙って消える穴があった。
+// 【解説】
+// 【解説】 sealed をやめて abstract base + final にしてある。Dart の sealed は
+// 【解説】 サブタイプが同一ライブラリにいることを要求するので、1ノード1ファイル
+// 【解説】 と両立しない。失うのは switch の網羅性検査だけで、これは元々どこでも
+// 【解説】 使っていなかった。閉じた集合であることは base と final が保つ。
 // 【解説】 次: lib/src/semantic_color.dart と lib/src/block_align.dart（語彙）
 
-import 'package:collection/collection.dart';
-
-import 'block_align.dart';
-import 'semantic_color.dart';
-
-/// Deep, order-sensitive equality (and matching hash) for a node's
-/// `children` list, shared by every [NaturalBlockNode] subclass below.
-const _childrenEquality = ListEquality<NaturalBlockNode>();
-
-/// The base type of every node the parser can produce.
+/// The node types `NaturalBlockParser.parse` produces.
 ///
-/// Each node below declares its `children` as exactly the type that can
-/// actually appear there, rather than sharing one wide list type. That is
-/// what makes a misplaced node -- a [TextSpanNode] used where a line
-/// belongs, say -- a compile error instead of something that renders as
-/// nothing at runtime.
-sealed class NaturalBlockNode {}
+/// One file per node under `node/`, each importing only the nodes below it
+/// and the tools it needs -- so the import list of any one file is the
+/// hierarchy, checked by the compiler rather than described in a comment.
+library;
 
-/// The root of a parsed document: exactly one per `NaturalBlockParser.parse`
-/// call, holding the blocks that make up the document.
-///
-/// Deliberately *not* a [ColumnNode], even though both stack their children
-/// vertically. The two differ in what they can contain -- a document holds
-/// any [BlockNode], while a [ColumnNode] holds only lines -- and a document
-/// has no alignment of its own, having nothing to be aligned within. Sharing
-/// one type for both meant a single `children` list that had to admit every
-/// node kind, and an `align` field on the root that was never anything but
-/// its default.
-class DocumentNode extends NaturalBlockNode {
-  /// The blocks making up the document, in the order they were written.
-  final List<BlockNode> children;
-
-  /// Creates a document holding [children].
-  DocumentNode({this.children = const []});
-
-  @override
-  String toString() => 'DocumentNode(children: $children)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is DocumentNode &&
-        _childrenEquality.equals(children, other.children);
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, _childrenEquality.hash(children));
-}
-
-/// A node that can be placed directly in a document, or in whatever else
-/// arranges blocks.
-///
-/// This is the "can stand on its own in the flow" boundary: a [TextSpanNode]
-/// is deliberately *not* one, because a styled run only ever exists inside a
-/// [TextNode]'s line. New block-level constructs (a table, say) join here and
-/// become placeable everywhere blocks are accepted, with nothing else to
-/// wire up.
-sealed class BlockNode extends NaturalBlockNode {}
-
-/// A horizontal arrangement, produced by the `=` separator.
-///
-/// A [RowNode] holds every cell of one visual row -- each child is a
-/// [ColumnNode] holding that cell's stacked lines (a cell with a single line
-/// is simply a one-child [ColumnNode]). The row boundary is therefore
-/// explicit structure: there is no convention of grouping sibling nodes back
-/// up to find where one row ends and the next begins.
-class RowNode extends BlockNode {
-  /// The cells of this row, left to right; each holds that cell's stacked
-  /// lines.
-  final List<ColumnNode> children;
-
-  /// Creates a row of [children] cells.
-  RowNode({this.children = const []});
-
-  @override
-  String toString() => 'RowNode(children: $children)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is RowNode &&
-        _childrenEquality.equals(children, other.children);
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, _childrenEquality.hash(children));
-}
-
-/// A run of rows that share their column widths, opened by the `~` marker
-/// (`|~`) and closed by that same marker, by a row of a different cell
-/// count, by anything that is not a row, or by the end of the document.
-///
-/// Being declared rather than inferred is the whole point. A run of rows is
-/// not automatically a table: `LEFT==RIGHT` is three cells with an empty
-/// middle, written that way to push RIGHT to the far edge, and it only does
-/// that because plain rows split the available width evenly. A table wants
-/// the opposite -- columns as wide as their content -- so the two readings
-/// cannot share a width policy, and only an explicit marker can say which
-/// one a given run of rows means.
-///
-/// The declaration is also the place to hang what a table needs and a bare
-/// row cannot express: rules, striping, and cell padding are properties of
-/// a table, not of the text inside it, and the decoration syntax has no way
-/// to say them.
-class TableNode extends BlockNode {
-  /// The rows of the table, top to bottom. Every one holds the same number
-  /// of cells -- a row of a different width ends the table rather than
-  /// joining it.
-  final List<RowNode> children;
-
-  /// How the table as a whole is positioned, from an alignment character in
-  /// the same marker cluster that opened it -- `|~^` centers it. Meaningful
-  /// because a table is sized to its content rather than filling the width,
-  /// so there is room around it to be positioned within.
-  final BlockAlign align;
-
-  /// Creates a table of [children] rows, positioned by [align].
-  TableNode({this.children = const [], this.align = BlockAlign.start});
-
-  @override
-  String toString() => 'TableNode(children: $children, align: $align)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is TableNode &&
-        align == other.align &&
-        _childrenEquality.equals(children, other.children);
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, align, _childrenEquality.hash(children));
-}
-
-/// A run of lines sharing one alignment, produced by the `|` separator.
-///
-/// This is the single shape behind two readings that look different in the
-/// source but are structurally identical: a cell of a [RowNode], and a
-/// standalone block carrying an alignment marker. Both are "these lines,
-/// aligned this way", so both are this one type.
-///
-/// Its children are lines, and only lines. A cell holding a nested row or
-/// table is not expressible today, and stating that in the type keeps a
-/// later decision to allow it a deliberate, visible change rather than
-/// something that silently was always possible.
-class ColumnNode extends BlockNode {
-  /// The lines of this block, top to bottom.
-  final List<TextNode> children;
-
-  /// How these lines are aligned horizontally, set by an alignment marker
-  /// (`<`, `^`, `>`) written immediately after the layout separator that
-  /// opened this block. Defaults to [BlockAlign.start] when no marker was
-  /// given.
-  final BlockAlign align;
-
-  /// Creates a block of [children] lines, positioned by [align].
-  ColumnNode({this.children = const [], this.align = BlockAlign.start});
-
-  @override
-  String toString() => 'ColumnNode(children: $children, align: $align)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is ColumnNode &&
-        align == other.align &&
-        _childrenEquality.equals(children, other.children);
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, align, _childrenEquality.hash(children));
-}
-
-/// Something that sits inside a line rather than standing on its own.
-///
-/// Two kinds, because a line holds two genuinely different things: text
-/// carrying decoration, and text the parser stopped reading. Folding the
-/// second into the first as a flag would leave a run whose color, emphasis
-/// and size can never mean anything -- the same dishonesty [BlockNode]
-/// exists to avoid one level up.
-sealed class InlineNode extends NaturalBlockNode {}
-
-/// A single line, broken into one or more children wherever its content
-/// changes kind or decoration partway through.
-class TextNode extends BlockNode {
-  /// The pieces making up this line, left to right. A line is split into
-  /// more than one wherever its decoration changes, or wherever a verbatim
-  /// region starts or ends.
-  final List<InlineNode> children;
-
-  /// Creates a line made of [children] runs.
-  TextNode({this.children = const []});
-
-  @override
-  String toString() => 'TextNode(children: $children)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is TextNode &&
-        _childrenEquality.equals(children, other.children);
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, _childrenEquality.hash(children));
-}
-
-/// A single run of text sharing one decoration state (size, color, emphasis,
-/// and actionability) -- a [TextNode] is split into one [TextSpanNode] per
-/// run whenever a decoration cluster changes that state partway through a
-/// line.
-///
-/// Not a [BlockNode]: a styled run is part of a line, never a thing the
-/// document arranges on its own.
-class TextSpanNode extends InlineNode {
-  /// The literal text of this run, with escaping already resolved.
-  final String text;
-
-  /// How many size steps this run is offset from the surrounding default,
-  /// e.g. `+2` from two stacked `:+` decorations -- a relative step count,
-  /// not an absolute font size, since the parser has no notion of what the
-  /// base size actually is.
-  final int sizeOffset;
-
-  /// The semantic color applied to this run, or [SemanticColor.none] if no
-  /// color decoration is active.
-  final SemanticColor color;
-
-  /// Whether emphasis (`:*`) is active for this run.
-  final bool emphasis;
-
-  /// Whether this run is actionable (`:@`) -- something the reader can tap.
-  ///
-  /// The parser records only *that* the run is actionable, never what
-  /// tapping it should do: that decision belongs entirely to the consuming
-  /// app (open a URL, jump to a section, open a mention, run a command...).
-  /// The tapped payload is simply this run's own [text] -- there is no
-  /// separate target field, deliberately, the same way [color] records a
-  /// semantic meaning like [SemanticColor.danger] and leaves it to the
-  /// theme to decide what red means.
-  final bool isAction;
-
-  TextSpanNode({
-    required this.text,
-    this.sizeOffset = 0,
-    this.color = SemanticColor.none,
-    this.emphasis = false,
-    this.isAction = false,
-  });
-
-  @override
-  String toString() {
-    return 'TextSpanNode(text: $text, sizeOffset: $sizeOffset, color: $color, emphasis: $emphasis, isAction: $isAction)';
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is TextSpanNode &&
-        text == other.text &&
-        sizeOffset == other.sizeOffset &&
-        color == other.color &&
-        emphasis == other.emphasis &&
-        isAction == other.isAction;
-  }
-
-  @override
-  int get hashCode => Object.hash(text, sizeOffset, color, emphasis, isAction);
-}
-
-/// Text taken exactly as written, between a pair of `` ` `` fences.
-///
-/// The one place the language stops reading. Nothing inside is a separator,
-/// a decoration, or an escape -- which is what makes it possible to write
-/// code at all. Measured before this existed:
-/// `final x = a == b ? 1 : 2;` became a four-cell row, and
-/// `cat file.txt | grep foo` became three blocks. `=` and `|` are the
-/// characters code uses most, so the language's promise that ordinary prose
-/// survives untouched runs backwards for code, and escaping every one of
-/// them by hand was the only way out.
-///
-/// An [InlineNode] rather than a [BlockNode], even though a region often
-/// stands alone as a code block. Whether it *looks* like a block is about
-/// where it was written, not about what it is, so that decision belongs to
-/// whatever renders it -- a region that is a line's only child is the whole
-/// line, and can be drawn as a block; one sitting among text is a run
-/// inside that line.
-///
-/// Holds a plain [String]: a run that is never decorated has nothing to
-/// split into spans, and no color, emphasis or size could mean anything
-/// here.
-class VerbatimNode extends InlineNode {
-  /// The content, exactly as written, apart from one thing the source
-  /// cannot express otherwise: the newline directly against each fence is
-  /// treated as part of that fence, so a fence can sit on its own line.
-  /// CRLF is normalized to LF before parsing, so line endings do not
-  /// round-trip.
-  final String text;
-
-  /// Creates a verbatim region holding [text].
-  VerbatimNode({required this.text});
-
-  @override
-  String toString() => 'VerbatimNode(text: $text)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is VerbatimNode && text == other.text;
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, text);
-}
+export 'node/block_node.dart';
+export 'node/column_node.dart';
+export 'node/document_node.dart';
+export 'node/inline_node.dart';
+export 'node/natural_block_node.dart';
+export 'node/row_node.dart';
+export 'node/table_node.dart';
+export 'node/text_node.dart';
+export 'node/text_span_node.dart';
+export 'node/verbatim_node.dart';
