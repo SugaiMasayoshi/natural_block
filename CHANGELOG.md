@@ -16,8 +16,14 @@ Initial release.
 - One line is one `TextNode`. A single blank line at the start or end of a
   block is dropped, so a block's symbol can sit on its own line. CRLF input
   is normalized, so a document written on Windows parses identically.
-- Surrounding ASCII whitespace is trimmed, but not Unicode whitespace --
-  a leading ideographic space (U+3000) survives.
+- Whitespace is content and is never trimmed, at the document's edges or
+  anywhere else. A space the author typed is one they can see and delete,
+  and trimming the ends would make the first and last line behave unlike
+  every other line. The one thing that does disappear is a single blank
+  line at each end of a *block*, which is what lets a block's symbol sit on
+  a line of its own.
+- Line endings are normalized to `\n` on the way in: CRLF and a lone CR
+  both become one, and no `\r` survives into the text.
 
 ### Alignment
 

@@ -471,13 +471,9 @@ void main() {
     });
   });
 
-  group('Surrounding whitespace', () {
-    test('ASCII whitespace around a document is removed', () {
-      expect(NaturalBlockParser.parse('  a  '), NaturalBlockParser.parse('a'));
-    });
-
-    test('an ideographic space is not -- Japanese indentation survives', () {
-      expect(runs('\u3000字下げ'), [TextSpanNode(text: '\u3000字下げ')]);
-    });
-  });
+  // Whitespace handling lives in `input_normalization_test.dart`, not here.
+  // It was in this file once, which was a mistake: the README makes no claim
+  // about it, so these tests had nothing to check against and quietly became
+  // tests of the CHANGELOG instead. Every test in this file must be able to
+  // name the README sentence it executes.
 }

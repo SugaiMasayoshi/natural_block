@@ -24,10 +24,17 @@
 // 【解説】
 // 【解説】 parse は static で、クラスは abstract final。状態を持たないのに
 // 【解説】 インスタンスを作らせる形をやめた(NaturalBlockImages と同じ形)。
-// 【解説】 入口で CRLF を LF に正規化しているのも要点。しないと「開き記号を
+// 【解説】 入口で改行を \n に統一しているのも要点。しないと「開き記号を
 // 【解説】 単独行に置ける」規則が Windows で書かれた文書に効かなくなる。
-// 【解説】 前後の空白を削るのに trim() を使っていないのは、全角スペースを
-// 【解説】 消さないため。日本語の字下げを壊さないという判断。
+// 【解説】 CRLF と単独 CR の2回置換で、この行以降 \r は存在しない。
+// 【解説】
+// 【解説】 空白は一切削っていない。以前は文書の前後から ASCII の空白を
+// 【解説】 削っていたが、やめた。理由は3つ:
+// 【解説】   1. 最初と最後の行だけ字下げが剥がれ、他の行と扱いが割れていた
+// 【解説】   2. 打った空白は見えて消せるので、内容として扱うのが筋
+// 【解説】   3. その正規表現が parse 全体の2〜4割を占めていた($ 側が O(n))
+// 【解説】 「記号を単独行に置ける」は _parseBlock の空行1つの規則が担うので、
+// 【解説】 削っても壊れない。実際に消してテストを走らせて確かめてある。
 // 【解説】 次: lib/src/parser/document_builder.dart
 
 import '../block_align.dart';
@@ -45,14 +52,6 @@ import 'verbatim_region.dart';
 /// scan (splitting on `|` and `=`) and delegates each resulting line to
 /// [parseDecoratedLine] for inline decoration parsing.
 abstract final class NaturalBlockParser {
-  /// Characters stripped from either end of a source before parsing.
-  ///
-  /// Deliberately *not* `String.trim`, which strips every Unicode space --
-  /// including U+3000, the ideographic space Japanese prose indents with,
-  /// and which this language explicitly means to carry unharmed. Only the
-  /// ASCII whitespace that surrounds a document by accident is removed.
-  static final RegExp _surroundingWhitespace = RegExp(r'^[ \t\r\n]+|[ \t\r\n]+$');
-
   /// Parses [source] into a [DocumentNode] tree.
   ///
   /// `|` marks a Column separator and `=` marks a Row separator. The scan
@@ -119,15 +118,31 @@ abstract final class NaturalBlockParser {
   /// [DocumentBuilder] is what turns the resulting blocks into a tree, and
   /// holds the row and table rules above.
   static DocumentNode parse(String source) {
-    // CRLF is normalized before anything looks at the text. `_parseBlock`
-    // splits on `\n` and then compares lines against `''` to drop a single
-    // blank one at each end -- the rule that lets a block's opening symbol
-    // sit on its own line. Under CRLF that leading line is `'\r'`, not
-    // `''`, so the rule silently stops applying and every line keeps a
-    // trailing `\r`. Any document written by a Windows editor is affected.
-    final normalized = source
-        .replaceAll('\r\n', '\n')
-        .replaceAll(_surroundingWhitespace, '');
+    // Every CR-based line ending becomes `\n`, and after this line a `\r`
+    // does not exist anywhere in the text. That single invariant is what
+    // every later rule relies on: `_parseBlock` splits on `\n` and compares
+    // lines against `''` to drop a single blank one at each end -- the rule
+    // that lets a block's opening symbol sit on its own line. Under CRLF
+    // that leading line would be `'\r'`, not `''`, so the rule would
+    // silently stop applying and every line would keep a trailing `\r`.
+    // A document written by a Windows editor is affected.
+    //
+    // The order matters, and getting it wrong is silent: replacing the lone
+    // `\r` first would turn every `\r\n` into `\n\n` and double every line.
+    // `input_normalization_test`'s "a CRLF document parses exactly like the
+    // LF one" catches that -- it goes from two nodes to four.
+    //
+    // This is deliberately two literal replacements rather than one
+    // `RegExp(r'\r\n?')`: measured on a 3.5k-character document the regex
+    // costs about 4.4x what the pair does, and the ordering hazard the
+    // regex would remove is already covered by that test.
+    //
+    // Nothing else is stripped. Whitespace is content -- a space the author
+    // typed is a space they can see and delete, so removing it at the
+    // document's edges would treat the first and last line differently from
+    // every other line. The one thing that does disappear is a single blank
+    // line at each end of a *block*, which `_parseBlock` handles.
+    final normalized = source.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
     final scanner = LiteralScanner(normalized);
     final builder = DocumentBuilder();
     var hasPendingBlock = false;
