@@ -1,4 +1,4 @@
-// 【解説】[10/21] 1行の中の装飾を解析して TextNode を作る。
+// 【解説】[11/23] 1行の中の装飾を解析して TextNode を作る。
 // 【解説】
 // 【解説】 状態機械としては2状態しかない:
 // 【解説】   クラスタ外 … : を見つけ、その次が装飾文字ならクラスタに入る
@@ -18,16 +18,16 @@
 // 【解説】 発火するのを止めるためだけの peekNext != ':' という特例が要った。
 // 【解説】 今は「\ の時点で、次が記号かどうかだけ見る」の一方式に統一してある。
 // 【解説】
-// 【解説】 何が記号かは escapesNext() の1箇所だけが知っていて、クラスタ内なら
-// 【解説】 装飾文字、外なら : と答える。装飾文字を増やしても byChar に足すだけで
-// 【解説】 エスケープが自動的に追従する。
+// 【解説】 何が記号かは、常に効く分を source_scan.dart が持ち、この pass だけの
+// 【解説】 分(クラスタ内の装飾文字、外の :)を escapesNext が足す。3つの pass が
+// 【解説】 同じ集合に合意する必要があるので、定義は1つで拡張する形にしてある。
 // 【解説】 次: lib/src/parser/parser.dart（同じ書き方が | と = に対して出てくる）
 
 import '../node.dart';
 import '../semantic_color.dart';
 import 'decoration_action.dart';
-import 'layout_symbol.dart';
 import 'literal_scanner.dart';
+import 'source_scan.dart';
 import 'verbatim_region.dart';
 
 /// Parses a single line for `:`-led decoration clusters (e.g. `:!`, `:+++`,
@@ -113,21 +113,16 @@ TextNode parseDecoratedLine(String lineText) {
   /// so a Windows path like `C:\Users` survives untouched.
   bool escapesNext() {
     final next = scanner.peekNext;
-    // A backslash escapes itself, which is the only way to write a literal
-    // backslash immediately before something that would otherwise be
-    // markup -- `\\=` is a cell holding `\`, followed by a real separator,
-    // where a lone `\=` would just be a literal `=`.
-    if (next == r'\') return true;
-    // The layout separators reach this function still carrying their
-    // backslash: the layout scan uses it to decide not to split there, but
-    // leaves the pair intact so that this -- the single place that resolves
-    // escapes -- is what actually removes it.
-    if (LayoutSymbol.byChar.containsKey(next)) return true;
-    // The fence is always markup too, in either state, so `` \` `` is how a
-    // literal backtick is written. Both other passes skip such a pair
-    // without dropping the backslash, leaving it for this one -- so
-    // omitting it here would leave the backslash in the output.
-    if (next == verbatimFenceChar) return true;
+    // The always-active set -- `\`, the separators, the fence -- is
+    // [escapesAlwaysActive]'s to define, and the other two passes ask the
+    // same function. They step over such a pair and leave the backslash;
+    // this is the one pass that removes it, so all three have to agree
+    // about where a pair starts or a backslash would survive into the text.
+    if (escapesAlwaysActive(next)) return true;
+    // What this pass adds. Inside a cluster every decoration character is
+    // live; outside one only `:` is, because a bare `+`, `!`, `%`... is
+    // ordinary text there -- the whole point of the `:` prefix. A backslash
+    // before anything else is just a backslash, so `C:\Users` is untouched.
     return inCluster
         ? DecorationAction.byChar.containsKey(next)
         : next == ':';
