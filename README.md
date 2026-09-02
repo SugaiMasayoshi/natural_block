@@ -49,26 +49,30 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   A table also ends on its own at the first thing that cannot belong to it: a row with a different number of cells, anything that is not a row, or the end of the document. The explicit `|~` is for the one case those cannot cover -- more rows of the same shape that are not part of the table.
 
   Alignment markers combine with it in the same cluster (`|~^` is a centered table, meaningful because a table is sized to its content). Inside a table, each column takes its alignment from the first row, so `|~Item=>Price|` right-aligns the price column for every row without repeating the marker; a marker on an individual cell overrides just that cell.
-* **Verbatim regions (`` |` ``)**
-  Writing `` ` `` immediately after a `|` opens a region taken exactly as written, closed by the same marker. Nothing inside is a separator, a decoration, or an escape.
+* **Verbatim regions (`` ` ``)**
+  A pair of backticks opens and closes a region taken exactly as written. Nothing inside is a separator, a decoration, or an escape.
 
   ```text
-  |`
+  比較は`a == b`です
+
+  `
   cat file.txt | grep foo | wc -l
-  |`
+  `
   ```
 
   This is what makes code writable at all. Without it, `final x = a == b ? 1 : 2;` becomes a four-cell row and `cat a | grep b` becomes three blocks -- `=` and `|` are exactly the characters code uses most, so the promise that ordinary prose survives untouched runs backwards for code.
 
-  The marker's run length sets the closing delimiter, so a region opened with `` |`` `` ends at `` |`` `` and may contain single backticks. That is how the language quotes its own syntax.
+  **A region can go anywhere**: inside a sentence, alone on a line, or in a table cell. It is one construct, and where you put it is what decides how a renderer draws it -- a region that is a whole line is a code block, one among text is a run of monospaced text. `` ` `` is the price: it is the fifth character that is always active, so a literal backtick in prose is written `` \` ``. A marker built on `|` could never have been inline, since `|` always breaks a block.
 
-  The newline directly after the opening marker and the one directly before the closing marker are treated as part of those markers, so a fence can sit on its own line. Written inline (`` |`code|` ``) the content is exactly what was typed.
+  The fence's run length sets the closing delimiter, so a region opened with ``` `` ``` ends at ``` `` ``` and may contain single backticks. That is how the language quotes its own syntax.
 
-  Unlike every other marker, `` ` `` is not read as part of a marker cluster: everything after it is content, so a verbatim region takes no alignment. It is also only valid after `|`, never after `=`, for the same reason the table marker is -- a cell holds only lines. An unclosed region takes the rest of the document (`VerbatimNode.isTerminated` records that it happened), and CRLF is normalized before parsing, so line endings do not round-trip.
+  The newline directly against each fence is treated as part of that fence, so a fence can sit on its own line. Written inline the content is exactly what was typed.
+
+  **An unclosed fence is not a region** -- it stays ordinary text, and separators after it still work, so a stray backtick cannot swallow anything. CRLF is normalized before parsing, so line endings do not round-trip.
 * **Escape characters**
   A backslash escapes whatever would otherwise be markup *at that point*, and nothing else. Which characters those are depends on where you are:
 
-  * Anywhere: `\|`, `\=`, `\:` render as literal `|`, `=`, `:`, and `\\` renders as a literal `\`.
+  * Anywhere: `\|`, `\=`, `\:` and `` \` `` render as literal `|`, `=`, `:` and `` ` ``, and `\\` renders as a literal `\`.
   * **Inside a cluster**, every decoration character is live, so a backslash escapes those too. `:---\%off` gives `%off` at -3, with the backslash gone. The escape also ends the cluster, which is what lets one backslash cover a whole run: `:---\%%%` needs one, not three.
   * Everywhere else a backslash is just a backslash -- `\+`, `\!`, and `C:\Users` keep it, because nothing there needed escaping.
 
@@ -95,7 +99,7 @@ dart pub add natural_block
 
 ## Usage
 
-Pass your markup text to `NaturalBlockParser.parse`. It will return a syntax tree (a `DocumentNode` holding `ColumnNode`, `RowNode`, `TableNode`, `TextNode`, `VerbatimNode`, and `TextSpanNode`) that you can easily map to Flutter widgets like `Column`, `Row`, and `RichText`.
+Pass your markup text to `NaturalBlockParser.parse`. It will return a syntax tree (a `DocumentNode` holding `ColumnNode`, `RowNode`, `TableNode`, `TextNode`, and the two things a line can hold (`TextSpanNode`, `VerbatimNode`)) that you can easily map to Flutter widgets like `Column`, `Row`, and `RichText`.
 
 ```dart
 import 'package:natural_block/natural_block.dart';

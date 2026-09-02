@@ -2,11 +2,18 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
+  const bs = r'\';
+
   TextNode line(String text) =>
       TextNode(children: [TextSpanNode(text: text)]);
 
-  VerbatimNode only(String source) =>
-      NaturalBlockParser.parse(source).children.single as VerbatimNode;
+  /// The one line a source parses to.
+  TextNode onlyLine(String source) =>
+      NaturalBlockParser.parse(source).children.single as TextNode;
+
+  /// The one verbatim region a source parses to.
+  VerbatimNode onlyRegion(String source) =>
+      onlyLine(source).children.single as VerbatimNode;
 
   group('why this exists: code survives', () {
     test('a line of code is not split into cells', () {
@@ -15,142 +22,137 @@ void main() {
       const code = 'final x = a == b ? 1 : 2;';
 
       expect(NaturalBlockParser.parse(code).children.single, isA<RowNode>());
-      expect(only('|`$code|`').text, code);
+      expect(onlyRegion('`$code`').text, code);
     });
 
     test('a shell pipeline is not split into blocks', () {
       const code = 'cat file.txt | grep foo | wc -l';
 
       expect(NaturalBlockParser.parse(code).children, hasLength(3));
-      expect(only('|`$code|`').text, code);
+      expect(onlyRegion('`$code`').text, code);
     });
 
-    test('nothing inside is markup: no decoration, no escapes', () {
-      const raw = r':*bold:* and \| and :@action:@ and :---%%%';
+    test('nothing inside is markup: no separators, decoration or escapes', () {
+      const raw = r':*bold:* and \| and :@action:@ and |a=b| and :---%%%';
 
-      expect(only('|`$raw|`').text, raw);
+      expect(onlyRegion('`$raw`').text, raw);
+    });
+  });
+
+  group('the point of one concept: it goes anywhere', () {
+    test('a region inside a sentence stays inside that line', () {
+      // The reason the delimiter cannot involve `|`: a `|`-based marker
+      // always breaks the block, so it could never be written mid-sentence.
+      expect(
+        onlyLine('比較は`a == b`です'),
+        TextNode(
+          children: [
+            TextSpanNode(text: '比較は'),
+            VerbatimNode(text: 'a == b'),
+            TextSpanNode(text: 'です'),
+          ],
+        ),
+      );
+    });
+
+    test('a region standing alone is the whole line', () {
+      // Same node, different placement -- which is what lets a renderer
+      // draw this one as a block and the one above as a run of text.
+      expect(onlyLine('`code`').children, [VerbatimNode(text: 'code')]);
+    });
+
+    test('a multi-line region stays one node', () {
+      // The block-splitting pass has to know about regions too, or this
+      // would be cut into a line each and no later pass could rejoin it.
+      expect(onlyRegion('`\nif (x) {\n  y();\n}\n`').text, 'if (x) {\n  y();\n}');
+    });
+
+    test('a multi-line region keeps the text around it in the same line', () {
+      final children = onlyLine('before`\ncode\n`after').children;
+
+      expect(children, [
+        TextSpanNode(text: 'before'),
+        VerbatimNode(text: 'code'),
+        TextSpanNode(text: 'after'),
+      ]);
+    });
+
+    test('a region works inside a table cell', () {
+      // Not possible with a `|`-based marker: a cell cannot hold a block.
+      final table = NaturalBlockParser.parse('|~x=`a|b`|y=z|').children.single
+          as TableNode;
+
+      expect(
+        table.children.first.children.last.children.single.children.single,
+        VerbatimNode(text: 'a|b'),
+        reason: 'the pipe inside the region did not split the cell',
+      );
+    });
+
+    test('a region sits alongside decoration on the same line', () {
+      final children = onlyLine(':*bold:*and`code`and plain').children;
+
+      expect(children[0], TextSpanNode(text: 'bold', emphasis: true));
+      expect(children[1], TextSpanNode(text: 'and'));
+      expect(children[2], VerbatimNode(text: 'code'));
+    });
+
+    test('a region opening right after a cluster is still a region', () {
+      // Inside a cluster a `:` is the reset action and is applied on sight,
+      // so the region check has to come first or this would be swallowed.
+      expect(onlyRegion(':!`code`').text, 'code');
     });
   });
 
   group('fences', () {
     test('the newline against each fence belongs to the fence', () {
-      // So a fence can sit on its own line, the way a code block is
-      // normally written.
-      expect(only('|`\ncat a | grep b\n|`').text, 'cat a | grep b');
+      expect(onlyRegion('`\ncat a | grep b\n`').text, 'cat a | grep b');
     });
 
     test('only one newline goes at each end', () {
-      // Defined as "that newline is part of the marker" rather than "trim a
-      // blank line", which is what makes this unambiguous.
-      expect(only('|`\n\ncode\n\n|`').text, '\ncode\n');
+      expect(onlyRegion('`\n\ncode\n\n`').text, '\ncode\n');
     });
 
-    test('written inline, the content is exactly what was typed', () {
-      expect(only('|`code|`').text, 'code');
-    });
-
-    test('a longer fence lets the region quote the marker itself', () {
-      // Without this the language could not document its own syntax --
-      // the problem Markdown solves with variable-length fences.
-      final node = only('|``\n|`not a close|`\n|``');
-
-      expect(node.text, '|`not a close|`');
-      expect(node.isTerminated, isTrue);
-    });
-
-    test('a short fence does not close a long one', () {
-      expect(only('|```a|`b|``c|```').text, 'a|`b|``c');
-    });
-  });
-
-  group('where it can appear', () {
-    test('text before and after stays its own block', () {
-      final document = NaturalBlockParser.parse('before|`raw|`after');
-
-      expect(document.children, [
-        line('before'),
-        VerbatimNode(text: 'raw'),
-        line('after'),
-      ]);
-    });
-
-    test('a backtick after `=` is ordinary text, not a region', () {
-      // Same restriction the table marker has, for the same reason: a cell
-      // holds only lines, so a verbatim region could not be one.
-      final row = NaturalBlockParser.parse('A=`B|').children.single as RowNode;
-
-      expect(row.children[1].children.single, line('`B'));
-    });
-
-    test('an escaped separator leaves the marker as text', () {
-      expect(
-        NaturalBlockParser.parse(r'\|`still text'),
-        DocumentNode(children: [line('|`still text')]),
-      );
-    });
-
-    test('a bare backtick with no separator before it is ordinary text', () {
-      expect(
-        NaturalBlockParser.parse('a `quoted` word'),
-        DocumentNode(children: [line('a `quoted` word')]),
-      );
-    });
-  });
-
-  group('interaction with the rest of the language', () {
-    test('a region ends an open table, and the table comes first', () {
-      // A verbatim region is not a row. Flushing has to happen before the
-      // region is added, or the table would land after it.
-      final document = NaturalBlockParser.parse('|~A=B|C=D||`code|`');
-
-      expect(document.children.first, isA<TableNode>());
-      expect(document.children.last, VerbatimNode(text: 'code'));
+    test('a longer fence lets a region contain the fence character', () {
+      // Without this the language could not quote its own syntax.
+      expect(onlyRegion('``a `b` c``').text, 'a `b` c');
     });
 
     test('an empty region contributes no node', () {
-      // Matching the rule that an empty block contributes nothing.
-      expect(
-        NaturalBlockParser.parse('A|`|`B'),
-        DocumentNode(children: [line('A'), line('B')]),
-      );
-    });
-
-    test('no alignment marker is read after the fence', () {
-      // The character right after the marker is content, always. That is
-      // why verbatim takes no alignment: reading a cluster first would make
-      // content starting with `^` unwritable.
-      expect(only('|`^centered?|`').text, '^centered?');
-    });
-
-    test('an alignment on a later block is not affected', () {
-      final document = NaturalBlockParser.parse('|`raw|`|^after');
-
-      expect(document.children.first, isA<VerbatimNode>());
-      expect((document.children.last as ColumnNode).align, BlockAlign.center);
+      expect(NaturalBlockParser.parse('a``b'), DocumentNode(children: [line('a``b')]));
     });
   });
 
-  group('an unclosed region', () {
-    test('takes the rest of the document and says so', () {
-      // The scanner cannot rewind, so there is nothing else to do with it.
-      // Recording it is what keeps a mistyped marker from silently eating
-      // the file with no way to tell.
-      final document = NaturalBlockParser.parse('before|`rest of the document');
-      final node = document.children.last as VerbatimNode;
-
-      expect(document.children.first, line('before'));
-      expect(node.text, 'rest of the document');
-      expect(node.isTerminated, isFalse);
+  group('an unclosed fence is not a region', () {
+    test('it stays ordinary text', () {
+      // Nothing is swallowed: a stray backtick cannot eat a document, which
+      // is what makes three separate passes agree by construction -- each
+      // looks ahead and only then commits.
+      expect(NaturalBlockParser.parse('a `b'), DocumentNode(children: [line('a `b')]));
     });
 
-    test('a closed region reports that it was closed', () {
-      expect(only('|`x|`').isTerminated, isTrue);
-    });
-
-    test('the flag is part of equality', () {
+    test('separators after it still work', () {
       expect(
-        VerbatimNode(text: 'x'),
-        isNot(VerbatimNode(text: 'x', isTerminated: false)),
+        NaturalBlockParser.parse('a `b | c'),
+        DocumentNode(children: [line('a `b '), line(' c')]),
+      );
+    });
+  });
+
+  group('escaping the fence', () {
+    test('an escaped fence is a literal backtick and opens nothing', () {
+      expect(
+        NaturalBlockParser.parse('a $bs` b'),
+        DocumentNode(children: [line('a ` b')]),
+      );
+    });
+
+    test('a separator after an escaped fence still separates', () {
+      // The check that all three passes agree: if any one of them read the
+      // escaped fence as opening a region, this `|` would be swallowed.
+      expect(
+        NaturalBlockParser.parse('a $bs` b | c'),
+        DocumentNode(children: [line('a ` b '), line(' c')]),
       );
     });
   });
@@ -158,9 +160,8 @@ void main() {
   group('line endings', () {
     test('CRLF is normalized inside a region too', () {
       // Normalization happens before scanning, so line endings do not
-      // round-trip through a verbatim region. Pinned so the limit is
-      // stated rather than discovered.
-      expect(only('|`a\r\nb|`').text, 'a\nb');
+      // round-trip through a region. Pinned so the limit is stated.
+      expect(onlyRegion('`a\r\nb`').text, 'a\nb');
     });
   });
 }

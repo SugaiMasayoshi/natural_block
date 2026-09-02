@@ -38,6 +38,7 @@ import 'block_marker.dart';
 import 'decoration_parser.dart';
 import 'layout_symbol.dart';
 import 'literal_scanner.dart';
+import 'verbatim_region.dart';
 
 /// Turns a NaturalBlock source string into a tree of [NaturalBlockNode]s.
 ///
@@ -108,8 +109,9 @@ abstract final class NaturalBlockParser {
   /// wants the second `|~` to start a second table, and it does -- and it
   /// is the same property the decoration symbols have, where `:!` turns
   /// danger on when it is already off. A table that is never given a row
-  /// contributes no node, so a redundant close is harmless on its own. Inside a table, a cell that carries no
-  /// alignment marker of its own inherits its column's alignment from the
+  /// contributes no node, so a redundant close is harmless on its own.
+  ///
+  /// Inside a table, a cell that carries no alignment marker of its own inherits its column's alignment from the
   /// first row, which is why the parser tracks whether each cell's
   /// alignment was stated rather than defaulted.
   static DocumentNode parse(String source) {
@@ -264,8 +266,27 @@ abstract final class NaturalBlockParser {
       // rewritten at most once.
       if (char == r'\' &&
           (LayoutSymbol.byChar.containsKey(scanner.peekNext) ||
-              scanner.peekNext == r'\')) {
+              scanner.peekNext == r'\' ||
+              // The fence too, or this scan and the decoration scan would
+              // disagree: an escaped `` \` `` would open a region here
+              // while the other pass, which resolves the escape, sees no
+              // region at all. Three passes recognize regions, so they have
+              // to agree about where one starts.
+              scanner.peekNext == verbatimFenceChar)) {
         scanner.readChar();
+        continue;
+      }
+
+      // A verbatim region is skipped over, not consumed: everything inside
+      // stays in the literal run, so a `|` or `=` in it never splits a
+      // block while the text still reaches the pass that resolves escapes.
+      // An unclosed fence returns null and is left as ordinary text, which
+      // is why a stray backtick cannot swallow anything.
+      if (char == verbatimFenceChar) {
+        final region = verbatimRegionAt(normalized, scanner.position - 1);
+        if (region != null) {
+          scanner.skipTo(region.end);
+        }
         continue;
       }
 
@@ -273,33 +294,6 @@ abstract final class NaturalBlockParser {
       if (symbol == null) continue;
       emitBlock(scanner.consume(), symbol);
       hasPendingBlock = false;
-
-      // Checked before the marker cluster, and taking over completely when
-      // it matches. Everything after the marker is content, so entering the
-      // cluster loop first would let the content's own first character be
-      // read as a marker -- and would leave `pendingAlign` set, leaking an
-      // alignment onto whatever block follows the region.
-      if (symbol == LayoutSymbol.column &&
-          scanner.peekNext == BlockMarker.verbatim.char) {
-        final fence = scanner.takeRunOf(BlockMarker.verbatim.char);
-        final (raw, closed) = scanner.takeRawUntil(
-          LayoutSymbol.column.char + BlockMarker.verbatim.char * fence,
-        );
-
-        // A verbatim region is not a row, so it ends any table being
-        // gathered -- and the flush has to happen before the region is
-        // added, or the table would land after it.
-        flushTable();
-        final text = _trimFenceNewlines(raw);
-        if (text.isNotEmpty) {
-          children.add(VerbatimNode(text: text, isTerminated: closed));
-        }
-        // Left false on purpose: the scanner is already past the closing
-        // marker, so the end-of-input flush below must not emit anything
-        // for what was just consumed.
-        hasPendingBlock = false;
-        continue;
-      }
 
       // Markers are read as a cluster, the same way decoration characters
       // share one `:` -- `|~^` is a centered table. They describe different
@@ -350,28 +344,50 @@ abstract final class NaturalBlockParser {
     return DocumentNode(children: children);
   }
 
-  /// Drops the newline that sits directly against each fence.
+  /// Splits a block into lines, leaving verbatim regions whole.
   ///
-  /// Defined as "that newline belongs to the marker" rather than as "trim a
-  /// blank line", because only the first is unambiguous: content ending in
-  /// two newlines keeps one, and `` |`code|` `` written inline keeps
-  /// exactly `code`. What it buys is that a fence can sit on its own line,
-  /// the way anyone writing a code block expects:
-  ///
-  /// ```text
-  /// |`
-  /// cat file.txt | grep foo
-  /// |`
-  /// ```
-  static String _trimFenceNewlines(String raw) {
-    var text = raw;
-    if (text.startsWith('\n')) text = text.substring(1);
-    if (text.endsWith('\n')) text = text.substring(0, text.length - 1);
-    return text;
-  }
-
+  /// The third place that recognizes a region, and the one that makes a
+  /// multi-line code block possible at all: a plain `split('\n')` would cut
+  /// such a region into a line each, and no later pass could put it back.
+  /// All three callers ask the same function where a region ends, so they
+  /// cannot disagree about it.
   static List<TextNode> _parseBlock(String blockText) {
-    final lines = blockText.split('\n');
+    final lines = <String>[];
+    final line = StringBuffer();
+
+    for (var i = 0; i < blockText.length;) {
+      final char = blockText[i];
+
+      // An escaped fence is not a fence -- the same agreement the layout
+      // scan keeps, and for the same reason.
+      if (char == r'\' &&
+          i + 1 < blockText.length &&
+          blockText[i + 1] == verbatimFenceChar) {
+        line.write(blockText.substring(i, i + 2));
+        i += 2;
+        continue;
+      }
+
+      if (char == verbatimFenceChar) {
+        final region = verbatimRegionAt(blockText, i);
+        if (region != null) {
+          line.write(blockText.substring(i, region.end));
+          i = region.end;
+          continue;
+        }
+      }
+
+      if (char == '\n') {
+        lines.add(line.toString());
+        line.clear();
+        i += 1;
+        continue;
+      }
+
+      line.write(char);
+      i += 1;
+    }
+    lines.add(line.toString());
 
     if (lines.firstOrNull == '') lines.removeAt(0);
     if (lines.lastOrNull == '') lines.removeLast();

@@ -28,6 +28,7 @@ import '../semantic_color.dart';
 import 'decoration_action.dart';
 import 'layout_symbol.dart';
 import 'literal_scanner.dart';
+import 'verbatim_region.dart';
 
 /// Parses a single line for `:`-led decoration clusters (e.g. `:!`, `:+++`,
 /// or the combined `:!*`), applying each character in a cluster in order.
@@ -46,7 +47,7 @@ import 'literal_scanner.dart';
 /// guess from context.
 TextNode parseDecoratedLine(String lineText) {
   final scanner = LiteralScanner(lineText);
-  final spans = <TextSpanNode>[];
+  final spans = <InlineNode>[];
 
   var sizeOffset = 0;
   var color = SemanticColor.none;
@@ -122,6 +123,11 @@ TextNode parseDecoratedLine(String lineText) {
     // leaves the pair intact so that this -- the single place that resolves
     // escapes -- is what actually removes it.
     if (LayoutSymbol.byChar.containsKey(next)) return true;
+    // The fence is always markup too, in either state, so `` \` `` is how a
+    // literal backtick is written. Both other passes skip such a pair
+    // without dropping the backslash, leaving it for this one -- so
+    // omitting it here would leave the backslash in the output.
+    if (next == verbatimFenceChar) return true;
     return inCluster
         ? DecorationAction.byChar.containsKey(next)
         : next == ':';
@@ -143,6 +149,25 @@ TextNode parseDecoratedLine(String lineText) {
       scanner.readChar();
       inCluster = false;
       continue;
+    }
+
+    // Checked before the cluster branch, and deliberately so: inside a
+    // cluster a `:` is the reset action and would be applied on sight, so
+    // a region opening right after one would be swallowed. A fence means a
+    // region in both states, which is also the only way three separate
+    // callers can agree about where regions are.
+    if (char == verbatimFenceChar) {
+      final region = verbatimRegionAt(lineText, scanner.position - 1);
+      if (region != null) {
+        flushSpan(scanner.consume());
+        if (region.text.isNotEmpty) spans.add(VerbatimNode(text: region.text));
+        scanner.skipTo(region.end);
+        scanner.markConsumed();
+        inCluster = false;
+        continue;
+      }
+      // An unclosed fence is ordinary text: fall through and let it join
+      // the literal run.
     }
 
     if (inCluster) {

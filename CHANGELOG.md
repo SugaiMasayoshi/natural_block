@@ -41,11 +41,27 @@ Initial release.
 - `:@...:@` marks a run actionable without saying what acting on it means.
   The run's own text is the whole payload.
 
+### Verbatim regions
+
+- A pair of `` ` `` fences marks text taken exactly as written -- no
+  separators, no decoration, no escapes. This is what makes code writable:
+  without it `final x = a == b ? 1 : 2;` parses as a four-cell row.
+- One construct, usable anywhere: inside a sentence, alone on a line, or in
+  a table cell. Where it is written is what decides how a renderer draws it.
+- The fence's run length sets the closer, so ``` `` ``` may contain single
+  backticks -- how the language quotes its own syntax.
+- The newline directly against each fence belongs to that fence, so a fence
+  can sit on its own line.
+- An unclosed fence is **not** a region: it stays ordinary text and later
+  separators still work, so a stray backtick cannot swallow anything.
+- `` ` `` is therefore the fifth always-active character; a literal one in
+  prose is written `` \` ``.
+
 ### Escaping
 
 - `\` escapes what would otherwise be markup at that point: `\|`, `\=`,
-  `\:`, `\\`, and any decoration character inside a cluster. Elsewhere the
-  backslash is kept, so `C:\Users\you` needs no escaping.
+  `\:`, `` \` ``, `\\`, and any decoration character inside a cluster.
+  Elsewhere the backslash is kept, so `C:\Users\you` needs no escaping.
 
 ### AST
 

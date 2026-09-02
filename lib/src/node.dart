@@ -160,57 +160,6 @@ class TableNode extends BlockNode {
       Object.hash(runtimeType, align, _childrenEquality.hash(children));
 }
 
-/// Text taken exactly as written, opened and closed by the `` |` `` marker.
-///
-/// This is the one place the language stops reading. Nothing inside is a
-/// separator, a decoration, or an escape -- which is what makes it possible
-/// to write code at all. Measured before it existed:
-/// `final x = a == b ? 1 : 2;` became a four-cell row, and
-/// `cat file.txt | grep foo` became three blocks. `=` and `|` are the
-/// characters code uses most, so the language's promise that ordinary prose
-/// survives untouched runs backwards for code, and escaping every one of
-/// them by hand was the only way out.
-///
-/// Holds a plain [String] rather than styled spans, because a run that is
-/// never decorated has nothing to split into spans.
-class VerbatimNode extends BlockNode {
-  /// The content, exactly as written, apart from two things the source
-  /// itself cannot express otherwise: the newline directly after the
-  /// opening marker and the one directly before the closing marker are
-  /// treated as part of those markers, so a fence can sit on its own line.
-  /// CRLF is normalized to LF before parsing, so line endings do not
-  /// round-trip.
-  final String text;
-
-  /// Whether the closing marker was actually found.
-  ///
-  /// An unclosed region takes everything to the end of the document -- the
-  /// scanner cannot rewind, so there is nothing else to do with it -- which
-  /// means a single mistyped marker swallows the rest of the file. Recording
-  /// it here is what keeps that from being invisible: the content still
-  /// renders, and a tool that cares can say why the rest of the document
-  /// vanished.
-  final bool isTerminated;
-
-  /// Creates a verbatim region holding [text].
-  VerbatimNode({required this.text, this.isTerminated = true});
-
-  @override
-  String toString() =>
-      'VerbatimNode(text: $text, isTerminated: $isTerminated)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is VerbatimNode &&
-        text == other.text &&
-        isTerminated == other.isTerminated;
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, text, isTerminated);
-}
-
 /// A run of lines sharing one alignment, produced by the `|` separator.
 ///
 /// This is the single shape behind two readings that look different in the
@@ -251,12 +200,22 @@ class ColumnNode extends BlockNode {
       Object.hash(runtimeType, align, _childrenEquality.hash(children));
 }
 
-/// A single line of text, broken into one or more [TextSpanNode] children
-/// wherever its decoration state changes partway through.
+/// Something that sits inside a line rather than standing on its own.
+///
+/// Two kinds, because a line holds two genuinely different things: text
+/// carrying decoration, and text the parser stopped reading. Folding the
+/// second into the first as a flag would leave a run whose color, emphasis
+/// and size can never mean anything -- the same dishonesty [BlockNode]
+/// exists to avoid one level up.
+sealed class InlineNode extends NaturalBlockNode {}
+
+/// A single line, broken into one or more children wherever its content
+/// changes kind or decoration partway through.
 class TextNode extends BlockNode {
-  /// The runs making up this line, left to right. A line is split into more
-  /// than one wherever its decoration changes partway through.
-  final List<TextSpanNode> children;
+  /// The pieces making up this line, left to right. A line is split into
+  /// more than one wherever its decoration changes, or wherever a verbatim
+  /// region starts or ends.
+  final List<InlineNode> children;
 
   /// Creates a line made of [children] runs.
   TextNode({this.children = const []});
@@ -283,7 +242,7 @@ class TextNode extends BlockNode {
 ///
 /// Not a [BlockNode]: a styled run is part of a line, never a thing the
 /// document arranges on its own.
-class TextSpanNode extends NaturalBlockNode {
+class TextSpanNode extends InlineNode {
   /// The literal text of this run, with escaping already resolved.
   final String text;
 
@@ -337,4 +296,49 @@ class TextSpanNode extends NaturalBlockNode {
 
   @override
   int get hashCode => Object.hash(text, sizeOffset, color, emphasis, isAction);
+}
+
+/// Text taken exactly as written, between a pair of `` ` `` fences.
+///
+/// The one place the language stops reading. Nothing inside is a separator,
+/// a decoration, or an escape -- which is what makes it possible to write
+/// code at all. Measured before this existed:
+/// `final x = a == b ? 1 : 2;` became a four-cell row, and
+/// `cat file.txt | grep foo` became three blocks. `=` and `|` are the
+/// characters code uses most, so the language's promise that ordinary prose
+/// survives untouched runs backwards for code, and escaping every one of
+/// them by hand was the only way out.
+///
+/// An [InlineNode] rather than a [BlockNode], even though a region often
+/// stands alone as a code block. Whether it *looks* like a block is about
+/// where it was written, not about what it is, so that decision belongs to
+/// whatever renders it -- a region that is a line's only child is the whole
+/// line, and can be drawn as a block; one sitting among text is a run
+/// inside that line.
+///
+/// Holds a plain [String]: a run that is never decorated has nothing to
+/// split into spans, and no color, emphasis or size could mean anything
+/// here.
+class VerbatimNode extends InlineNode {
+  /// The content, exactly as written, apart from one thing the source
+  /// cannot express otherwise: the newline directly against each fence is
+  /// treated as part of that fence, so a fence can sit on its own line.
+  /// CRLF is normalized to LF before parsing, so line endings do not
+  /// round-trip.
+  final String text;
+
+  /// Creates a verbatim region holding [text].
+  VerbatimNode({required this.text});
+
+  @override
+  String toString() => 'VerbatimNode(text: $text)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is VerbatimNode && text == other.text;
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, text);
 }

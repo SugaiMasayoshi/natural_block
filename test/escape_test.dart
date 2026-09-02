@@ -332,8 +332,10 @@ void main() {
         // Resolving escapes in one place is what makes this work: were the
         // layout scan to collapse `\\` too, the lone backslash it left
         // behind would be read as an escape again here and swallow the `:`.
-        final spans = (NaturalBlockParser.parse('$bs$bs:*x').children.single as TextNode)
-            .children;
+        final spans =
+            (NaturalBlockParser.parse('$bs$bs:*x').children.single as TextNode)
+                .children
+                .cast<TextSpanNode>();
 
         expect(spans.first.text, bs);
         expect(spans.first.emphasis, isFalse);

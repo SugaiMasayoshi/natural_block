@@ -86,46 +86,19 @@ class LiteralScanner {
   /// character left to exclude.
   String flushRemaining() => _flush(_position);
 
-  /// Takes everything from here to [delimiter] as raw text, leaving the
-  /// cursor just past it, and reports whether the delimiter was actually
-  /// found. When it is not, everything to the end of the source is taken.
-  ///
-  /// Deliberately *raw*: the text is read straight out of [source] rather
-  /// than through the literal-accumulating path, because a caller asking
-  /// for this wants exactly what was written -- no escapes resolved, no
-  /// markup recognized. Any half-built buffer from before is dropped, since
-  /// [consume] has already returned that text to the caller and letting it
-  /// linger would replay it into whatever comes next.
-  ///
-  /// Both cursors move together. Leaving `_textStart` behind is the
-  /// mistake that matters here: the whole raw run would then be emitted a
-  /// second time, as literal text, by the next [consume] or
-  /// [flushRemaining].
-  (String, bool) takeRawUntil(String delimiter) {
-    _buffer = null;
-    final end = source.indexOf(delimiter, _position);
-    final found = end != -1;
-    final stop = found ? end : source.length;
-    final raw = source.substring(_position, stop);
-    _position = found ? stop + delimiter.length : source.length;
-    _textStart = _position;
-    return (raw, found);
-  }
+  /// The cursor's current offset into [source], for a caller that needs to
+  /// ask a question about the text ahead before deciding what it is.
+  int get position => _position;
 
-  /// How many of [char] sit at the cursor, consumed along the way.
+  /// Moves the cursor to [index] without touching the literal run.
   ///
-  /// Used for a run-length delimiter: the caller reads the run that opens a
-  /// region and then looks for a closer of the same length, which is what
-  /// lets a region contain shorter runs of the same character.
-  int takeRunOf(String char) {
-    var length = 0;
-    while (peekNext == char) {
-      readChar();
-      length += 1;
-    }
-    markConsumed();
-    return length;
-  }
+  /// Deliberately weaker than [consume] or [dropCurrentChar]: everything
+  /// skipped over stays part of the text being accumulated. That is what a
+  /// caller wants when it has recognized a region it must not *split* but
+  /// also must not *rewrite* -- the layout scan skipping a verbatim region
+  /// so a separator inside it never splits a block, while leaving the text
+  /// intact for the pass that actually resolves escapes.
+  void skipTo(int index) => _position = index;
 
   /// Extracts the literal text up to [end] and advances [_textStart] past
   /// it -- callers that need to skip further still (e.g. past a character
