@@ -1,28 +1,26 @@
 // 【解説】[9/16] パーサ本体。ここが全体を駆動する入口。
 // 【解説】
-// 【解説】 やっていることは単純で、| と = でソースを塊に割り、各塊を行に分け、
-// 【解説】 各行を decoration_parser に渡すだけ。難しいのは「行」の組み立て方。
+// 【解説】 このファイルの仕事は「どこで切れるか」を決めることだけ。切れた塊を
+// 【解説】 どう並べて木にするかは DocumentBuilder([9.5]) が持つ。以前は1つの
+// 【解説】 関数に両方入っていて、可変ローカルが9個あった。
 // 【解説】
-// 【解説】 currentRow に = で繋がったセルを溜め、= の連なりが切れた瞬間に
-// 【解説】 flushRow() で1つの RowNode として吐き出す。だから a=b|c=d は
-// 【解説】 2つの RowNode になる(1つの4セル行にならない)。
+// 【解説】 走査の見どころは3つ:
 // 【解説】
-// 【解説】 emitBlock の上にある長いコメントが、この言語の設計の要。
-// 【解説】 「Columnブロックは内容、Rowセルは位置」という非対称が意図的で、
-// 【解説】 それが 左==右 を「3セルで真ん中が空」と読ませている。空セルを捨てると
-// 【解説】 左=右 と 左==右 が区別できなくなる。
+// 【解説】 1. エスケープされた区切りは \ を残したまま素通しする。エスケープを
+// 【解説】    実際に解決するのは decoration_parser 1箇所だけ、という約束を守る
+// 【解説】    ため。ここでも落とすと \\ が2回書き換えられて壊れる。
 // 【解説】
-// 【解説】 寄せマーカー(< ^ >)は「記号として認識された | = の直後」でだけ読む。
-// 【解説】 だから \= のようにエスケープされた区切りの後ろの > は素通しになる。
-// 【解説】 特別扱いのコードは無く、ループがその地点に到達しないだけ、という作り。
+// 【解説】 2. verbatim 区間は「消費」ではなく「読み飛ばし」。中の | や = で
+// 【解説】    塊を割らないが、文字そのものは後段に届く。
 // 【解説】
-// 【解説】 マーカーはクラスタとして読む。~ が表の開始/終了をトグルし、< ^ > は
-// 【解説】 開かれるブロックの寄せを決める。だから |~^ は「中央寄せの表」になる。
-// 【解説】 表の間は RowNode を tableRows に溜め、列数が変わる / 行以外が来る /
-// 【解説】 もう一度 |~ が来る / 入力が終わる のいずれかで TableNode にして吐く。
-// 【解説】 currentRowExplicit があるのは、寄せを「明示されたか」で区別するため。
-// 【解説】 明示されなかったセルだけが列の寄せを継承する(align だけでは
-// 【解説】 明示の < と既定値がどちらも start で区別できない)。
+// 【解説】 3. 寄せマーカー(< ^ >)は「記号として認識された | = の直後」でだけ
+// 【解説】    読む。だから \= の後ろの > は素通しになる。特別扱いのコードは
+// 【解説】    無く、ループがその地点に到達しないだけ、という作り。
+// 【解説】    マーカーはクラスタとして読むので |~^ は「中央寄せの表」になる。
+// 【解説】
+// 【解説】 pendingAlign だけがループを跨ぐ状態。クラスタで書かれ、次の塊で
+// 【解説】 使われる。走査側に残したのは「直前にどのマーカーを読んだか」が
+// 【解説】 走査の事実だからで、builder には引数として渡している。
 // 【解説】
 // 【解説】 parse は static で、クラスは abstract final。状態を持たないのに
 // 【解説】 インスタンスを作らせる形をやめた(NaturalBlockImages と同じ形)。
@@ -30,12 +28,13 @@
 // 【解説】 単独行に置ける」規則が Windows で書かれた文書に効かなくなる。
 // 【解説】 前後の空白を削るのに trim() を使っていないのは、全角スペースを
 // 【解説】 消さないため。日本語の字下げを壊さないという判断。
-// 【解説】 次: natural_block_flutter 側へ。lib/natural_block_flutter.dart
+// 【解説】 次: lib/src/parser/document_builder.dart
 
 import '../block_align.dart';
 import '../node.dart';
 import 'block_marker.dart';
 import 'decoration_parser.dart';
+import 'document_builder.dart';
 import 'layout_symbol.dart';
 import 'literal_scanner.dart';
 import 'verbatim_region.dart';
@@ -111,9 +110,14 @@ abstract final class NaturalBlockParser {
   /// danger on when it is already off. A table that is never given a row
   /// contributes no node, so a redundant close is harmless on its own.
   ///
-  /// Inside a table, a cell that carries no alignment marker of its own inherits its column's alignment from the
-  /// first row, which is why the parser tracks whether each cell's
-  /// alignment was stated rather than defaulted.
+  /// Inside a table, a cell that carries no alignment marker of its own
+  /// inherits its column's alignment from the first row, which is why an
+  /// alignment is passed on only when a marker actually stated it.
+  ///
+  /// This documents the whole contract because it is the public entry
+  /// point, but the scan here only decides *where* the source is cut;
+  /// [DocumentBuilder] is what turns the resulting blocks into a tree, and
+  /// holds the row and table rules above.
   static DocumentNode parse(String source) {
     // CRLF is normalized before anything looks at the text. `_parseBlock`
     // splits on `\n` and then compares lines against `''` to drop a single
@@ -125,127 +129,25 @@ abstract final class NaturalBlockParser {
         .replaceAll('\r\n', '\n')
         .replaceAll(_surroundingWhitespace, '');
     final scanner = LiteralScanner(normalized);
-    final children = <BlockNode>[];
-    var currentRow = <ColumnNode>[];
-    // Whether each cell of `currentRow` got its alignment from a marker of
-    // its own, as opposed to falling back to the default. Only a cell that
-    // said nothing inherits its column's alignment inside a table, so the
-    // two cases have to stay distinguishable -- `ColumnNode.align` alone
-    // cannot, since an explicit `<` and an unstated default are both
-    // `BlockAlign.start`.
-    var currentRowExplicit = <bool>[];
+    final builder = DocumentBuilder();
     var hasPendingBlock = false;
+
+    // Set when a separator's marker cluster names an alignment, and read by
+    // the block that separator opens -- so it necessarily outlives the
+    // iteration that wrote it. It stays here rather than inside the builder
+    // because it is a fact about the scan: which markers were just read.
     BlockAlign? pendingAlign;
 
-    // Table state. `columnAligns` is set from the first row and then serves
-    // as both the alignment each column inherits and the cell count every
-    // later row must match to stay part of the table.
-    var inTable = false;
-    var tableAlign = BlockAlign.start;
-    var tableRows = <RowNode>[];
-    List<BlockAlign>? columnAligns;
-
-    void flushTable() {
-      if (tableRows.isNotEmpty) {
-        children.add(TableNode(children: tableRows, align: tableAlign));
-        tableRows = [];
-      }
-      columnAligns = null;
-      tableAlign = BlockAlign.start;
-      inTable = false;
-    }
-
-    void flushRow() {
-      if (currentRow.isEmpty) return;
-      final cells = currentRow;
-      final explicit = currentRowExplicit;
-      currentRow = [];
-      currentRowExplicit = [];
-
-      if (!inTable) {
-        children.add(RowNode(children: cells));
-        return;
-      }
-
-      final aligns = columnAligns;
-      if (aligns == null) {
-        // The first row fixes the shape: how many columns the table has, and
-        // what each of them is aligned as by default.
-        columnAligns = [for (final cell in cells) cell.align];
-        tableRows.add(RowNode(children: cells));
-        return;
-      }
-
-      if (cells.length != aligns.length) {
-        // A row of a different width cannot be part of the same table --
-        // columns would have nothing to line up against, and the renderer's
-        // Table requires every row to have the same number of cells. So the
-        // table ends here and this row stands on its own.
-        flushTable();
-        children.add(RowNode(children: cells));
-        return;
-      }
-
-      tableRows.add(
-        RowNode(
-          children: [
-            for (var i = 0; i < cells.length; i++)
-              if (explicit[i])
-                cells[i]
-              else
-                ColumnNode(children: cells[i].children, align: aligns[i]),
-          ],
-        ),
-      );
-    }
-
-    // An empty block is treated differently depending on which kind it is,
-    // and the difference is deliberate rather than an artifact of `add` vs
-    // `addAll`:
-    //
-    // - A Column block is *content*. Nothing in it means nothing to show, so
-    //   it contributes no node at all (`左||右` yields two text nodes, not
-    //   three).
-    // - A Row cell is a *position*. The surrounding cells are laid out
-    //   relative to it, so the cell survives even when blank -- that is what
-    //   lets `左==右` mean "three cells, middle one empty". Dropping empty
-    //   cells would make `左=右` and `左==右` indistinguishable and leave no
-    //   way to write a deliberately blank cell.
-    //
-    // Note the cell is emitted as an empty ColumnNode (`children: []`)
-    // rather than holding a placeholder empty TextNode: "a cell exists with
-    // no content" is what the source actually says, whereas an empty
-    // TextNode would additionally claim the cell contains one blank line.
+    /// Hands the block that just ended to the builder, along with the
+    /// alignment the separator before it asked for.
     void emitBlock(String text, LayoutSymbol? endedBy) {
-      final lines = _parseBlock(text);
       final align = pendingAlign;
       pendingAlign = null;
-      if (currentRow.isNotEmpty || endedBy == LayoutSymbol.row) {
-        currentRow.add(
-          ColumnNode(children: lines, align: align ?? BlockAlign.start),
-        );
-        currentRowExplicit.add(align != null);
-        if (endedBy != LayoutSymbol.row) flushRow();
-      } else if (lines.isEmpty) {
-        // An empty Column block contributes no node at all, and a marker
-        // does not change that: there is nothing inside to be aligned.
-        // Without this, `a||b` gave two nodes but `a|>|b` gave three, the
-        // middle one an empty ColumnNode -- contradicting the rule stated
-        // just above. Note this branch comes first so it also keeps an
-        // empty block from ending a table (see the next branch).
-      } else if (align != null) {
-        flushTable();
-        children.add(ColumnNode(children: lines, align: align));
-      } else {
-        // Anything that is not a row ends the table -- a TableNode holds
-        // rows, so there is nowhere for a paragraph to go inside one.
-        // Reaching here means the block has content: an empty one was
-        // already handled above, which is what keeps it from ending a
-        // table. Otherwise `||` would be an invisible separator, silently
-        // splitting a table in two on something the AST does not record.
-        flushTable();
-        children.addAll(lines);
-      }
+      builder.addBlock(
+        _parseBlock(text),
+        align: align,
+        endsRow: endedBy == LayoutSymbol.row,
+      );
     }
 
     while (!scanner.isEnd) {
@@ -324,24 +226,21 @@ abstract final class NaturalBlockParser {
       }
 
       if (tableToggles.isOdd) {
-        if (inTable) {
+        if (builder.inTable) {
           // Closing: the alignment belongs to the block being opened after
           // the table, not to the table that just ended.
-          flushTable();
+          builder.closeTable();
           pendingAlign = clusterAlign;
         } else {
-          inTable = true;
-          tableAlign = clusterAlign ?? BlockAlign.start;
+          builder.openTable(clusterAlign ?? BlockAlign.start);
         }
       } else {
         pendingAlign = clusterAlign;
       }
     }
     if (hasPendingBlock) emitBlock(scanner.flushRemaining(), null);
-    flushRow();
-    flushTable();
 
-    return DocumentNode(children: children);
+    return builder.finish();
   }
 
   /// Splits a block into lines, leaving verbatim regions whole.

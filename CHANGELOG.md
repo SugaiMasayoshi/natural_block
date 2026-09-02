@@ -9,6 +9,10 @@ Initial release.
   rather than one four-cell row.
 - An empty Column block contributes no node; an empty Row cell keeps its
   position, which is what makes `左==右` push `右` to the far edge.
+- A row is properly written wrapped in `|`. Omitting the leading one works
+  only when nothing precedes the row on its own line; otherwise the
+  preceding line is absorbed into the row's first cell, since a cell holds
+  lines and nothing said the cell began at the row.
 - One line is one `TextNode`. A single blank line at the start or end of a
   block is dropped, so a block's symbol can sit on its own line. CRLF input
   is normalized, so a document written on Windows parses identically.
@@ -74,3 +78,13 @@ Initial release.
 ### API
 
 - `NaturalBlockParser.parse` is static; the class holds no state.
+
+### Internals
+
+- The scan and the assembly are separate: `NaturalBlockParser` decides where
+  the source is cut, `DocumentBuilder` (private) turns the resulting blocks
+  into a tree. `parse` went from 229 lines with nine mutable locals to 124,
+  and an alignment is now passed as an argument rather than read out of a
+  variable the scan writes. Behaviour is unchanged.
+- `README.md`'s claims are executed as tests (`test/readme_test.dart`), so a
+  statement in it that stops being true fails the suite.
