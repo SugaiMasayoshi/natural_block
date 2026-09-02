@@ -274,6 +274,33 @@ abstract final class NaturalBlockParser {
       emitBlock(scanner.consume(), symbol);
       hasPendingBlock = false;
 
+      // Checked before the marker cluster, and taking over completely when
+      // it matches. Everything after the marker is content, so entering the
+      // cluster loop first would let the content's own first character be
+      // read as a marker -- and would leave `pendingAlign` set, leaking an
+      // alignment onto whatever block follows the region.
+      if (symbol == LayoutSymbol.column &&
+          scanner.peekNext == BlockMarker.verbatim.char) {
+        final fence = scanner.takeRunOf(BlockMarker.verbatim.char);
+        final (raw, closed) = scanner.takeRawUntil(
+          LayoutSymbol.column.char + BlockMarker.verbatim.char * fence,
+        );
+
+        // A verbatim region is not a row, so it ends any table being
+        // gathered -- and the flush has to happen before the region is
+        // added, or the table would land after it.
+        flushTable();
+        final text = _trimFenceNewlines(raw);
+        if (text.isNotEmpty) {
+          children.add(VerbatimNode(text: text, isTerminated: closed));
+        }
+        // Left false on purpose: the scanner is already past the closing
+        // marker, so the end-of-input flush below must not emit anything
+        // for what was just consumed.
+        hasPendingBlock = false;
+        continue;
+      }
+
       // Markers are read as a cluster, the same way decoration characters
       // share one `:` -- `|~^` is a centered table. They describe different
       // things about the one block the separator opens: `~` says what kind
@@ -321,6 +348,26 @@ abstract final class NaturalBlockParser {
     flushTable();
 
     return DocumentNode(children: children);
+  }
+
+  /// Drops the newline that sits directly against each fence.
+  ///
+  /// Defined as "that newline belongs to the marker" rather than as "trim a
+  /// blank line", because only the first is unambiguous: content ending in
+  /// two newlines keeps one, and `` |`code|` `` written inline keeps
+  /// exactly `code`. What it buys is that a fence can sit on its own line,
+  /// the way anyone writing a code block expects:
+  ///
+  /// ```text
+  /// |`
+  /// cat file.txt | grep foo
+  /// |`
+  /// ```
+  static String _trimFenceNewlines(String raw) {
+    var text = raw;
+    if (text.startsWith('\n')) text = text.substring(1);
+    if (text.endsWith('\n')) text = text.substring(0, text.length - 1);
+    return text;
   }
 
   static List<TextNode> _parseBlock(String blockText) {

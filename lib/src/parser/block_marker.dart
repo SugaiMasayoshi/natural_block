@@ -23,7 +23,22 @@ enum BlockMarker {
   /// `|`: a table is a run of rows, so declaring one at a `=` (which
   /// separates cells *within* a row) would mean a cell that is itself a
   /// table, which the language does not express.
-  table('~');
+  table('~'),
+
+  /// Opens a region taken exactly as written -- no separators, no
+  /// decoration, no escapes -- closed by the same marker.
+  ///
+  /// Unlike [table] this is *not* read as part of a marker cluster: it has
+  /// to be the character right after the `|`, and nothing may follow it in
+  /// the same position. Everything after it is content, so a cluster would
+  /// mean the first character of the content could be mistaken for a
+  /// marker. The cost is that a verbatim region cannot be aligned.
+  ///
+  /// The run length of the marker sets the closing delimiter, so a region
+  /// opened with ``|` `` ends at ``|` `` while one opened with ``|`` ``
+  /// ends at ``|`` `` and may contain single backticks. Without that, the
+  /// language could not quote its own syntax.
+  verbatim('`');
 
   final String char;
   const BlockMarker(this.char);

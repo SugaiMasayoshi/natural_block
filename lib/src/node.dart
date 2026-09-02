@@ -160,6 +160,57 @@ class TableNode extends BlockNode {
       Object.hash(runtimeType, align, _childrenEquality.hash(children));
 }
 
+/// Text taken exactly as written, opened and closed by the `` |` `` marker.
+///
+/// This is the one place the language stops reading. Nothing inside is a
+/// separator, a decoration, or an escape -- which is what makes it possible
+/// to write code at all. Measured before it existed:
+/// `final x = a == b ? 1 : 2;` became a four-cell row, and
+/// `cat file.txt | grep foo` became three blocks. `=` and `|` are the
+/// characters code uses most, so the language's promise that ordinary prose
+/// survives untouched runs backwards for code, and escaping every one of
+/// them by hand was the only way out.
+///
+/// Holds a plain [String] rather than styled spans, because a run that is
+/// never decorated has nothing to split into spans.
+class VerbatimNode extends BlockNode {
+  /// The content, exactly as written, apart from two things the source
+  /// itself cannot express otherwise: the newline directly after the
+  /// opening marker and the one directly before the closing marker are
+  /// treated as part of those markers, so a fence can sit on its own line.
+  /// CRLF is normalized to LF before parsing, so line endings do not
+  /// round-trip.
+  final String text;
+
+  /// Whether the closing marker was actually found.
+  ///
+  /// An unclosed region takes everything to the end of the document -- the
+  /// scanner cannot rewind, so there is nothing else to do with it -- which
+  /// means a single mistyped marker swallows the rest of the file. Recording
+  /// it here is what keeps that from being invisible: the content still
+  /// renders, and a tool that cares can say why the rest of the document
+  /// vanished.
+  final bool isTerminated;
+
+  /// Creates a verbatim region holding [text].
+  VerbatimNode({required this.text, this.isTerminated = true});
+
+  @override
+  String toString() =>
+      'VerbatimNode(text: $text, isTerminated: $isTerminated)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is VerbatimNode &&
+        text == other.text &&
+        isTerminated == other.isTerminated;
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, text, isTerminated);
+}
+
 /// A run of lines sharing one alignment, produced by the `|` separator.
 ///
 /// This is the single shape behind two readings that look different in the

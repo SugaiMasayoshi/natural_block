@@ -86,6 +86,47 @@ class LiteralScanner {
   /// character left to exclude.
   String flushRemaining() => _flush(_position);
 
+  /// Takes everything from here to [delimiter] as raw text, leaving the
+  /// cursor just past it, and reports whether the delimiter was actually
+  /// found. When it is not, everything to the end of the source is taken.
+  ///
+  /// Deliberately *raw*: the text is read straight out of [source] rather
+  /// than through the literal-accumulating path, because a caller asking
+  /// for this wants exactly what was written -- no escapes resolved, no
+  /// markup recognized. Any half-built buffer from before is dropped, since
+  /// [consume] has already returned that text to the caller and letting it
+  /// linger would replay it into whatever comes next.
+  ///
+  /// Both cursors move together. Leaving `_textStart` behind is the
+  /// mistake that matters here: the whole raw run would then be emitted a
+  /// second time, as literal text, by the next [consume] or
+  /// [flushRemaining].
+  (String, bool) takeRawUntil(String delimiter) {
+    _buffer = null;
+    final end = source.indexOf(delimiter, _position);
+    final found = end != -1;
+    final stop = found ? end : source.length;
+    final raw = source.substring(_position, stop);
+    _position = found ? stop + delimiter.length : source.length;
+    _textStart = _position;
+    return (raw, found);
+  }
+
+  /// How many of [char] sit at the cursor, consumed along the way.
+  ///
+  /// Used for a run-length delimiter: the caller reads the run that opens a
+  /// region and then looks for a closer of the same length, which is what
+  /// lets a region contain shorter runs of the same character.
+  int takeRunOf(String char) {
+    var length = 0;
+    while (peekNext == char) {
+      readChar();
+      length += 1;
+    }
+    markConsumed();
+    return length;
+  }
+
   /// Extracts the literal text up to [end] and advances [_textStart] past
   /// it -- callers that need to skip further still (e.g. past a character
   /// just consumed as markup) do so afterward via [markConsumed].
