@@ -5,6 +5,10 @@ final class RowNode extends BlockNode {
 
   RowNode({this.children = const []});
 
+  static RowNode _fromCells(List<_PendingCell> cells) => RowNode(
+    children: [for (final cell in cells) cell.resolve(BlockAlign.start)],
+  );
+
   @override
   String toString() => 'RowNode(children: $children)';
 
@@ -16,6 +20,5 @@ final class RowNode extends BlockNode {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, _childrenEquality.hash(children));
+  int get hashCode => Object.hash(runtimeType, _childrenEquality.hash(children));
 }
