@@ -365,9 +365,13 @@ void main() {
       final table =
           NaturalBlockParser.parse('|~A=`x`|B=`y`|').children.single
               as TableNode;
+      // A run, not a block: the cell sits on the same line as `A`, and a
+      // region is a block only when it opens on a line of its own.
       expect(
-        table.children[0].children[1].children.single,
-        VerbatimNode(text: 'x'),
+        (table.children[0].children[1].children.single as TextNode)
+            .children
+            .single,
+        VerbatimSpanNode(text: 'x'),
       );
     });
 

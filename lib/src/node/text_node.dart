@@ -5,37 +5,54 @@ final class TextNode extends LineNode {
 
   TextNode({this.children = const []});
 
-  static List<InlineNode> _parseInline(String line) {
-    final scanner = Scanner(line);
-    const symbols = {':', '\n'};
+  /// Reads one run of inline content, stopping in front of anything that is
+  /// not its own: a separator that belongs to the block, or a verbatim
+  /// region written on a line of its own.
+  ///
+  /// Neither is consumed. A node never eats what belongs to something else,
+  /// so the caller can look at the cursor and decide what comes next.
+  static TextNode _parse(Scanner scanner) {
+    final symbols = {':', '\n', ...LayoutSymbol.byChar.keys};
     final children = <InlineNode>[];
     final pending = StringBuffer();
     var style = const _Decoration();
 
-    void flush() {
-      if (pending.isEmpty) return;
-      children.add(style.span(pending.toString()));
+    void flush({bool atBoundary = false}) {
+      var run = pending.toString();
       pending.clear();
+      // The newline written against a boundary belongs to that boundary.
+      if (atBoundary && run.endsWith('\n')) {
+        run = run.substring(0, run.length - 1);
+      }
+      if (run.isEmpty) return;
+      children.add(style.span(run));
     }
 
     while (true) {
       final scanned = scanner.read(
         symbols,
         resolveEscapes: true,
-        stopAtVerbatim: true,
+        stopBeforeVerbatim: true,
       );
       pending.write(scanned.text);
 
-      final verbatim = scanned.verbatim;
-      if (verbatim != null) {
+      if (scanned.atVerbatim) {
+        // A region on a line of its own is a block, and so not this line's
+        // to hold. Left untouched for the caller.
+        if (scanner.atBlockRegion) break;
         flush();
-        if (verbatim.isNotEmpty) {
-          children.add(VerbatimSpanNode(text: verbatim));
-        }
+        final text = scanner.takeVerbatim();
+        if (text.isNotEmpty) children.add(VerbatimSpanNode(text: text));
         continue;
       }
 
       if (scanned.symbol == null) break;
+
+      if (LayoutSymbol.byChar.containsKey(scanned.symbol)) {
+        // The block's own terminator. Hand it back unconsumed.
+        scanner.skipTo(scanner.position - 1);
+        break;
+      }
 
       if (scanned.symbol == '\n') {
         const fresh = _Decoration();
@@ -58,8 +75,8 @@ final class TextNode extends LineNode {
       pending.write(escaped);
     }
 
-    flush();
-    return children;
+    flush(atBoundary: true);
+    return TextNode(children: children);
   }
 
   @override

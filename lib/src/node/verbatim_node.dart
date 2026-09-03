@@ -5,6 +5,14 @@ final class VerbatimNode extends LineNode {
 
   VerbatimNode({required this.text});
 
+  /// Consumes the region opening at the cursor, plus the newline written
+  /// against its closing fence -- that newline belongs to the boundary.
+  static VerbatimNode _parse(Scanner scanner) {
+    final text = scanner.takeVerbatim();
+    if (scanner.peek == '\n') scanner.take();
+    return VerbatimNode(text: text);
+  }
+
   @override
   String toString() => 'VerbatimNode(text: $text)';
 

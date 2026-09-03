@@ -98,13 +98,18 @@ void main() {
 
     test('a region works inside a table cell', () {
       // Not possible with a `|`-based marker: a cell cannot hold a block.
+      //
+      // It is a run rather than a block. A region is a block because it was
+      // opened on a line of its own, and this one sits beside `x` on the
+      // same line -- the separator before it divides cells, not lines.
       final table =
           NaturalBlockParser.parse('|~x=`a|b`|y=z|').children.single
               as TableNode;
+      final cell = table.children.first.children.last.children.single;
 
       expect(
-        table.children.first.children.last.children.single,
-        VerbatimNode(text: 'a|b'),
+        (cell as TextNode).children.single,
+        VerbatimSpanNode(text: 'a|b'),
         reason: 'the pipe inside the region did not split the cell',
       );
     });
@@ -136,6 +141,20 @@ void main() {
 
     test('only one newline goes at each end', () {
       expect(onlyRegion('`\n\ncode\n\n`').text, '\ncode\n');
+    });
+
+    test('a block region also swallows the newline written after it', () {
+      // The same boundary rule from the outside: a region on a line of its
+      // own is a boundary, so the newline against it is the boundary's. Miss
+      // this and the text after a code block opens with a blank line that
+      // nobody wrote.
+      final document = NaturalBlockParser.parse('文章\n`code`\n続き');
+
+      expect(document.children, [
+        line('文章'),
+        VerbatimNode(text: 'code'),
+        line('続き'),
+      ]);
     });
 
     test('a longer fence lets a region contain the fence character', () {
