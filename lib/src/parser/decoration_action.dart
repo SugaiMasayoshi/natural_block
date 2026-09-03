@@ -1,13 +1,3 @@
-// 【解説】[9/23] 装飾文字の表。ここの文字は「: の直後」でだけ効く。
-// 【解説】 単独の ! や % や * は常にただの文字なので、C++ や 50% や Really?! が
-// 【解説】 エスケープ無しでそのまま書ける。: を前置にした唯一の理由がこれ。
-// 【解説】 次: lib/src/parser/literal_scanner.dart
-
-/// What a single decoration character does, and the character that
-/// triggers it. Deriving [byChar] from the enum's own values (rather
-/// than hand-writing a separate map) means a value can never silently fall
-/// out of sync with its lookup entry: add a case here and it's
-/// automatically included in [byChar] too.
 enum DecorationAction {
   larger('+'),
   smaller('-'),
