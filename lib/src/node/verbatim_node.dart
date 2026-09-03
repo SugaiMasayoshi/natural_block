@@ -1,4 +1,5 @@
-import 'inline_node.dart';
+part of '../node.dart';
+
 
 /// Text taken exactly as written, between a pair of `` ` `` fences.
 ///

@@ -1,6 +1,5 @@
-import 'block_node.dart';
-import 'children_equality.dart';
-import 'inline_node.dart';
+part of '../node.dart';
+
 
 /// A single line, broken into one or more children wherever its content
 /// changes kind or decoration partway through.
@@ -20,9 +19,9 @@ final class TextNode extends BlockNode {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is TextNode &&
-        childrenEquality.equals(children, other.children);
+        _childrenEquality.equals(children, other.children);
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, childrenEquality.hash(children));
+  int get hashCode => Object.hash(runtimeType, _childrenEquality.hash(children));
 }

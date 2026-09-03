@@ -1,6 +1,5 @@
-import 'block_node.dart';
-import 'children_equality.dart';
-import 'column_node.dart';
+part of '../node.dart';
+
 
 /// A horizontal arrangement, produced by the `=` separator.
 ///
@@ -24,9 +23,9 @@ final class RowNode extends BlockNode {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is RowNode &&
-        childrenEquality.equals(children, other.children);
+        _childrenEquality.equals(children, other.children);
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, childrenEquality.hash(children));
+  int get hashCode => Object.hash(runtimeType, _childrenEquality.hash(children));
 }

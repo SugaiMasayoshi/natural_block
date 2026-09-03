@@ -1,7 +1,5 @@
-import '../block_align.dart';
-import 'block_node.dart';
-import 'children_equality.dart';
-import 'row_node.dart';
+part of '../node.dart';
+
 
 /// A run of rows that share their column widths, opened by the `~` marker
 /// (`|~`) and closed by that same marker, by a row of a different cell
@@ -42,10 +40,10 @@ final class TableNode extends BlockNode {
     if (identical(this, other)) return true;
     return other is TableNode &&
         align == other.align &&
-        childrenEquality.equals(children, other.children);
+        _childrenEquality.equals(children, other.children);
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, align, childrenEquality.hash(children));
+      Object.hash(runtimeType, align, _childrenEquality.hash(children));
 }

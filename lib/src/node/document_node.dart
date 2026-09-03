@@ -1,6 +1,5 @@
-import 'block_node.dart';
-import 'children_equality.dart';
-import 'natural_block_node.dart';
+part of '../node.dart';
+
 
 /// The root of a parsed document: exactly one per `NaturalBlockParser.parse`
 /// call, holding the blocks that make up the document.
@@ -26,9 +25,9 @@ final class DocumentNode extends NaturalBlockNode {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is DocumentNode &&
-        childrenEquality.equals(children, other.children);
+        _childrenEquality.equals(children, other.children);
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, childrenEquality.hash(children));
+  int get hashCode => Object.hash(runtimeType, _childrenEquality.hash(children));
 }

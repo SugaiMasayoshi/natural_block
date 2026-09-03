@@ -1,7 +1,5 @@
-import '../block_align.dart';
-import 'block_node.dart';
-import 'children_equality.dart';
-import 'text_node.dart';
+part of '../node.dart';
+
 
 /// A run of lines sharing one alignment, produced by the `|` separator.
 ///
@@ -35,10 +33,10 @@ final class ColumnNode extends BlockNode {
     if (identical(this, other)) return true;
     return other is ColumnNode &&
         align == other.align &&
-        childrenEquality.equals(children, other.children);
+        _childrenEquality.equals(children, other.children);
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, align, childrenEquality.hash(children));
+      Object.hash(runtimeType, align, _childrenEquality.hash(children));
 }

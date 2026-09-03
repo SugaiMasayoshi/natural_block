@@ -1,4 +1,5 @@
-import 'natural_block_node.dart';
+part of '../node.dart';
+
 
 /// Something that sits inside a line rather than standing on its own.
 ///
@@ -7,4 +8,4 @@ import 'natural_block_node.dart';
 /// second into the first as a flag would leave a run whose color, emphasis
 /// and size can never mean anything -- the same dishonesty `BlockNode`
 /// exists to avoid one level up.
-abstract base class InlineNode extends NaturalBlockNode {}
+sealed class InlineNode extends NaturalBlockNode {}

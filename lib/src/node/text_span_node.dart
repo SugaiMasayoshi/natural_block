@@ -1,5 +1,5 @@
-import '../semantic_color.dart';
-import 'inline_node.dart';
+part of '../node.dart';
+
 
 /// A single run of text sharing one decoration state (size, color, emphasis,
 /// and actionability).

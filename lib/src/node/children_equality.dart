@@ -1,6 +1,6 @@
-import 'package:collection/collection.dart';
+part of '../node.dart';
 
-import 'natural_block_node.dart';
+
 
 /// Deep, order-sensitive equality (and matching hash) for a node's
 /// `children` list.
@@ -9,4 +9,4 @@ import 'natural_block_node.dart';
 /// comparison itself. Structural equality is what lets a test say
 /// `expect(parse(source), DocumentNode(children: [...]))`, so the whole
 /// suite rests on it being right in one place.
-const childrenEquality = ListEquality<NaturalBlockNode>();
+const _childrenEquality = ListEquality<NaturalBlockNode>();

@@ -1,3 +1,5 @@
+part of '../node.dart';
+
 /// The base type of every node the parser can produce.
 ///
 /// `base` rather than plain `abstract`: a consumer cannot implement this
@@ -11,4 +13,4 @@
 /// to share its library. What is lost is exhaustiveness checking on a
 /// `switch` over node types -- which nothing here used -- and what is kept
 /// is the closed set, through `base` and `final`.
-abstract base class NaturalBlockNode {}
+sealed class NaturalBlockNode {}
