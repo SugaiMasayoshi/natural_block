@@ -153,27 +153,38 @@ void main() {
     });
   });
 
-  group('One line is one node', () {
-    test('each line of a block becomes its own TextNode', () {
-      expect(NaturalBlockParser.parse('|one\ntwo|').children.length, 2);
+  group('A newline is a character, not a boundary', () {
+    test('a block is one node however many lines it has', () {
+      expect(NaturalBlockParser.parse('|one\ntwo|').children, [
+        TextNode(children: [TextSpanNode(text: 'one\ntwo')]),
+      ]);
     });
 
     test('decoration does not carry across a newline', () {
-      final second =
-          NaturalBlockParser.parse('|:!red\nplain|').children[1] as TextNode;
-      expect(
-        (second.children.single as TextSpanNode).color,
-        SemanticColor.none,
-      );
+      // The one thing a newline still does. It is a rule the parser applies
+      // while reading, not a division the tree records -- so the runs on
+      // either side end up in the same node, styled differently.
+      final line =
+          NaturalBlockParser.parse('|:!red\nplain|').children.single
+              as TextNode;
+
+      expect(line.children, [
+        TextSpanNode(text: 'red', color: SemanticColor.danger),
+        TextSpanNode(text: '\nplain'),
+      ]);
     });
 
     test("a single blank line at each end of a block is dropped, so a block's "
         'symbol can sit on its own line', () {
-      expect(NaturalBlockParser.parse('|\nonly\n|').children.length, 1);
+      expect(NaturalBlockParser.parse('|\nonly\n|').children, [
+        TextNode(children: [TextSpanNode(text: 'only')]),
+      ]);
     });
 
-    test('a genuine blank line in the middle is preserved', () {
-      expect(NaturalBlockParser.parse('|a\n\nb|').children.length, 3);
+    test('a genuine blank line in the middle is preserved, as characters', () {
+      expect(NaturalBlockParser.parse('|a\n\nb|').children, [
+        TextNode(children: [TextSpanNode(text: 'a\n\nb')]),
+      ]);
     });
 
     test('CRLF input parses identically', () {
@@ -225,8 +236,7 @@ void main() {
       final row =
           NaturalBlockParser.parse('前の行\nA=B|').children.single as RowNode;
       expect(row.children.first.children, [
-        TextNode(children: [TextSpanNode(text: '前の行')]),
-        TextNode(children: [TextSpanNode(text: 'A')]),
+        TextNode(children: [TextSpanNode(text: '前の行\nA')]),
       ]);
     });
 

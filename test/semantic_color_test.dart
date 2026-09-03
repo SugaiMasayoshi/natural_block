@@ -148,9 +148,10 @@ void main() {
           TextNode(
             children: [
               TextSpanNode(text: "警告: システムエラー", color: SemanticColor.danger),
+              TextSpanNode(text: "\n"),
+              TextSpanNode(text: "補足事項", emphasis: true),
             ],
           ),
-          TextNode(children: [TextSpanNode(text: "補足事項", emphasis: true)]),
           RowNode(
             children: [
               ColumnNode(

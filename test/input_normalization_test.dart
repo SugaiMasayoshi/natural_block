@@ -36,7 +36,7 @@ void main() {
     test('no CR survives into the text of a CRLF document', () {
       final document = NaturalBlockParser.parse('one\r\ntwo\r\nthree');
 
-      expect(document.children, [line('one'), line('two'), line('three')]);
+      expect(document.children, [line('one\ntwo\nthree')]);
     });
 
     test('a trailing CRLF leaves no empty line behind', () {
@@ -62,10 +62,7 @@ void main() {
       // Pins the order of the two replacements. Doing `\r` first turns
       // every `\r\n` into `\n\n`, which is silent: the document still
       // renders, with a blank line inserted after every line.
-      expect(NaturalBlockParser.parse('a\r\nb').children, [
-        line('a'),
-        line('b'),
-      ]);
+      expect(NaturalBlockParser.parse('a\r\nb').children, [line('a\nb')]);
     });
   });
 
@@ -83,11 +80,11 @@ void main() {
     test('an indent is kept on the first line, not just the rest', () {
       // The reason this rule changed. Trimming the document's ends stripped
       // the indent of the *first* line only, so two paragraphs written the
-      // same way came out different -- the one asymmetry in a language
-      // whose whole shape is "one line is one node".
+      // same way came out different, and a newline is only a character, so
+      // both indents sit in one node.
       expect(
         NaturalBlockParser.parse('    A\n    B'),
-        DocumentNode(children: [line('    A'), line('    B')]),
+        DocumentNode(children: [line('    A\n    B')]),
       );
     });
 
@@ -133,15 +130,12 @@ void main() {
       }
     });
 
-    test('a document of only whitespace is not empty -- it is whitespace', () {
-      // The parser has no opinion about content. Spaces were typed, so
-      // spaces come out; two newlines are one blank line, so one blank line
-      // comes out. Both used to vanish, which was the parser deciding what
-      // the author meant.
+    test('a document of only spaces is not empty -- it is spaces', () {
+      // The parser has no opinion about content: spaces were typed, so
+      // spaces come out. Newlines are different -- a block drops one at
+      // each end, so `\n\n` has nothing left to place.
       expect(NaturalBlockParser.parse('   ').children, [line('   ')]);
-      expect(NaturalBlockParser.parse('\n\n').children, [
-        TextNode(children: []),
-      ]);
+      expect(NaturalBlockParser.parse('\n\n').children, isEmpty);
     });
 
     test('separators with nothing between them produce nothing', () {

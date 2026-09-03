@@ -13,9 +13,13 @@ Initial release.
   only when nothing precedes the row on its own line; otherwise the
   preceding line is absorbed into the row's first cell, since a cell holds
   lines and nothing said the cell began at the row.
-- One line is one `TextNode`. A single blank line at the start or end of a
-  block is dropped, so a block's symbol can sit on its own line. CRLF input
-  is normalized, so a document written on Windows parses identically.
+- A newline is a character, not a boundary: a block is one `TextNode`
+  however many lines it has. The one thing a newline does is reset
+  decoration, so a cluster cannot leak past the end of its line -- a rule
+  the parser applies while reading rather than a division the tree records.
+  A single blank line at the start or end of a block is dropped, so a
+  block's symbol can sit on its own line. CRLF input is normalized, so a
+  document written on Windows parses identically.
 - Whitespace is content and is never trimmed, at the document's edges or
   anywhere else. A space the author typed is one they can see and delete,
   and trimming the ends would make the first and last line behave unlike
@@ -64,6 +68,10 @@ Initial release.
   can sit on its own line.
 - An unclosed fence is **not** a region: it stays ordinary text and later
   separators still work, so a stray backtick cannot swallow anything.
+- A region that stands alone on its line is a `VerbatimNode`, a block that
+  sits among the lines of its column; one written inside a sentence is a
+  `VerbatimSpanNode` beside the styled runs. One syntax, and the tree
+  records which of the two places it was written in.
 - `` ` `` is therefore the fifth always-active character; a literal one in
   prose is written `` \` ``.
 
@@ -75,9 +83,14 @@ Initial release.
 
 ### AST
 
-- `DocumentNode` (the root) holds `BlockNode`s: `TextNode`, `RowNode`,
-  `ColumnNode`, `TableNode`. `TextSpanNode` is not a `BlockNode` -- a styled
-  run only exists inside a line -- so misplacing one is a compile error.
+- `DocumentNode` (the root) holds `BlockNode`s: `RowNode`, `TableNode`,
+  `ColumnNode`, and the two `LineNode`s -- `TextNode` and `VerbatimNode`.
+  A `ColumnNode` holds only `LineNode`s, so a cell cannot contain a row or
+  a table; stating that in the type keeps a later decision to allow it a
+  visible change rather than something that silently always worked.
+- A `TextNode` holds `InlineNode`s: `TextSpanNode` and `VerbatimSpanNode`.
+  Neither is a `BlockNode` -- a styled run only exists inside a line -- so
+  misplacing one is a compile error.
 - Every node declares the exact child type it can hold.
 - All nodes implement `==` / `hashCode` structurally.
 

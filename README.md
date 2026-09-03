@@ -39,8 +39,8 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   None of them resets another. A size change survives a following color/emphasis symbol and vice versa; only a layout symbol (`|` or `=`) resets everything.
 * **Bare punctuation is always literal -- no escaping needed**
   A `+`, `-`, `!`, `%`, `?`, `*`, or `@` with no `:` immediately before it is always ordinary text. This is the whole point of the `:` prefix: everyday prose like `C++`, `10-20`, `100%`, `well-known`, `Really?!`, or `you@example.com` renders completely unchanged, in both Japanese and English, with zero escaping.
-* **One line is one node**
-  A block is split into lines on `\n`, and each line becomes its own `TextNode`. Decoration therefore does not carry across a newline -- a cluster applies until the end of its line. A single blank line at the start or end of a block is dropped, so a block's opening or closing symbol can sit on a line of its own without producing an empty node. CRLF input is normalized first, so a document written on Windows parses identically.
+* **A newline is a character, not a boundary**
+  A block is one `TextNode` however many lines it has, and the newlines sit inside it as ordinary characters. A newline still does one thing: it resets decoration, so a cluster applies until the end of its line and cannot leak into the rest of the block. That is a rule the parser applies while reading, not a division the tree records. A single blank line at the start or end of a block is dropped, so a block's opening or closing symbol can sit on a line of its own. CRLF input is normalized first, so a document written on Windows parses identically.
 * **An empty cell holds its place; an empty block does not**
   The two are treated differently on purpose. A Column block is *content*, so an empty one contributes no node at all -- `左||右` is two text nodes, not three, and an alignment marker does not change that. A Row cell is a *position*, so it survives even when blank: `左==右` is three cells with an empty middle, which is what pushes `右` to the far edge.
 * **Wrap a row in `|`**
@@ -64,7 +64,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   This is what makes code writable at all. Without it, `final x = a == b ? 1 : 2;` becomes a four-cell row and `cat a | grep b` becomes three blocks -- `=` and `|` are exactly the characters code uses most, so the promise that ordinary prose survives untouched runs backwards for code.
 
-  **A region can go anywhere**: inside a sentence, alone on a line, or in a table cell. It is one construct, and where you put it is what decides how a renderer draws it -- a region that is a whole line is a code block, one among text is a run of monospaced text. `` ` `` is the price: it is the fifth character that is always active, so a literal backtick in prose is written `` \` ``. A marker built on `|` could never have been inline, since `|` always breaks a block.
+  **A region can go anywhere**: inside a sentence, alone on a line, or in a table cell. It is one construct, and where you put it is what the tree records -- a region standing alone on its line is a `VerbatimNode`, a block sitting among the lines of its column, while one written inside a sentence is a `VerbatimSpanNode` beside the styled runs. That is what lets a renderer draw the first as a boxed code block and the second as a run of monospaced text. `` ` `` is the price: it is the fifth character that is always active, so a literal backtick in prose is written `` \` ``. A marker built on `|` could never have been inline, since `|` always breaks a block.
 
   The fence's run length sets the closing delimiter, so a region opened with ``` `` ``` ends at ``` `` ``` and may contain single backticks. That is how the language quotes its own syntax.
 
@@ -101,7 +101,7 @@ dart pub add natural_block
 
 ## Usage
 
-Pass your markup text to `NaturalBlockParser.parse`. It will return a syntax tree (a `DocumentNode` holding `ColumnNode`, `RowNode`, `TableNode`, `TextNode`, and the two things a line can hold (`TextSpanNode`, `VerbatimNode`)) that you can easily map to Flutter widgets like `Column`, `Row`, and `RichText`.
+Pass your markup text to `NaturalBlockParser.parse`. It will return a syntax tree (a `DocumentNode` holding `ColumnNode`, `RowNode`, `TableNode`, and the two kinds of line -- `TextNode` and `VerbatimNode` -- where a `TextNode` holds `TextSpanNode`s and `VerbatimSpanNode`s) that you can easily map to Flutter widgets like `Column`, `Row`, and `RichText`.
 
 ```dart
 import 'package:natural_block/natural_block.dart';

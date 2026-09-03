@@ -8,7 +8,7 @@ final class TextNode extends LineNode {
   static List<InlineNode> _parseInline(String line) {
     final scanner = Scanner(
       line,
-      symbols: const {':'},
+      symbols: const {':', '\n'},
       resolveEscapes: true,
       stopAtVerbatim: true,
     );
@@ -36,6 +36,16 @@ final class TextNode extends LineNode {
       }
 
       if (scanned.symbol == null) break;
+
+      if (scanned.symbol == '\n') {
+        const fresh = _Decoration();
+        if (style != fresh) {
+          flush();
+          style = fresh;
+        }
+        pending.write('\n');
+        continue;
+      }
 
       if (!DecorationAction.byChar.containsKey(scanner.peek)) {
         pending.write(':');
@@ -132,6 +142,17 @@ class _Decoration {
       isAction: false,
     ),
   };
+
+  @override
+  bool operator ==(Object other) =>
+      other is _Decoration &&
+      sizeOffset == other.sizeOffset &&
+      color == other.color &&
+      emphasis == other.emphasis &&
+      isAction == other.isAction;
+
+  @override
+  int get hashCode => Object.hash(sizeOffset, color, emphasis, isAction);
 
   SemanticColor _toggle(SemanticColor next) =>
       color == next ? SemanticColor.none : next;

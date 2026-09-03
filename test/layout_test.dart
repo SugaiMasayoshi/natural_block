@@ -377,8 +377,7 @@ void main() {
             children: [
               ColumnNode(
                 children: [
-                  TextNode(children: [TextSpanNode(text: "左1")]),
-                  TextNode(children: [TextSpanNode(text: "左2")]),
+                  TextNode(children: [TextSpanNode(text: "左1\n左2")]),
                 ],
               ),
               ColumnNode(

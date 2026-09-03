@@ -38,7 +38,7 @@ class Scanner {
       LayoutSymbol.byChar.containsKey(next);
 
   bool escapes(String next) =>
-      escapesAlwaysActive(next) || symbols.contains(next);
+      next != '\n' && (escapesAlwaysActive(next) || symbols.contains(next));
 
   String take() => source[_position++];
 

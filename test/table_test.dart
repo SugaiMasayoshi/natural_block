@@ -282,10 +282,7 @@ void main() {
     test('a multi-line cell stacks its lines', () {
       final table = onlyTable('|~one\ntwo=B|C=D|');
 
-      expect(table.children.first.children.first.children, [
-        line('one'),
-        line('two'),
-      ]);
+      expect(table.children.first.children.first.children, [line('one\ntwo')]);
     });
 
     test('decoration inside a table cell is parsed as usual', () {

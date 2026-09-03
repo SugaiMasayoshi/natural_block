@@ -120,7 +120,12 @@ void main() {
     test('a region opening right after a cluster is still a region', () {
       // Inside a cluster a `:` is the reset action and is applied on sight,
       // so the region check has to come first or this would be swallowed.
-      expect(onlyRegion(':!`code`').text, 'code');
+      //
+      // It is a run rather than a block: whether a region stands alone is
+      // read from the source, and the cluster is there even though it
+      // produces no text of its own.
+      final children = onlyLine(':!`code`').children;
+      expect(children, [VerbatimSpanNode(text: 'code')]);
     });
   });
 
