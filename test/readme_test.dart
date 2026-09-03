@@ -130,7 +130,8 @@ void main() {
       final row =
           NaturalBlockParser.parse(':++:!A=B').children.single as RowNode;
       final second =
-          row.children[1].children.single.children.single as TextSpanNode;
+          (row.children[1].children.single as TextNode).children.single
+              as TextSpanNode;
       expect(second.sizeOffset, 0);
       expect(second.color, SemanticColor.none);
     });
@@ -318,20 +319,17 @@ void main() {
       final children = onlyLine('比較は`a == b`です').children;
       expect(children, [
         TextSpanNode(text: '比較は'),
-        VerbatimNode(text: 'a == b'),
+        VerbatimSpanNode(text: 'a == b'),
         TextSpanNode(text: 'です'),
       ]);
     });
 
     test('a fence on its own line gives one node, the command intact', () {
       // README's second example.
-      final line =
-          NaturalBlockParser.parse('`\ncat file.txt | grep foo | wc -l\n`')
-                  .children
-                  .single
-              as TextNode;
       expect(
-        line.children.single,
+        NaturalBlockParser.parse('`\ncat file.txt | grep foo | wc -l\n`')
+            .children
+            .single,
         VerbatimNode(text: 'cat file.txt | grep foo | wc -l'),
       );
     });
@@ -358,14 +356,14 @@ void main() {
           NaturalBlockParser.parse('|~A=`x`|B=`y`|').children.single
               as TableNode;
       expect(
-        table.children[0].children[1].children.single.children.single,
+        table.children[0].children[1].children.single,
         VerbatimNode(text: 'x'),
       );
     });
 
     test('nothing inside is a separator, a decoration, or an escape', () {
       expect(
-        onlyLine(r'`| = : \n :!`').children.single,
+        NaturalBlockParser.parse(r'`| = : \n :!`').children.single,
         VerbatimNode(text: r'| = : \n :!'),
       );
     });
@@ -373,20 +371,23 @@ void main() {
     test('the fence run length sets the closer, so a doubled fence may '
         'contain a single backtick', () {
       expect(
-        onlyLine('``a `b` c``').children.single,
+        NaturalBlockParser.parse('``a `b` c``').children.single,
         VerbatimNode(text: 'a `b` c'),
       );
     });
 
     test('the newline directly against each fence belongs to that fence', () {
       expect(
-        onlyLine('`\ncode\n`').children.single,
+        NaturalBlockParser.parse('`\ncode\n`').children.single,
         VerbatimNode(text: 'code'),
       );
     });
 
     test('written inline the content is exactly what was typed', () {
-      expect(onlyLine('a`  b  `c').children[1], VerbatimNode(text: '  b  '));
+      expect(
+        onlyLine('a`  b  `c').children[1],
+        VerbatimSpanNode(text: '  b  '),
+      );
     });
 
     test('an unclosed fence is not a region: it stays ordinary text and '
@@ -440,7 +441,7 @@ void main() {
             NaturalBlockParser.parse(r'\\=b').children.single as RowNode;
         expect(row.children.length, 2);
         expect(
-          row.children[0].children.single.children.single,
+          (row.children[0].children.single as TextNode).children.single,
           TextSpanNode(text: '\\'),
         );
       },
@@ -477,7 +478,8 @@ void main() {
                   .single
               as RowNode;
       TextSpanNode runOf(int i) =>
-          row.children[i].children.single.children.single as TextSpanNode;
+          (row.children[i].children.single as TextNode).children.single
+              as TextSpanNode;
       expect(runOf(0).color, SemanticColor.danger);
       expect(runOf(0).text, 'Danger Zone');
       expect(runOf(1).color, SemanticColor.info);

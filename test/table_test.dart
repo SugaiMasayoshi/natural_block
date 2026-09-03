@@ -291,7 +291,9 @@ void main() {
     test('decoration inside a table cell is parsed as usual', () {
       final table = onlyTable('|~:*bold=B|C=D|');
       final span =
-          table.children.first.children.first.children.first.children.single
+          (table.children.first.children.first.children.first as TextNode)
+                  .children
+                  .single
               as TextSpanNode;
 
       expect(span.text, 'bold');

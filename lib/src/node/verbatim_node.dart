@@ -1,6 +1,6 @@
 part of '../node.dart';
 
-final class VerbatimNode extends InlineNode {
+final class VerbatimNode extends LineNode {
   final String text;
 
   VerbatimNode({required this.text});

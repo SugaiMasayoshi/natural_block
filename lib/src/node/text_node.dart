@@ -1,11 +1,11 @@
 part of '../node.dart';
 
-final class TextNode extends BlockNode {
+final class TextNode extends LineNode {
   final List<InlineNode> children;
 
   TextNode({this.children = const []});
 
-  static TextNode _parse(String line) {
+  static List<InlineNode> _parseInline(String line) {
     final scanner = Scanner(
       line,
       symbols: const {':'},
@@ -29,7 +29,9 @@ final class TextNode extends BlockNode {
       final verbatim = scanned.verbatim;
       if (verbatim != null) {
         flush();
-        if (verbatim.isNotEmpty) children.add(VerbatimNode(text: verbatim));
+        if (verbatim.isNotEmpty) {
+          children.add(VerbatimSpanNode(text: verbatim));
+        }
         continue;
       }
 
@@ -47,7 +49,7 @@ final class TextNode extends BlockNode {
     }
 
     flush();
-    return TextNode(children: children);
+    return children;
   }
 
   static (_Decoration, String) _readCluster(

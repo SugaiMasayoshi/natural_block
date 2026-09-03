@@ -27,7 +27,7 @@ void main() {
 
   /// The one verbatim region a source parses to.
   VerbatimNode onlyRegion(String source) =>
-      onlyLine(source).children.single as VerbatimNode;
+      NaturalBlockParser.parse(source).children.single as VerbatimNode;
 
   group('why this exists: code survives', () {
     test('a line of code is not split into cells', () {
@@ -62,7 +62,7 @@ void main() {
         TextNode(
           children: [
             TextSpanNode(text: '比較は'),
-            VerbatimNode(text: 'a == b'),
+            VerbatimSpanNode(text: 'a == b'),
             TextSpanNode(text: 'です'),
           ],
         ),
@@ -72,7 +72,9 @@ void main() {
     test('a region standing alone is the whole line', () {
       // Same node, different placement -- which is what lets a renderer
       // draw this one as a block and the one above as a run of text.
-      expect(onlyLine('`code`').children, [VerbatimNode(text: 'code')]);
+      expect(NaturalBlockParser.parse('`code`').children, [
+        VerbatimNode(text: 'code'),
+      ]);
     });
 
     test('a multi-line region stays one node', () {
@@ -89,7 +91,7 @@ void main() {
 
       expect(children, [
         TextSpanNode(text: 'before'),
-        VerbatimNode(text: 'code'),
+        VerbatimSpanNode(text: 'code'),
         TextSpanNode(text: 'after'),
       ]);
     });
@@ -101,7 +103,7 @@ void main() {
               as TableNode;
 
       expect(
-        table.children.first.children.last.children.single.children.single,
+        table.children.first.children.last.children.single,
         VerbatimNode(text: 'a|b'),
         reason: 'the pipe inside the region did not split the cell',
       );
@@ -112,7 +114,7 @@ void main() {
 
       expect(children[0], TextSpanNode(text: 'bold', emphasis: true));
       expect(children[1], TextSpanNode(text: 'and'));
-      expect(children[2], VerbatimNode(text: 'code'));
+      expect(children[2], VerbatimSpanNode(text: 'code'));
     });
 
     test('a region opening right after a cluster is still a region', () {

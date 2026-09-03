@@ -1,12 +1,12 @@
 part of '../node.dart';
 
 final class ColumnNode extends BlockNode {
-  final List<TextNode> children;
+  final List<LineNode> children;
   final BlockAlign align;
 
   ColumnNode({this.children = const [], this.align = BlockAlign.start});
 
-  static List<TextNode> _parseLines(String block) {
+  static List<LineNode> _parseLines(String block) {
     final scanner = Scanner(block, symbols: const {'\n'});
     final lines = <String>[];
     while (true) {
@@ -18,7 +18,7 @@ final class ColumnNode extends BlockNode {
     if (lines.firstOrNull == '') lines.removeAt(0);
     if (lines.lastOrNull == '') lines.removeLast();
 
-    return lines.map(TextNode._parse).toList();
+    return lines.map(LineNode._parse).toList();
   }
 
   @override
