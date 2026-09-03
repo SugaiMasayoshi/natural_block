@@ -6,12 +6,25 @@ final class DocumentNode extends NaturalBlockNode {
   DocumentNode({this.children = const []});
 
   static DocumentNode parse(String source) {
-    final text = source.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
-    return DocumentNode(
-      children: BlockNode._parseAll(
-        _splitPieces(text, LayoutSymbol.column, allowTable: true),
-      ),
+    final scanner = Scanner(
+      source.replaceAll('\r\n', '\n').replaceAll('\r', '\n'),
     );
+    final children = <BlockNode>[];
+
+    // The first block is opened by the start of the source, not by a
+    // separator, so it carries no markers -- a leading `~` is text.
+    var cluster = const MarkerCluster(align: null, togglesTable: false, end: 0);
+
+    while (true) {
+      final block = BlockNode._parse(scanner, cluster);
+      children.addAll(block.node);
+      if (block.terminator == null) break;
+      if (scanner.isEnd) break;
+      cluster = BlockNode._readCluster(scanner);
+      if (scanner.isEnd && !cluster.togglesTable) break;
+    }
+
+    return DocumentNode(children: children);
   }
 
   @override

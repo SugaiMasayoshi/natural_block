@@ -13,18 +13,10 @@ class Scanned {
 
 class Scanner {
   final String source;
-  final Set<String> symbols;
-  final bool resolveEscapes;
-  final bool stopAtVerbatim;
 
   int _position = 0;
 
-  Scanner(
-    this.source, {
-    required this.symbols,
-    this.resolveEscapes = false,
-    this.stopAtVerbatim = false,
-  });
+  Scanner(this.source);
 
   int get position => _position;
 
@@ -32,19 +24,26 @@ class Scanner {
 
   String get peek => _position < source.length ? source[_position] : '';
 
-  static bool escapesAlwaysActive(String next) =>
-      next == r'\' ||
-      next == verbatimFenceChar ||
-      LayoutSymbol.byChar.containsKey(next);
-
-  bool escapes(String next) =>
-      next != '\n' && (escapesAlwaysActive(next) || symbols.contains(next));
+  String at(int index) =>
+      index >= 0 && index < source.length ? source[index] : '';
 
   String take() => source[_position++];
 
   void skipTo(int index) => _position = index;
 
-  Scanned read() {
+  static bool escapesAlwaysActive(String next) =>
+      next == r'\' ||
+      next == verbatimFenceChar ||
+      LayoutSymbol.byChar.containsKey(next);
+
+  Scanned read(
+    Set<String> symbols, {
+    bool resolveEscapes = false,
+    bool stopAtVerbatim = false,
+  }) {
+    bool escapes(String next) =>
+        next != '\n' && (escapesAlwaysActive(next) || symbols.contains(next));
+
     final start = _position;
     StringBuffer? buffer;
     var literalStart = start;

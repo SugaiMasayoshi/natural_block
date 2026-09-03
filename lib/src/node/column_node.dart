@@ -6,42 +6,58 @@ final class ColumnNode extends BlockNode {
 
   ColumnNode({this.children = const [], this.align = BlockAlign.start});
 
-  static List<LineNode> _parseLines(String block) {
-    var text = block;
-    if (text.startsWith('\n')) text = text.substring(1);
-    if (text.endsWith('\n')) text = text.substring(0, text.length - 1);
-    if (text.isEmpty) return const [];
-
-    final children = <LineNode>[];
-    final scanner = Scanner(text, symbols: const {}, stopAtVerbatim: true);
+  /// Reads one cell or block: everything up to the next `|` or `=`.
+  static _Parsed<ColumnNode> _parse(Scanner scanner, BlockAlign? align) {
+    final origin = scanner.position;
+    final lines = <LineNode>[];
     final pending = StringBuffer();
+    String? terminator;
+    var atStart = true;
 
-    void flush() {
-      final run = pending.toString();
+    // The blank line a block's own symbol sits on is dropped at each end,
+    // which is what lets `|` and `|~` be written on lines of their own. A
+    // newline is a character now, so this trims the text rather than
+    // removing a node.
+    void flush({bool atEnd = false}) {
+      var run = pending.toString();
       pending.clear();
+      if (atStart) {
+        if (run.startsWith('\n')) run = run.substring(1);
+        atStart = false;
+      }
+      if (atEnd && run.endsWith('\n')) {
+        run = run.substring(0, run.length - 1);
+      }
       if (run.isEmpty) return;
-      children.add(TextNode(children: TextNode._parseInline(run)));
+      lines.add(TextNode(children: TextNode._parseInline(run)));
     }
 
     while (true) {
       final from = scanner.position;
-      final scanned = scanner.read();
+      final scanned = scanner.read(
+        LayoutSymbol.byChar.keys.toSet(),
+        stopAtVerbatim: true,
+      );
       final verbatim = scanned.verbatim;
 
       if (verbatim == null) {
         pending.write(scanned.text);
+        terminator = scanned.symbol;
         break;
       }
 
       final start = from + scanned.text.length;
       final end = scanner.position;
+      // Alone on its line, judged within this block: the cell's own start
+      // counts as a boundary, and so does the separator that ends it.
+      final next = scanner.at(end);
       final standalone =
-          (start == 0 || text[start - 1] == '\n') &&
-          (end == text.length || text[end] == '\n');
+          (start == origin || scanner.at(start - 1) == '\n') &&
+          (next == '' || next == '\n' || LayoutSymbol.byChar.containsKey(next));
 
       if (!standalone) {
         pending.write(scanned.text);
-        pending.write(text.substring(start, end));
+        pending.write(scanner.source.substring(start, end));
         continue;
       }
 
@@ -50,12 +66,15 @@ final class ColumnNode extends BlockNode {
         before.endsWith('\n') ? before.substring(0, before.length - 1) : before,
       );
       flush();
-      children.add(VerbatimNode(text: verbatim));
-      if (end < text.length) scanner.skipTo(end + 1);
+      lines.add(VerbatimNode(text: verbatim));
+      if (!scanner.isEnd && scanner.at(end) == '\n') scanner.skipTo(end + 1);
     }
 
-    flush();
-    return children;
+    flush(atEnd: true);
+    return _Parsed(
+      ColumnNode(children: lines, align: align ?? BlockAlign.start),
+      terminator,
+    );
   }
 
   @override
@@ -72,4 +91,12 @@ final class ColumnNode extends BlockNode {
   @override
   int get hashCode =>
       Object.hash(runtimeType, align, _childrenEquality.hash(children));
+}
+
+/// A node together with the symbol that ended it, or null at the source's end.
+class _Parsed<T> {
+  final T node;
+  final String? terminator;
+
+  const _Parsed(this.node, this.terminator);
 }

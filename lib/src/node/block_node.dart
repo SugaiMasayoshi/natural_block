@@ -1,95 +1,44 @@
 part of '../node.dart';
 
 sealed class BlockNode extends NaturalBlockNode {
-  static List<BlockNode> _parseAll(List<_Piece> pieces) {
-    final children = <BlockNode>[];
-    _OpenTable? table;
-
-    void closeTable() {
-      final node = table?.close();
-      if (node != null) children.add(node);
-      table = null;
+  static _Parsed<List<BlockNode>> _parse(
+    Scanner scanner,
+    MarkerCluster cluster,
+  ) {
+    if (cluster.togglesTable) {
+      return TableNode._parse(scanner, cluster.align ?? BlockAlign.start);
     }
 
-    for (var index = 0; index < pieces.length; index++) {
-      final piece = pieces[index];
-      var align = piece.align;
-
-      if (piece.togglesTable) {
-        if (table != null) {
-          closeTable();
-        } else {
-          table = _OpenTable(align ?? BlockAlign.start);
-          align = null;
-        }
-      }
-
-      final cells = RowNode._splitCells(
-        piece.text,
-        align: align,
-        isLast: index == pieces.length - 1,
-      );
-      if (cells != null) {
-        final open = table;
-        if (open != null && open.accepts(cells.length)) {
-          open.add(cells);
-        } else {
-          closeTable();
-          children.add(RowNode._fromCells(cells));
-        }
-        continue;
-      }
-
-      final lines = ColumnNode._parseLines(piece.text);
-      if (lines.isEmpty) continue;
-
-      closeTable();
-      if (align != null) {
-        children.add(ColumnNode(children: lines, align: align));
-      } else {
-        children.addAll(lines);
-      }
-    }
-
-    closeTable();
-    return children;
+    final row = RowNode._parseCells(scanner, cluster.align);
+    return _Parsed(_blocksFrom(row.node, cluster.align), row.terminator);
   }
-}
 
-class _Piece {
-  final String text;
-  final BlockAlign? align;
-  final bool togglesTable;
+  /// What a run of cells contributes.
+  ///
+  /// A run that read a `=` is a row. One that did not was never a row at
+  /// all: an empty block contributes nothing (a Column block is content), a
+  /// marked one is a block of its own, and a bare one hands its lines up.
+  static List<BlockNode> _blocksFrom(_CellRun run, BlockAlign? align) {
+    if (run.isRow) {
+      return [
+        RowNode(
+          children: [for (final c in run.cells) c.resolve(BlockAlign.start)],
+        ),
+      ];
+    }
+    final only = run.cells.single.node;
+    if (only.children.isEmpty) return const [];
+    if (align != null) return [only];
+    return only.children;
+  }
 
-  const _Piece({required this.text, this.align, this.togglesTable = false});
-}
-
-List<_Piece> _splitPieces(
-  String source,
-  LayoutSymbol symbol, {
-  required bool allowTable,
-}) {
-  final scanner = Scanner(source, symbols: {symbol.char});
-  final pieces = <_Piece>[];
-  BlockAlign? align;
-  var togglesTable = false;
-
-  while (true) {
-    final scanned = scanner.read();
-    pieces.add(
-      _Piece(text: scanned.text, align: align, togglesTable: togglesTable),
-    );
-    if (scanned.symbol == null) break;
-
+  static MarkerCluster _readCluster(Scanner scanner) {
     final cluster = readMarkerCluster(
-      source,
+      scanner.source,
       scanner.position,
-      allowTable: allowTable,
+      allowTable: true,
     );
     scanner.skipTo(cluster.end);
-    align = cluster.align;
-    togglesTable = cluster.togglesTable;
+    return cluster;
   }
-
-  return pieces;
 }

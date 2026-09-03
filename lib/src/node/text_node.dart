@@ -6,12 +6,8 @@ final class TextNode extends LineNode {
   TextNode({this.children = const []});
 
   static List<InlineNode> _parseInline(String line) {
-    final scanner = Scanner(
-      line,
-      symbols: const {':', '\n'},
-      resolveEscapes: true,
-      stopAtVerbatim: true,
-    );
+    final scanner = Scanner(line);
+    const symbols = {':', '\n'};
     final children = <InlineNode>[];
     final pending = StringBuffer();
     var style = const _Decoration();
@@ -23,7 +19,11 @@ final class TextNode extends LineNode {
     }
 
     while (true) {
-      final scanned = scanner.read();
+      final scanned = scanner.read(
+        symbols,
+        resolveEscapes: true,
+        stopAtVerbatim: true,
+      );
       pending.write(scanned.text);
 
       final verbatim = scanned.verbatim;
