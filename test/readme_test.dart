@@ -100,18 +100,16 @@ void main() {
     test('`|<品名=^数量=>価格|` sets start, center and end', () {
       final row =
           NaturalBlockParser.parse('|<品名=^数量=>価格|').children.single as RowNode;
-      expect([
-        for (final c in row.children) c.align,
-      ], [BlockAlign.start, BlockAlign.center, BlockAlign.end]);
+      expect(
+        [for (final c in row.children) c.align],
+        [BlockAlign.start, BlockAlign.center, BlockAlign.end],
+      );
     });
 
-    test(
-      r'`a\=>b` is literally `a=>b` -- an escaped separator leaves the '
-      'marker alone too',
-      () {
-        expect(runs(r'a\=>b'), [TextSpanNode(text: 'a=>b')]);
-      },
-    );
+    test(r'`a\=>b` is literally `a=>b` -- an escaped separator leaves the '
+        'marker alone too', () {
+      expect(runs(r'a\=>b'), [TextSpanNode(text: 'a=>b')]);
+    });
 
     test('anywhere else the markers are ordinary text', () {
       // "a > b, ->, =>, and List<String> are everywhere in normal prose"
@@ -160,18 +158,18 @@ void main() {
     });
 
     test('decoration does not carry across a newline', () {
-      final second = NaturalBlockParser.parse('|:!red\nplain|').children[1]
-          as TextNode;
-      expect((second.children.single as TextSpanNode).color, SemanticColor.none);
+      final second =
+          NaturalBlockParser.parse('|:!red\nplain|').children[1] as TextNode;
+      expect(
+        (second.children.single as TextSpanNode).color,
+        SemanticColor.none,
+      );
     });
 
-    test(
-      "a single blank line at each end of a block is dropped, so a block's "
-      'symbol can sit on its own line',
-      () {
-        expect(NaturalBlockParser.parse('|\nonly\n|').children.length, 1);
-      },
-    );
+    test("a single blank line at each end of a block is dropped, so a block's "
+        'symbol can sit on its own line', () {
+      expect(NaturalBlockParser.parse('|\nonly\n|').children.length, 1);
+    });
 
     test('a genuine blank line in the middle is preserved', () {
       expect(NaturalBlockParser.parse('|a\n\nb|').children.length, 3);
@@ -205,12 +203,16 @@ void main() {
       expect(row.children.length, 2);
     });
 
-    test('a run of `=`-joined cells ends at a `|`, so `a=b|c=d` is two rows', () {
-      expect(
-        NaturalBlockParser.parse('a=b|c=d').children.map((c) => c.runtimeType),
-        [RowNode, RowNode],
-      );
-    });
+    test(
+      'a run of `=`-joined cells ends at a `|`, so `a=b|c=d` is two rows',
+      () {
+        expect(
+          NaturalBlockParser.parse('a=b|c=d').children
+              .map((c) => c.runtimeType),
+          [RowNode, RowNode],
+        );
+      },
+    );
   });
 
   group('Wrap a row in `|`', () {
@@ -219,8 +221,8 @@ void main() {
       // The failure this rule warns about: nothing throws and nothing is
       // lost, so it is invisible until the document is drawn. It caught the
       // author out writing the renderer's own showcase.
-      final row = NaturalBlockParser.parse('前の行\nA=B|').children.single
-          as RowNode;
+      final row =
+          NaturalBlockParser.parse('前の行\nA=B|').children.single as RowNode;
       expect(row.children.first.children, [
         TextNode(children: [TextSpanNode(text: '前の行')]),
         TextNode(children: [TextSpanNode(text: 'A')]),
@@ -229,7 +231,8 @@ void main() {
 
     test('the leading `|` keeps the preceding line its own block', () {
       expect(
-        NaturalBlockParser.parse('前の行\n|A=B|').children.map((c) => c.runtimeType),
+        NaturalBlockParser.parse('前の行\n|A=B|').children
+            .map((c) => c.runtimeType),
         [TextNode, RowNode],
       );
     });
@@ -271,39 +274,42 @@ void main() {
 
     test('a table ends at a row with a different number of cells', () {
       expect(
-        NaturalBlockParser.parse('|~A=B|C=D=E|').children.map((c) => c.runtimeType),
+        NaturalBlockParser.parse('|~A=B|C=D=E|').children
+            .map((c) => c.runtimeType),
         [TableNode, RowNode],
       );
     });
 
     test('a table ends at anything that is not a row', () {
       expect(
-        NaturalBlockParser.parse('|~A=B|note|').children.map((c) => c.runtimeType),
+        NaturalBlockParser.parse('|~A=B|note|').children
+            .map((c) => c.runtimeType),
         [TableNode, TextNode],
       );
     });
 
     test('a table ends at the end of the document', () {
-      expect(NaturalBlockParser.parse('|~A=B').children.single, isA<TableNode>());
+      expect(
+        NaturalBlockParser.parse('|~A=B').children.single,
+        isA<TableNode>(),
+      );
     });
 
     test('writing `|~` again closes it', () {
       expect(
-        NaturalBlockParser.parse('|~A=B|~C=D|').children.map((c) => c.runtimeType),
+        NaturalBlockParser.parse('|~A=B|~C=D|').children
+            .map((c) => c.runtimeType),
         [TableNode, RowNode],
       );
     });
 
-    test(
-      'an empty block does not end a table, or `||` would be an invisible '
-      'separator',
-      () {
-        expect(
-          NaturalBlockParser.parse('|~A=B||C=D|').children.single,
-          isA<TableNode>(),
-        );
-      },
-    );
+    test('an empty block does not end a table, or `||` would be an invisible '
+        'separator', () {
+      expect(
+        NaturalBlockParser.parse('|~A=B||C=D|').children.single,
+        isA<TableNode>(),
+      );
+    });
   });
 
   group('Verbatim regions', () {
@@ -324,28 +330,33 @@ void main() {
                   .children
                   .single
               as TextNode;
-      expect(line.children.single,
-          VerbatimNode(text: 'cat file.txt | grep foo | wc -l'));
+      expect(
+        line.children.single,
+        VerbatimNode(text: 'cat file.txt | grep foo | wc -l'),
+      );
     });
 
     test('without a region that same command becomes three blocks', () {
       // The README's own argument for why regions exist.
       expect(
-        NaturalBlockParser.parse('cat file.txt | grep foo | wc -l').children.length,
+        NaturalBlockParser.parse('cat file.txt | grep foo | wc -l')
+            .children
+            .length,
         3,
       );
     });
 
     test('and `final x = a == b ? 1 : 2;` becomes a four-cell row', () {
-      final row = NaturalBlockParser.parse('final x = a == b ? 1 : 2;')
-          .children
-          .single as RowNode;
+      final row =
+          NaturalBlockParser.parse('final x = a == b ? 1 : 2;').children.single
+              as RowNode;
       expect(row.children.length, 4);
     });
 
     test('a region can go in a table cell', () {
       final table =
-          NaturalBlockParser.parse('|~A=`x`|B=`y`|').children.single as TableNode;
+          NaturalBlockParser.parse('|~A=`x`|B=`y`|').children.single
+              as TableNode;
       expect(
         table.children[0].children[1].children.single.children.single,
         VerbatimNode(text: 'x'),
@@ -361,30 +372,32 @@ void main() {
 
     test('the fence run length sets the closer, so a doubled fence may '
         'contain a single backtick', () {
-      expect(onlyLine('``a `b` c``').children.single,
-          VerbatimNode(text: 'a `b` c'));
+      expect(
+        onlyLine('``a `b` c``').children.single,
+        VerbatimNode(text: 'a `b` c'),
+      );
     });
 
     test('the newline directly against each fence belongs to that fence', () {
-      expect(onlyLine('`\ncode\n`').children.single, VerbatimNode(text: 'code'));
+      expect(
+        onlyLine('`\ncode\n`').children.single,
+        VerbatimNode(text: 'code'),
+      );
     });
 
     test('written inline the content is exactly what was typed', () {
       expect(onlyLine('a`  b  `c').children[1], VerbatimNode(text: '  b  '));
     });
 
-    test(
-      'an unclosed fence is not a region: it stays ordinary text and '
-      'separators after it still work',
-      () {
-        final doc = NaturalBlockParser.parse('a`b|c');
-        expect(doc.children.length, 2);
-        expect(
-          (doc.children.first as TextNode).children.single,
-          TextSpanNode(text: 'a`b'),
-        );
-      },
-    );
+    test('an unclosed fence is not a region: it stays ordinary text and '
+        'separators after it still work', () {
+      final doc = NaturalBlockParser.parse('a`b|c');
+      expect(doc.children.length, 2);
+      expect(
+        (doc.children.first as TextNode).children.single,
+        TextSpanNode(text: 'a`b'),
+      );
+    });
   });
 
   group('Escape characters', () {
@@ -399,11 +412,14 @@ void main() {
       expect(runs(r'\\'), [TextSpanNode(text: '\\')]);
     });
 
-    test(r'inside a cluster `:---\%off` gives `%off` at -3, backslash gone', () {
-      final span = runs(r':---\%off').single;
-      expect(span.text, '%off');
-      expect(span.sizeOffset, -3);
-    });
+    test(
+      r'inside a cluster `:---\%off` gives `%off` at -3, backslash gone',
+      () {
+        final span = runs(r':---\%off').single;
+        expect(span.text, '%off');
+        expect(span.sizeOffset, -3);
+      },
+    );
 
     test(r'the escape ends the cluster, so `:---\%%%` needs one backslash', () {
       final span = runs(r':---\%%%').single;
@@ -417,15 +433,18 @@ void main() {
       survivesUntouched(r'C:\Users');
     });
 
-    test(r'`\\=` is a cell holding a backslash followed by a real separator',
-        () {
-      final row = NaturalBlockParser.parse(r'\\=b').children.single as RowNode;
-      expect(row.children.length, 2);
-      expect(
-        row.children[0].children.single.children.single,
-        TextSpanNode(text: '\\'),
-      );
-    });
+    test(
+      r'`\\=` is a cell holding a backslash followed by a real separator',
+      () {
+        final row =
+            NaturalBlockParser.parse(r'\\=b').children.single as RowNode;
+        expect(row.children.length, 2);
+        expect(
+          row.children[0].children.single.children.single,
+          TextSpanNode(text: '\\'),
+        );
+      },
+    );
 
     test(r'where a lone `\=` would just be a literal `=`', () {
       expect(runs(r'\=b'), [TextSpanNode(text: '=b')]);
@@ -437,10 +456,12 @@ void main() {
       survivesUntouched(r'C:\Users\you\a.png');
     });
 
-    test('a doubled backslash collapses, so a UNC path is written with four',
-        () {
-      expect(runs(r'\\\\server'), [TextSpanNode(text: r'\\server')]);
-    });
+    test(
+      'a doubled backslash collapses, so a UNC path is written with four',
+      () {
+        expect(runs(r'\\\\server'), [TextSpanNode(text: r'\\server')]);
+      },
+    );
 
     test('forward slashes avoid the question entirely', () {
       survivesUntouched('C:/Users/you/a.png');
@@ -450,9 +471,11 @@ void main() {
   group('README usage examples', () {
     test('example 1: layout symbols reset styles at each boundary', () {
       // const input1 = "|:!Danger Zone=:?Safe Zone|";
-      final row = NaturalBlockParser.parse('|:!Danger Zone=:?Safe Zone|')
-          .children
-          .single as RowNode;
+      final row =
+          NaturalBlockParser.parse('|:!Danger Zone=:?Safe Zone|')
+                  .children
+                  .single
+              as RowNode;
       TextSpanNode runOf(int i) =>
           row.children[i].children.single.children.single as TextSpanNode;
       expect(runOf(0).color, SemanticColor.danger);

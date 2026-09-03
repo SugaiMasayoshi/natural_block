@@ -12,7 +12,6 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
-
   group("SemanticColor & toggle parsing edge cases", () {
     test("switching between multiple styles in sequence", () {
       // Each of the four decoration kinds (danger, info, success, emphasis)

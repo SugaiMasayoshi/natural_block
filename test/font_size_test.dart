@@ -12,7 +12,6 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
-
   group("Font size change and reset behavior", () {
     test("inline size change is held without a closing symbol", () {
       // No closing symbol needed: :++ gives +2, :-- gives -2, netting back to 0

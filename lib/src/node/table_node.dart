@@ -32,14 +32,15 @@ class _OpenTable {
   bool accepts(int cellCount) =>
       _columnAligns == null || cellCount == _columnAligns!.length;
 
-  void add(List<_PendingCell> cells) {
+  void add(List<_Piece> cells) {
     final aligns = _columnAligns ??= [
-      for (final cell in cells) cell.statedAlign ?? BlockAlign.start,
+      for (final cell in cells) cell.align ?? BlockAlign.start,
     ];
     _rows.add(
       RowNode(
         children: [
-          for (var i = 0; i < cells.length; i++) cells[i].resolve(aligns[i]),
+          for (var i = 0; i < cells.length; i++)
+            RowNode._cell(cells[i], aligns[i]),
         ],
       ),
     );

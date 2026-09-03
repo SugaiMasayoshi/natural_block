@@ -36,13 +36,3 @@ final class ColumnNode extends BlockNode {
   int get hashCode =>
       Object.hash(runtimeType, align, _childrenEquality.hash(children));
 }
-
-class _PendingCell {
-  final List<TextNode> lines;
-  final BlockAlign? statedAlign;
-
-  const _PendingCell({required this.lines, required this.statedAlign});
-
-  ColumnNode resolve(BlockAlign inherited) =>
-      ColumnNode(children: lines, align: statedAlign ?? inherited);
-}

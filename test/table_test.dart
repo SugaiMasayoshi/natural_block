@@ -23,7 +23,6 @@ ColumnNode cell(String text, [BlockAlign align = BlockAlign.start]) =>
     ColumnNode(children: [line(text)], align: align);
 
 void main() {
-
   /// The alignment of every cell of every row, as a grid -- the thing column
   /// inheritance is about.
   List<List<BlockAlign>> aligns(TableNode table) => [
@@ -75,7 +74,8 @@ void main() {
     });
 
     test('an escaped separator leaves the marker as text', () {
-      final row = NaturalBlockParser.parse(r'\|~A=B|').children.single as RowNode;
+      final row =
+          NaturalBlockParser.parse(r'\|~A=B|').children.single as RowNode;
 
       expect(row.children.first, cell('|~A'));
     });
@@ -177,8 +177,14 @@ void main() {
       // `~` toggles, so writing it twice in the same cluster is two
       // toggles and leaves table mode off. Nothing in the language gives
       // that a meaning; pinned so the behaviour is at least defined.
-      expect(NaturalBlockParser.parse('|~~A=B|').children.single, isA<RowNode>());
-      expect(NaturalBlockParser.parse('|~~~A=B|').children.single, isA<TableNode>());
+      expect(
+        NaturalBlockParser.parse('|~~A=B|').children.single,
+        isA<RowNode>(),
+      );
+      expect(
+        NaturalBlockParser.parse('|~~~A=B|').children.single,
+        isA<TableNode>(),
+      );
     });
 
     test('contradictory alignment markers keep the last one', () {
@@ -189,6 +195,23 @@ void main() {
   });
 
   group('alignment', () {
+    test('the alignment that opens a table belongs to the table, not to its '
+        'first cell', () {
+      // `|~^` is a centered table, and the separator that declares it is the
+      // same one that opens the first cell -- so the marker has to go to one
+      // or the other. It goes to the table. Letting it reach the cell would
+      // be worse than a one-off mistake: the first row fixes every column's
+      // alignment, so a leaked `^` would center that whole column in every
+      // row that follows.
+      final table = onlyTable('|~^A=B|C=D|');
+
+      expect(table.align, BlockAlign.center);
+      expect(aligns(table), [
+        [BlockAlign.start, BlockAlign.start],
+        [BlockAlign.start, BlockAlign.start],
+      ]);
+    });
+
     test('a marker in the opening cluster aligns the table itself', () {
       // `|~^` reads as one cluster describing one block: `~` says it is a
       // table, `^` says how it sits. Meaningful because a table is sized to

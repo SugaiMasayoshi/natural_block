@@ -19,8 +19,7 @@ import 'package:test/test.dart';
 void main() {
   const bs = r'\';
 
-  TextNode line(String text) =>
-      TextNode(children: [TextSpanNode(text: text)]);
+  TextNode line(String text) => TextNode(children: [TextSpanNode(text: text)]);
 
   /// The one line a source parses to.
   TextNode onlyLine(String source) =>
@@ -79,7 +78,10 @@ void main() {
     test('a multi-line region stays one node', () {
       // The block-splitting pass has to know about regions too, or this
       // would be cut into a line each and no later pass could rejoin it.
-      expect(onlyRegion('`\nif (x) {\n  y();\n}\n`').text, 'if (x) {\n  y();\n}');
+      expect(
+        onlyRegion('`\nif (x) {\n  y();\n}\n`').text,
+        'if (x) {\n  y();\n}',
+      );
     });
 
     test('a multi-line region keeps the text around it in the same line', () {
@@ -94,8 +96,9 @@ void main() {
 
     test('a region works inside a table cell', () {
       // Not possible with a `|`-based marker: a cell cannot hold a block.
-      final table = NaturalBlockParser.parse('|~x=`a|b`|y=z|').children.single
-          as TableNode;
+      final table =
+          NaturalBlockParser.parse('|~x=`a|b`|y=z|').children.single
+              as TableNode;
 
       expect(
         table.children.first.children.last.children.single.children.single,
@@ -134,7 +137,10 @@ void main() {
     });
 
     test('an empty region contributes no node', () {
-      expect(NaturalBlockParser.parse('a``b'), DocumentNode(children: [line('a``b')]));
+      expect(
+        NaturalBlockParser.parse('a``b'),
+        DocumentNode(children: [line('a``b')]),
+      );
     });
   });
 
@@ -143,7 +149,10 @@ void main() {
       // Nothing is swallowed: a stray backtick cannot eat a document, which
       // is what makes three separate passes agree by construction -- each
       // looks ahead and only then commits.
-      expect(NaturalBlockParser.parse('a `b'), DocumentNode(children: [line('a `b')]));
+      expect(
+        NaturalBlockParser.parse('a `b'),
+        DocumentNode(children: [line('a `b')]),
+      );
     });
 
     test('separators after it still work', () {

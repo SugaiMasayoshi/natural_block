@@ -91,7 +91,8 @@ final class TextNode extends BlockNode {
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, _childrenEquality.hash(children));
+  int get hashCode =>
+      Object.hash(runtimeType, _childrenEquality.hash(children));
 }
 
 class _Decoration {

@@ -18,8 +18,7 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
-  TextNode line(String text) =>
-      TextNode(children: [TextSpanNode(text: text)]);
+  TextNode line(String text) => TextNode(children: [TextSpanNode(text: text)]);
 
   group('line endings', () {
     test('a CRLF document parses exactly like the LF one', () {
@@ -63,10 +62,10 @@ void main() {
       // Pins the order of the two replacements. Doing `\r` first turns
       // every `\r\n` into `\n\n`, which is silent: the document still
       // renders, with a blank line inserted after every line.
-      expect(
-        NaturalBlockParser.parse('a\r\nb').children,
-        [line('a'), line('b')],
-      );
+      expect(NaturalBlockParser.parse('a\r\nb').children, [
+        line('a'),
+        line('b'),
+      ]);
     });
   });
 
@@ -140,10 +139,9 @@ void main() {
       // comes out. Both used to vanish, which was the parser deciding what
       // the author meant.
       expect(NaturalBlockParser.parse('   ').children, [line('   ')]);
-      expect(
-        NaturalBlockParser.parse('\n\n').children,
-        [TextNode(children: [])],
-      );
+      expect(NaturalBlockParser.parse('\n\n').children, [
+        TextNode(children: []),
+      ]);
     });
 
     test('separators with nothing between them produce nothing', () {

@@ -14,7 +14,6 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
-
   group("Column newline trimming", () {
     // Expected: root keeps its Column wrapper
     final expected = DocumentNode(

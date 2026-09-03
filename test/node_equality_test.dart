@@ -109,28 +109,25 @@ void main() {
       expect(a.hashCode, b.hashCode);
     });
 
-    test(
-      "two layout nodes with identical children never compare equal",
-      () {
-        // DocumentNode vs RowNode is the only pair left that can hold the
-        // same children: a document accepts any BlockNode and a row accepts
-        // ColumnNode cells, so a single ColumnNode fits both. The former
-        // ColumnNode/RowNode version of this test is no longer expressible
-        // -- ColumnNode holds TextNode and RowNode holds ColumnNode, so the
-        // confusion it guarded against is now a compile error rather than
-        // something equality has to rule out.
-        final child = ColumnNode(
-          children: [
-            TextNode(children: [TextSpanNode(text: "本文")]),
-          ],
-        );
-        final document = DocumentNode(children: [child]);
-        final row = RowNode(children: [child]);
+    test("two layout nodes with identical children never compare equal", () {
+      // DocumentNode vs RowNode is the only pair left that can hold the
+      // same children: a document accepts any BlockNode and a row accepts
+      // ColumnNode cells, so a single ColumnNode fits both. The former
+      // ColumnNode/RowNode version of this test is no longer expressible
+      // -- ColumnNode holds TextNode and RowNode holds ColumnNode, so the
+      // confusion it guarded against is now a compile error rather than
+      // something equality has to rule out.
+      final child = ColumnNode(
+        children: [
+          TextNode(children: [TextSpanNode(text: "本文")]),
+        ],
+      );
+      final document = DocumentNode(children: [child]);
+      final row = RowNode(children: [child]);
 
-        // ignore: unrelated_type_equality_checks
-        expect(document == row, isFalse);
-      },
-    );
+      // ignore: unrelated_type_equality_checks
+      expect(document == row, isFalse);
+    });
 
     test("differing in just one TextSpanNode field breaks equality", () {
       final base = TextSpanNode(

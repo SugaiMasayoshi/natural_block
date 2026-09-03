@@ -13,7 +13,6 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
-
   group("Escape handling", () {
     group("Layout symbol escaping", () {
       test("an escaped pipe is parsed as a literal character, not a Column separator", () {
@@ -329,7 +328,10 @@ void main() {
       });
 
       test("a single `\\` before a separator still escapes it", () {
-        expect(NaturalBlockParser.parse('$bs=B'), DocumentNode(children: [line('=B')]));
+        expect(
+          NaturalBlockParser.parse('$bs=B'),
+          DocumentNode(children: [line('=B')]),
+        );
       });
 
       test("three backslashes are a literal one plus an escaped separator", () {
@@ -360,23 +362,33 @@ void main() {
           NaturalBlockParser.parse('C:${bs}Users${bs}sugai'),
           DocumentNode(children: [line('C:${bs}Users${bs}sugai')]),
         );
-        expect(NaturalBlockParser.parse('$bs!'), DocumentNode(children: [line('$bs!')]));
+        expect(
+          NaturalBlockParser.parse('$bs!'),
+          DocumentNode(children: [line('$bs!')]),
+        );
       });
 
       test("a lone trailing backslash is literal", () {
-        expect(NaturalBlockParser.parse(bs), DocumentNode(children: [line(bs)]));
+        expect(
+          NaturalBlockParser.parse(bs),
+          DocumentNode(children: [line(bs)]),
+        );
       });
 
       test("a doubled backslash collapses even away from any markup", () {
         // The accepted cost of making `\` escapable: a UNC-style `\\server`
         // now reads as `\server`. Escaping one backslash is the price of
         // being able to write one before a separator at all.
-        expect(NaturalBlockParser.parse('A$bs${bs}B'), DocumentNode(children: [line('A${bs}B')]));
+        expect(
+          NaturalBlockParser.parse('A$bs${bs}B'),
+          DocumentNode(children: [line('A${bs}B')]),
+        );
       });
 
       test("it works inside a table cell too", () {
-        final table = NaturalBlockParser.parse('|~x=y|$bs$bs=z|').children.single
-            as TableNode;
+        final table =
+            NaturalBlockParser.parse('|~x=y|$bs$bs=z|').children.single
+                as TableNode;
 
         expect(table.children[1].children.first, cell(bs));
         expect(table.children[1].children.last, cell('z'));

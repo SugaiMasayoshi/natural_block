@@ -13,7 +13,6 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
-
   group("actionable text (:@)", () {
     test("toggles on and off", () {
       const input = ":@https://example.com:@ を参照してください";
@@ -126,11 +125,7 @@ void main() {
       const input = r":---\@abc";
       final expected = DocumentNode(
         children: [
-          TextNode(
-            children: [
-              TextSpanNode(text: "@abc", sizeOffset: -3),
-            ],
-          ),
+          TextNode(children: [TextSpanNode(text: "@abc", sizeOffset: -3)]),
         ],
       );
 
