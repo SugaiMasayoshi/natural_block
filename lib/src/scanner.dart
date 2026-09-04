@@ -62,11 +62,12 @@ class Scanner {
       next == verbatimFenceChar ||
       LayoutSymbol.byChar.containsKey(next);
 
-  Scanned read(
-    Set<String> symbols, {
-    bool resolveEscapes = false,
-    bool stopBeforeVerbatim = false,
-  }) {
+  /// Reads up to the next character of [symbols], resolving escapes and
+  /// stopping in front of a verbatim region rather than reading through it.
+  ///
+  /// The region is left for the caller because whether it is a block or a
+  /// run depends on where it was written, which the scanner does not judge.
+  Scanned read(Set<String> symbols) {
     bool escapes(String next) =>
         next != '\n' && (escapesAlwaysActive(next) || symbols.contains(next));
 
@@ -86,23 +87,16 @@ class Scanner {
       if (char == r'\' &&
           _position + 1 < source.length &&
           escapes(source[_position + 1])) {
-        if (resolveEscapes) {
-          buffer ??= StringBuffer();
-          buffer.write(source.substring(literalStart, _position));
-          literalStart = _position + 1;
-        }
+        buffer ??= StringBuffer();
+        buffer.write(source.substring(literalStart, _position));
+        literalStart = _position + 1;
         _position += 2;
         continue;
       }
 
       if (char == verbatimFenceChar) {
-        final region = verbatimRegionAt(source, _position);
-        if (region != null) {
-          if (stopBeforeVerbatim) {
-            return Scanned(text: literal(), atVerbatim: true);
-          }
-          _position = region.end;
-          continue;
+        if (verbatimRegionAt(source, _position) != null) {
+          return Scanned(text: literal(), atVerbatim: true);
         }
       }
 

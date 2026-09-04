@@ -124,7 +124,13 @@ Initial release.
   and stops in front of the symbol that ends it, which its owner then eats.
   `RowNode` consumes the `=` between cells but not the `|` that ends the
   row; `TableNode` consumes the `|` between rows but not the `~` that ends
-  the table. There is no assembly pass and no shared mutable state: the
-  longest function is 22 lines, against 43 for the old `parse`.
+  the table. There is no assembly pass and no shared mutable state.
+- What that cost and what it bought, measured rather than claimed: the
+  median function got much smaller, and the longest one got *bigger*. Of the
+  nine functions that do the parsing, seven are 22 lines or fewer; the two
+  that read a run of styled text -- `TextSpanNode._parse` (47) and
+  `Scanner.read` (36) -- are the outliers. The separated parser it replaced
+  had four functions over 20 lines, all of them part of one reading, and its
+  longest was 36.
 - `README.md`'s claims are executed as tests (`test/readme_test.dart`), so a
   statement in it that stops being true fails the suite.
