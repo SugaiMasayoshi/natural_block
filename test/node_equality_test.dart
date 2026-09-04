@@ -39,84 +39,102 @@ void main() {
       );
     });
 
-    test("equal ColumnNodes have equal hashCode", () {
-      final a = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "本文")]),
-            ],
-          ),
-        ],
-      );
-      final b = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "本文")]),
-            ],
-          ),
-        ],
-      );
+    // Equal *and* unequal, per node type. Only the first half was here
+    // before, which meant the file did not do the job its header claims:
+    // deleting `align == other.align` from `ColumnNode.==` left every test
+    // in this file passing, and the alignment tests it underwrites would
+    // have gone on passing meaninglessly.
+    TextNode text([String s = '本文']) =>
+        TextNode(children: [TextSpanNode(text: s)]);
 
-      expect(a, b);
-      expect(a.hashCode, b.hashCode);
+    final cases = <String, (NaturalBlockNode, NaturalBlockNode, String)>{
+      'ColumnNode': (
+        ColumnNode(children: [text()]),
+        ColumnNode(children: [text()], align: BlockAlign.start),
+        'a start-aligned block is not one that stated nothing',
+      ),
+      'RowNode': (
+        RowNode(
+          children: [
+            ColumnNode(children: [text('左')]),
+          ],
+        ),
+        RowNode(
+          children: [
+            ColumnNode(children: [text('右')]),
+          ],
+        ),
+        'a cell of different text is a different row',
+      ),
+      'TableNode': (
+        TableNode(
+          children: [
+            RowNode(
+              children: [
+                ColumnNode(children: [text('セル')]),
+              ],
+            ),
+          ],
+        ),
+        TableNode(
+          children: [
+            RowNode(
+              children: [
+                ColumnNode(children: [text('セル')]),
+              ],
+            ),
+          ],
+          align: BlockAlign.center,
+        ),
+        'a centered table is not the same node as an unaligned one',
+      ),
+      'TextNode': (
+        TextNode(
+          children: [
+            TextSpanNode(text: 'あ'),
+            TextSpanNode(text: 'い'),
+          ],
+        ),
+        TextNode(
+          children: [
+            TextSpanNode(text: 'い'),
+            TextSpanNode(text: 'あ'),
+          ],
+        ),
+        'the order of the runs is part of the node',
+      ),
+      'TextSpanNode': (
+        TextSpanNode(text: '重要', sizeOffset: 1, color: SemanticColor.danger),
+        TextSpanNode(text: '重要', sizeOffset: 1, color: SemanticColor.success),
+        'the colour is part of the span',
+      ),
+      'VerbatimNode': (
+        VerbatimNode(text: 'code'),
+        VerbatimNode(text: 'other'),
+        'the text is the whole of a region',
+      ),
+    };
+
+    cases.forEach((name, c) {
+      final (one, other, why) = c;
+
+      test('two equal $name are equal and hash alike', () {
+        expect(one, one);
+        expect(one.hashCode, one.hashCode);
+      });
+
+      test('a $name differing in one field is not equal', () {
+        expect(one, isNot(other), reason: why);
+      });
+
+      test('a $name differing in one field hashes differently', () {
+        // Comparing only *equal* nodes' hashes lets `hashCode => 0` pass
+        // every test in this file, which is the same hole the inequality
+        // case above closes for `==`. A collision is legal in principle;
+        // one on a pair this close means the field was left out.
+        expect(one.hashCode, isNot(other.hashCode), reason: why);
+      });
     });
-
-    test("equal RowNodes have equal hashCode", () {
-      final a = RowNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "左")]),
-            ],
-          ),
-        ],
-      );
-      final b = RowNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "左")]),
-            ],
-          ),
-        ],
-      );
-
-      expect(a, b);
-      expect(a.hashCode, b.hashCode);
-    });
-
-    test("equal TextNodes have equal hashCode", () {
-      final a = TextNode(
-        children: [TextSpanNode(text: "危険", color: SemanticColor.danger)],
-      );
-      final b = TextNode(
-        children: [TextSpanNode(text: "危険", color: SemanticColor.danger)],
-      );
-
-      expect(a, b);
-      expect(a.hashCode, b.hashCode);
-    });
-
-    test("equal TextSpanNodes (all four fields) have equal hashCode", () {
-      final a = TextSpanNode(
-        text: "重要",
-        sizeOffset: 1,
-        color: SemanticColor.danger,
-        emphasis: true,
-      );
-      final b = TextSpanNode(
-        text: "重要",
-        sizeOffset: 1,
-        color: SemanticColor.danger,
-        emphasis: true,
-      );
-
-      expect(a, b);
-      expect(a.hashCode, b.hashCode);
-    });
-
     test("two layout nodes with identical children never compare equal", () {
       // DocumentNode vs RowNode is the only pair left that can hold the
       // same children: a document accepts any BlockNode and a row accepts

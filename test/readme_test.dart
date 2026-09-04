@@ -64,13 +64,13 @@ final _readme = File('README.md').readAsStringSync();
 /// swap once updated every test in this file and left one README example
 /// behind, and nothing failed -- the test proved that its own string parsed
 /// correctly, which had stopped being a statement about the README at all.
-String fromReadme(String source) {
+String fromReadme(String source, [String? fragment]) {
   expect(
     _readme,
-    contains(source),
+    contains(fragment ?? source),
     reason:
-        'README.md no longer contains this example, so the test below has '
-        'stopped checking the README. Fix whichever one is wrong.',
+        'README.md no longer contains this, so the test below has stopped '
+        'checking the README. Fix whichever one is wrong.',
   );
   return source;
 }
@@ -78,17 +78,17 @@ String fromReadme(String source) {
 void main() {
   group('Decoration clusters', () {
     test('`:+++` is +3 -- repeat to stack without retyping the colon', () {
-      expect(runs(':+++Huge').single.sizeOffset, 3);
+      expect(runs(fromReadme(':+++Huge', ':+++')).single.sizeOffset, 3);
     });
 
     test('a color toggles: typing it again turns it back off', () {
-      final spans = runs(':!on:!off');
+      final spans = runs(fromReadme(':!on:!off', ':!'));
       expect(spans[0].color, SemanticColor.danger);
       expect(spans[1].color, SemanticColor.none);
     });
 
     test('`::` resets color, emphasis and action but not the size', () {
-      final spans = runs(':+!*@marked::plain');
+      final spans = runs(fromReadme(':+!*@marked::plain', '::'));
       expect(spans[0].color, SemanticColor.danger);
       expect(spans[0].emphasis, isTrue);
       expect(spans[0].isAction, isTrue);
@@ -155,14 +155,15 @@ void main() {
 
   group('Independent axes', () {
     test('a size change survives a following color symbol and vice versa', () {
-      final span = runs(':++big:!red').last;
+      final span = runs(fromReadme(':++big:!red', ':+')).last;
       expect(span.sizeOffset, 2);
       expect(span.color, SemanticColor.danger);
     });
 
     test('only a layout symbol resets everything', () {
       final row =
-          NaturalBlockParser.parse(':++:!A^B').children.single as RowNode;
+          NaturalBlockParser.parse(fromReadme(':++:!A^B', ':!')).children.single
+              as RowNode;
       final second =
           (row.children[1].children.single as TextNode).children.single
               as TextSpanNode;
@@ -189,34 +190,52 @@ void main() {
 
   group('A newline is a character, not a boundary', () {
     test('a block is one node however many lines it has', () {
-      expect(NaturalBlockParser.parse('|one\ntwo|').children, [
-        block('one\ntwo'),
-      ]);
+      expect(
+        NaturalBlockParser.parse(
+          fromReadme('|one\ntwo|', 'however many lines it has'),
+        ).children,
+        [block('one\ntwo')],
+      );
     });
 
     test('decoration does not carry across a newline', () {
       // The one thing a newline still does. It is a rule the parser applies
       // while reading, not a division the tree records -- so the runs on
       // either side end up in the same node, styled differently.
-      expect(onlyLine('|:!red\nplain|').children, [
-        TextSpanNode(text: 'red', color: SemanticColor.danger),
-        TextSpanNode(text: '\nplain'),
-      ]);
+      expect(
+        onlyLine(fromReadme('|:!red\nplain|', 'it resets decoration')).children,
+        [
+          TextSpanNode(text: 'red', color: SemanticColor.danger),
+          TextSpanNode(text: '\nplain'),
+        ],
+      );
     });
 
     test("a single blank line at each end of a block is dropped, so a block's "
         'symbol can sit on its own line', () {
-      expect(NaturalBlockParser.parse('|\nonly\n|').children, [block('only')]);
+      expect(
+        NaturalBlockParser.parse(
+          fromReadme('|\nonly\n|', 'can sit on a line of its own'),
+        ).children,
+        [block('only')],
+      );
     });
 
     test('a genuine blank line in the middle is preserved, as characters', () {
-      expect(NaturalBlockParser.parse('|a\n\nb|').children, [block('a\n\nb')]);
+      expect(
+        NaturalBlockParser.parse(
+          fromReadme('|a\n\nb|', 'A single blank line at the start or end'),
+        ).children,
+        [block('a\n\nb')],
+      );
     });
 
     test('CRLF input parses identically', () {
       expect(
         NaturalBlockParser.parse('|\r\nonly\r\n|'),
-        NaturalBlockParser.parse('|\nonly\n|'),
+        NaturalBlockParser.parse(
+          fromReadme('|\nonly\n|', 'can sit on a line of its own'),
+        ),
       );
     });
   });
@@ -227,7 +246,12 @@ void main() {
     });
 
     test('an alignment marker does not change that', () {
-      expect(NaturalBlockParser.parse('左|>|右').children.length, 2);
+      expect(
+        NaturalBlockParser.parse(
+          fromReadme('左|>|右', 'contributes no node at all'),
+        ).children.length,
+        2,
+      );
     });
 
     test('`左^^右` is three cells with an empty middle', () {
@@ -241,16 +265,10 @@ void main() {
       expect(row.children.length, 2);
     });
 
-    test(
-      'a run of `^`-joined cells ends at a `|`, so `a^b|c^d` is two rows',
-      () {
-        expect(
-          NaturalBlockParser.parse('a^b|c^d').children
-              .map((c) => c.runtimeType),
-          [RowNode, RowNode],
-        );
-      },
-    );
+    // "a run of `^`-joined cells ends at a `|`" lived here and should not
+    // have: the README never states it, so the test had nothing to check
+    // against -- the exact mistake this file's closing comment records
+    // having made once before. `layout_test.dart` owns it now.
   });
 
   group('A `|` ends the block before it', () {
@@ -260,7 +278,10 @@ void main() {
       // hierarchy, so it cannot end what `|` ends -- the preceding line
       // just becomes the first cell, one cell later than without it.
       final row =
-          NaturalBlockParser.parse('前の行\n^A^B').children.single as RowNode;
+          NaturalBlockParser.parse(fromReadme('前の行\n^A^B', r'`前の行\n^A^B`'))
+                  .children
+                  .single
+              as RowNode;
 
       expect(
         [for (final c in row.children) c.children.length],
@@ -278,7 +299,10 @@ void main() {
       // lost, so it is invisible until the document is drawn. It caught the
       // author out writing the renderer's own showcase.
       final row =
-          NaturalBlockParser.parse('前の行\nA^B|').children.single as RowNode;
+          NaturalBlockParser.parse(fromReadme('前の行\nA^B|', r'`前の行\nA^B|`'))
+                  .children
+                  .single
+              as RowNode;
       expect(row.children.first.children, [
         TextNode(children: [TextSpanNode(text: '前の行\nA')]),
       ]);
@@ -286,7 +310,8 @@ void main() {
 
     test('the leading `|` keeps the preceding line its own block', () {
       expect(
-        NaturalBlockParser.parse('前の行\n|A^B|').children
+        NaturalBlockParser.parse(fromReadme('前の行\n|A^B|', r'`前の行\n|A^B|`'))
+            .children
             .map((c) => c.runtimeType),
         [ColumnNode, RowNode],
       );
@@ -362,14 +387,26 @@ void main() {
     });
 
     test('a line with no `^` becomes a one-cell row', () {
-      expect(onlyTable('~A^B|note~').children[1].children, hasLength(1));
-      expect(onlyTable('~A|B~').children, hasLength(2));
+      expect(
+        onlyTable(
+          fromReadme('~A^B|note~', 'a line with no `^` becomes a one-cell row'),
+        ).children[1].children,
+        hasLength(1),
+      );
+      expect(
+        onlyTable(
+          fromReadme('~A|B~', 'a line with no `^` becomes a one-cell row'),
+        ).children,
+        hasLength(2),
+      );
     });
 
     test(
       '`~|Item^>Price|...~` right-aligns the price column for every row',
       () {
-        final table = onlyTable('~|Item^>Price|A^100|B^200~');
+        final table = onlyTable(
+          fromReadme('~|Item^>Price|A^100|B^200~', '~|Item^>Price|apple^100~'),
+        );
 
         expect(table.columns, [null, BlockAlign.end]);
         expect(effective(table), [
@@ -382,19 +419,28 @@ void main() {
 
     test('a marker on an individual cell overrides just that cell', () {
       expect(
-        onlyTable('~|Item^>Price|A^=100~').children[1].children[1].align,
+        onlyTable(
+          fromReadme(
+            '~|Item^>Price|A^=100~',
+            'a marker on an individual cell overrides',
+          ),
+        ).children[1].children[1].align,
         BlockAlign.center,
       );
     });
 
     test('`~=` is a centered table -- markers share one cluster', () {
-      expect(onlyTable('~=A^B~').align, BlockAlign.center);
+      expect(
+        onlyTable(fromReadme('~=A^B~', '`~=` is a centered table')).align,
+        BlockAlign.center,
+      );
     });
 
     test('a table ends only at `~` or the end of the document', () {
       expect(
-        NaturalBlockParser.parse('~A^B|C^D^E|note~after').children
-            .map((c) => c.runtimeType),
+        NaturalBlockParser.parse(
+          fromReadme('~A^B|C^D^E|note~after', 'A table ends at `~`'),
+        ).children.map((c) => c.runtimeType),
         [TableNode, ColumnNode],
       );
     });
@@ -418,7 +464,9 @@ void main() {
 
     test('writing `~` again closes it', () {
       expect(
-        NaturalBlockParser.parse('~A^B~C^D').children.map((c) => c.runtimeType),
+        NaturalBlockParser.parse(fromReadme('~A^B~C^D', 'A table ends at `~`'))
+            .children
+            .map((c) => c.runtimeType),
         [TableNode, RowNode],
       );
     });
@@ -426,7 +474,9 @@ void main() {
     test('an empty block does not end a table, or `||` would be an invisible '
         'separator', () {
       expect(
-        NaturalBlockParser.parse('~A^B||C^D~').children.single,
+        NaturalBlockParser.parse(
+          fromReadme('~A^B||C^D~', 'contributes no node at all'),
+        ).children.single,
         isA<TableNode>(),
       );
     });
@@ -494,7 +544,9 @@ void main() {
     test('the fence run length sets the closer, so a doubled fence may '
         'contain a single backtick', () {
       expect(
-        onlyBlock('``a `b` c``').children.single,
+        onlyBlock(fromReadme('``a `b` c``', 'may contain single backticks'))
+            .children
+            .single,
         VerbatimNode(text: 'a `b` c'),
       );
     });
@@ -515,7 +567,9 @@ void main() {
 
     test('an unclosed fence is not a region: it stays ordinary text and '
         'separators after it still work', () {
-      final doc = NaturalBlockParser.parse('a`b|c');
+      final doc = NaturalBlockParser.parse(
+        fromReadme('a`b|c', 'separators after it still work'),
+      );
       expect(doc.children.length, 2);
       expect(doc.children.first, block('a`b'));
     });
