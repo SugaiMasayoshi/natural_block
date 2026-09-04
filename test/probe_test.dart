@@ -3,7 +3,7 @@
 // 【解説】 「意図しない変化の検出」だけ。
 // 【解説】
 // 【解説】 テストは *書いた主張* を守ります。この探査は *書き忘れた主張* を
-// 【解説】 守ります。実際に何度も、238件のテストが全部通っているのにここが
+// 【解説】 守ります。実際に何度も、241件のテストが全部通っているのにここが
 // 【解説】 差分を出して間違いを捕まえました(表の寄せが消えていたことがある)。
 // 【解説】
 // 【解説】 使い方: 挙動を変えるつもりの変更をしたら、ここが落ちます。落ちた
@@ -85,7 +85,7 @@ void main() {
       isTrue,
       reason:
           'test/probe.expected.txt is missing. Regenerate it with '
-          'UPDATE_PROBE^1 dart test test/probe_test.dart',
+          'UPDATE_PROBE=1 dart test test/probe_test.dart',
     );
     expect(
       actual.split('\n'),
@@ -93,7 +93,7 @@ void main() {
       reason:
           'a source parses differently than it used to. If the change was '
           'intended, check that only the cases you meant to change moved, '
-          'then regenerate with UPDATE_PROBE^1.',
+          'then regenerate with UPDATE_PROBE=1.',
     );
   });
 

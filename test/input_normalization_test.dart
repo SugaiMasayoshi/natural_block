@@ -24,11 +24,12 @@ void main() {
 
   group('line endings', () {
     test('a CRLF document parses exactly like the LF one', () {
-      // Not cosmetic. `_parseBlock` splits on `\n` and then drops a line
-      // equal to `''` at each end -- the rule that lets a block's opening
-      // symbol sit on its own line. Under CRLF that line is `'\r'`, so the
-      // rule silently stopped applying and every line kept a trailing `\r`.
-      // Every document written by a Windows editor is affected.
+      // Not cosmetic. `ColumnNode._parse` drops a newline written directly
+      // against the separator that opened the block -- the rule that lets a
+      // block's opening symbol sit on its own line. Under CRLF the cursor
+      // sits on `'\r'` instead, so the rule silently stopped applying and
+      // every line kept a trailing `\r`. Every document written by a Windows
+      // editor is affected.
       const lf = '|\nheading\n|body';
       final crlf = lf.replaceAll('\n', '\r\n');
 
@@ -99,9 +100,11 @@ void main() {
     });
 
     test("a block's own blank line at each end still goes", () {
-      // The one thing that does disappear, and it belongs to `_parseBlock`
-      // rather than to any trimming of the source: it is what lets a
-      // block's symbol sit on a line of its own.
+      // The one thing that does disappear, and it belongs to the block
+      // rather than to any trimming of the source: `ColumnNode._parse`
+      // drops the newline at its start, and the run that holds the text
+      // drops the one at its end. That is what lets a block's symbol sit on
+      // a line of its own.
       expect(
         NaturalBlockParser.parse('|\ntext\n|'),
         DocumentNode(
@@ -140,9 +143,8 @@ void main() {
 
   group('documents that are only markup', () {
     test('an empty document has no children', () {
-      // A newline-only document is empty because `_parseBlock` drops one
-      // blank line at each end of a block, not because anything trims the
-      // source.
+      // A newline-only document is empty because a block drops one blank
+      // line at each end, not because anything trims the source.
       for (final source in ['', '\n', '\r\n']) {
         expect(
           NaturalBlockParser.parse(source).children,

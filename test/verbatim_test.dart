@@ -96,8 +96,10 @@ void main() {
     });
 
     test('a multi-line region stays one node', () {
-      // The block-splitting pass has to know about regions too, or this
-      // would be cut into a line each and no later pass could rejoin it.
+      // Every level that stops at a boundary has to know about regions
+      // too, or this would be cut into a piece per line with nothing left
+      // to rejoin it. `Scanner.atBlockRegion` is the single answer they all
+      // ask for.
       expect(
         onlyRegion('`\nif (x) {\n  y();\n}\n`').text,
         'if (x) {\n  y();\n}',
@@ -192,9 +194,9 @@ void main() {
 
   group('an unclosed fence is not a region', () {
     test('it stays ordinary text', () {
-      // Nothing is swallowed: a stray backtick cannot eat a document, which
-      // is what makes three separate passes agree by construction -- each
-      // looks ahead and only then commits.
+      // Nothing is swallowed: a stray backtick cannot eat a document. The
+      // fence is examined without being consumed, and only a closed one
+      // commits -- so every level that asks gets the same answer.
       expect(
         NaturalBlockParser.parse('a `b'),
         DocumentNode(
@@ -231,8 +233,8 @@ void main() {
     });
 
     test('a separator after an escaped fence still separates', () {
-      // The check that all three passes agree: if any one of them read the
-      // escaped fence as opening a region, this `|` would be swallowed.
+      // The check that escaping and region-opening agree: if the escaped
+      // fence were read as opening a region, this `|` would be swallowed.
       expect(
         NaturalBlockParser.parse('a $bs` b | c'),
         DocumentNode(

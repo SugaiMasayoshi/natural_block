@@ -119,7 +119,7 @@ void main() {
 
     test("style independence between cells inside a Row block", () {
       // Danger is opened and closed inside the left cell only -- it must
-      // not leak across the `=` boundary into the right cell.
+      // not leak across the `^` boundary into the right cell.
       const input = "||:!左は危険:!^右は通常||";
       final expected = DocumentNode(
         children: [

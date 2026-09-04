@@ -1,10 +1,10 @@
 // 【解説】[テスト5/21] 表(~)。宣言して初めて表になる、という設計の固定。
 // 【解説】
 // 【解説】 「行が連続していたら自動で表」にしなかった理由が2つ目の group に
-// 【解説】 出てくる。左==右 は「幅を等分する普通の行」に依存した書き方なので、
+// 【解説】 出てくる。左^^右 は「幅を等分する普通の行」に依存した書き方なので、
 // 【解説】 勝手に表にすると成立しなくなる。だから推論せず宣言させる。
 // 【解説】
-// 【解説】 ~ は3つ目のレイアウトシンボルで、| の1つ上の階層。= がセルを、
+// 【解説】 ~ は3つ目のレイアウトシンボルで、| の1つ上の階層。^ がセルを、
 // 【解説】 | が行とブロックを、~ が表の区間を区切る。だから表の終わりは
 // 【解説】 ~ か入力の終わりだけで、間にあるものは全部その表のもの。
 // 【解説】 幅の足りない行は弾かれずに空セルで埋められる。
@@ -22,7 +22,7 @@ TextNode line(String text) => TextNode(children: [TextSpanNode(text: text)]);
 /// A single-line block, which is what a bare paragraph parses to.
 ColumnNode block(String text) => ColumnNode(children: [line(text)]);
 
-/// An empty cell -- what a padded position, or an explicit `=``=`, holds.
+/// An empty cell -- what a padded position, or an explicit `^``^`, holds.
 ColumnNode empty([BlockAlign? align]) => ColumnNode(align: align);
 
 /// A single-line cell.
@@ -69,7 +69,7 @@ void main() {
     });
 
     test('without the marker the same rows stay separate RowNodes', () {
-      // A table is declared, never inferred: `LEFT==RIGHT` is a layout
+      // A table is declared, never inferred: `LEFT^^RIGHT` is a layout
       // idiom that depends on plain rows splitting the width evenly, so a
       // run of rows must not silently become a table.
       expect(
@@ -84,7 +84,7 @@ void main() {
     });
 
     test('`~` ends a cell as readily as a block, being the level above', () {
-      // `=` separates cells, `|` separates rows, `~` separates tables. Each
+      // `^` separates cells, `|` separates rows, `~` separates tables. Each
       // ends everything below it, so a `~` written mid-row closes the cell,
       // closes the row, and opens the table.
       final document = NaturalBlockParser.parse('A^~B~');
@@ -165,7 +165,7 @@ void main() {
     });
 
     test('a run of single-cell blocks is a one-column table', () {
-      // It used not to be expressible at all: a block with no `=` never
+      // It used not to be expressible at all: a block with no `^` never
       // entered a row, so it ended the table instead.
       final table = onlyTable('~A|B|C~');
 
@@ -196,7 +196,7 @@ void main() {
   group('alignment', () {
     test('the alignment that opens a table belongs to the table, not to its '
         'first cell', () {
-      // `~^` is a centered table, and the separator that declares it is the
+      // `~=` is a centered table, and the separator that declares it is the
       // same one that opens the first cell -- so the marker has to go to one
       // or the other. It goes to the table. Letting it reach the cell would
       // be worse than a one-off mistake: the first row fixes every column's
@@ -212,7 +212,7 @@ void main() {
     });
 
     test('a marker in the opening cluster aligns the table itself', () {
-      // `~^` reads as one cluster describing one block: `~` says it is a
+      // `~=` reads as one cluster describing one block: `~` says it is a
       // table, `^` says how it sits. Meaningful because a table is sized to
       // its content, so there is room around it to be positioned within.
       expect(onlyTable('~=A^B~').align, BlockAlign.center);
@@ -221,7 +221,7 @@ void main() {
     });
 
     test('a later row inherits each column from the first row', () {
-      // The point of inheriting by column: writing `=>` on every row of a
+      // The point of inheriting by column: writing `^>` on every row of a
       // numeric column is repetition that carries no information.
       final table = onlyTable('~A^>B|C^D|E^F~');
 

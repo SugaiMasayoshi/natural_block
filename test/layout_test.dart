@@ -1,11 +1,11 @@
-// 【解説】[テスト2/21] | と = の骨格。この言語で一番地味で一番重要な部分。
+// 【解説】[テスト2/21] | と ^ の骨格。この言語で一番地味で一番重要な部分。
 // 【解説】
 // 【解説】 前半は改行の削り方を表駆動で総当たりしている。「塊の先頭と末尾の
 // 【解説】 空行1つだけを落とす」という規則が、記号を単独行に置ける根拠。
 // 【解説】
 // 【解説】 後半が読みどころで、空の扱いの非対称をここで固定している。
 // 【解説】 空の Column ブロックは消える(内容が無いから)が、空の Row セルは
-// 【解説】 残る(位置だから)。これが 左==右 を成立させている。
+// 【解説】 残る(位置だから)。これが 左^^右 を成立させている。
 // 【解説】 末尾の区切りの扱いは "pinned current behavior" と名前に書いてあり、
 // 【解説】 設計というより「今こうである」を固定しているだけだと明示している。
 // 【解説】 次: test/escape_test.dart
@@ -164,7 +164,7 @@ void main() {
     // live as they typed past it, the layout jumping on the next keystroke.
     //
     // The general rules already covered this without a special case: an
-    // empty Row cell is a position the layout keeps (`左==右`), and a `=`
+    // empty Row cell is a position the layout keeps (`左^^右`), and a `^`
     // before a `|` or `~` opens a cell the same way. `isEnd` was the only
     // place in the parser that read the end of the source as anything other
     // than one more boundary.

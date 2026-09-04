@@ -31,7 +31,7 @@ void main() {
         expect(nodes, expected);
       });
 
-      test("an escaped equals sign is parsed as a single literal text, not a Row separator", () {
+      test("an escaped caret is parsed as a single literal text, not a Row separator", () {
         const input = r"左\^右";
         final expected = DocumentNode(
           children: [
@@ -383,7 +383,7 @@ void main() {
           "separator still separates", () {
         // The case this rule exists for: without it there is no way to end a
         // cell with a backslash, because `\\=` escapes the separator and
-        // yields one cell holding `=` instead of two cells split after `\`.
+        // yields one cell holding `^` instead of two cells split after `\`.
         expect(
           NaturalBlockParser.parse('$bs$bs^B'),
           DocumentNode(
@@ -430,8 +430,9 @@ void main() {
 
       test("a literal backslash survives in front of a decoration cluster", () {
         // Resolving escapes in one place is what makes this work: were the
-        // layout scan to collapse `\\` too, the lone backslash it left
-        // behind would be read as an escape again here and swallow the `:`.
+        // cluster reader to collapse `\\` as well as `Scanner.read`, the
+        // lone backslash the first one left behind would be read as an
+        // escape again by the second and swallow the `:`.
         final spans =
             ((NaturalBlockParser.parse('$bs$bs:*x').children.single
                             as ColumnNode)
