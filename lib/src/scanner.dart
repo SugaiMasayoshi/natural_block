@@ -1,3 +1,4 @@
+import 'block_align.dart';
 import 'parser/layout_symbol.dart';
 import 'parser/verbatim_region.dart';
 
@@ -45,6 +46,24 @@ class Scanner {
   /// the fence and the caller's loop would never advance.
   bool get atBlockRegion =>
       atVerbatimFence && (_position == 0 || at(_position - 1) == '\n');
+
+  /// Consumes the markers written at the cursor and returns what they said.
+  ///
+  /// Null when none were written, which is not [BlockAlign.start]: markers
+  /// describe the block a layout symbol opens, and a block that stated
+  /// nothing is a different thing from one that asked for the start.
+  ///
+  /// A later marker overrides an earlier one, so `|<^>` is end-aligned.
+  BlockAlign? takeMarkers() {
+    BlockAlign? align;
+    while (!isEnd) {
+      final marker = BlockAlign.byChar[peek];
+      if (marker == null) break;
+      align = marker;
+      _position += 1;
+    }
+    return align;
+  }
 
   String take() => source[_position++];
 

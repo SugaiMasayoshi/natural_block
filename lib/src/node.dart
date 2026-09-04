@@ -5,7 +5,6 @@ import 'package:collection/collection.dart';
 import 'block_align.dart';
 import 'parser/decoration_action.dart';
 import 'parser/layout_symbol.dart';
-import 'parser/marker_cluster.dart';
 import 'scanner.dart';
 import 'semantic_color.dart';
 

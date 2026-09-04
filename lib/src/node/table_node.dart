@@ -36,12 +36,13 @@ final class TableNode extends BlockNode {
   static TableNode? _parse(Scanner scanner, BlockAlign? align) {
     final rows = <RowNode>[];
 
-    // The alignment that opened the table describes the table, not its
-    // first cell, so the first row starts with nothing stated.
-    var cluster = const MarkerCluster(align: null, end: 0);
+    // What the `|` that opened the coming row said about its first cell.
+    // The markers on the `~` that opened the table describe the table, not
+    // its first cell, so the first row starts with nothing stated.
+    BlockAlign? firstCellAlign;
 
     while (true) {
-      final first = ColumnNode._parse(scanner, cluster.align);
+      final first = ColumnNode._parse(scanner, firstCellAlign);
       final row = RowNode._parse(scanner, first) ?? RowNode(children: [first]);
 
       // A block with nothing in it contributes nothing, here as anywhere,
@@ -51,7 +52,7 @@ final class TableNode extends BlockNode {
 
       if (scanner.isEnd) break;
       if (LayoutSymbol.byChar[scanner.peek] == LayoutSymbol.table) break;
-      cluster = BlockNode._openNext(scanner);
+      firstCellAlign = BlockNode._openNext(scanner);
     }
 
     if (rows.isEmpty) return null;

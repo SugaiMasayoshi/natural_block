@@ -13,7 +13,7 @@ final class DocumentNode extends NaturalBlockNode {
 
     // The first block is opened by the start of the source, not by a
     // separator, so it carries no markers.
-    var cluster = const MarkerCluster(align: null, end: 0);
+    BlockAlign? align;
 
     // `~` separates table regions from ordinary ones, so eating one flips
     // which of the two the next run is. This is the only place that `~` is
@@ -26,17 +26,17 @@ final class DocumentNode extends NaturalBlockNode {
     // node.
     while (true) {
       if (inTable) {
-        final table = TableNode._parse(scanner, cluster.align);
+        final table = TableNode._parse(scanner, align);
         if (table != null) children.add(table);
       } else {
-        children.addAll(BlockNode._parse(scanner, cluster));
+        children.addAll(BlockNode._parse(scanner, align));
       }
 
       if (scanner.isEnd) break;
       if (LayoutSymbol.byChar[scanner.peek] == LayoutSymbol.table) {
         inTable = !inTable;
       }
-      cluster = BlockNode._openNext(scanner);
+      align = BlockNode._openNext(scanner);
     }
 
     return DocumentNode(children: children);

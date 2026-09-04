@@ -21,9 +21,9 @@ final class RowNode extends BlockNode {
       // the row must not mean one thing at the end of a document and
       // another with a character after it -- which is what a reader would
       // watch happen as they typed past it.
-      final cluster = readMarkerCluster(scanner.source, scanner.position);
-      scanner.skipTo(cluster.end);
-      cells.add(ColumnNode._parse(scanner, cluster.align));
+      final align = scanner.takeMarkers();
+
+      cells.add(ColumnNode._parse(scanner, align));
     }
     return RowNode(children: cells);
   }
