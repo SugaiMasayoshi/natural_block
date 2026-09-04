@@ -21,13 +21,8 @@ final class ColumnNode extends BlockNode {
     String? terminator;
 
     while (true) {
-      if (scanner.atBlockRegion) {
-        lines.add(VerbatimNode._parse(scanner));
-        continue;
-      }
-
-      final line = TextNode._parse(scanner);
-      if (line.children.isNotEmpty) lines.add(line);
+      final line = LineNode._parse(scanner);
+      if (line != null) lines.add(line);
 
       if (scanner.isEnd) break;
       final symbol = LayoutSymbol.byChar[scanner.peek];
