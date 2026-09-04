@@ -591,9 +591,9 @@ void main() {
 
   group('README usage examples', () {
     test('example 1: layout symbols reset styles at each boundary', () {
-      // const input1 = "|:!Danger Zone^:?Safe Zone|";
+      // const input1 = "|:!Danger Zone^:%Safe Zone|";
       final row =
-          NaturalBlockParser.parse(fromReadme('|:!Danger Zone^:?Safe Zone|'))
+          NaturalBlockParser.parse(fromReadme('|:!Danger Zone^:%Safe Zone|'))
                   .children
                   .single
               as RowNode;
@@ -602,7 +602,7 @@ void main() {
               as TextSpanNode;
       expect(runOf(0).color, SemanticColor.danger);
       expect(runOf(0).text, 'Danger Zone');
-      expect(runOf(1).color, SemanticColor.info);
+      expect(runOf(1).color, SemanticColor.success);
       expect(runOf(1).text, 'Safe Zone');
     });
 

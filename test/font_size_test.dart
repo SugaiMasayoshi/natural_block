@@ -108,7 +108,7 @@ void main() {
     });
 
     group("Independence of size, color, and emphasis", () {
-      // Size (:+/:-), color (:!:?:%), and emphasis (:*) are independent
+      // Size (:+/:-), color (:!:%), and emphasis (:*) are independent
       // axes: a symbol from one axis never resets the state of another.
       test("size is preserved when a color symbol appears", () {
         const input = ":++大きく:!危険";

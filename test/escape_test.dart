@@ -49,7 +49,7 @@ void main() {
     });
 
     group("Bare decoration characters never need escaping", () {
-      // Every decoration symbol requires the `:` prefix (`:!`, `:?`, `:%`,
+      // Every decoration symbol requires the `:` prefix (`:!`, `:%`,
       // `:*`, `:+`, `:-`) to activate, so a bare `!`, `?`, `%`, `*`, `+`, or
       // `-` -- extremely common in ordinary prose in both Japanese and
       // English -- is always literal text on its own, with no escaping.

@@ -84,13 +84,22 @@ Initial release.
 ### Decoration
 
 - `:`-led clusters: `:+` / `:-` size steps, `:!` danger, `:%` success,
-  `:?` info, `:*` emphasis, `:@` actionable, `::` reset.
+  `:*` emphasis, `:@` actionable, `::` reset.
 - Size, color, emphasis, and actionability are independent axes; only a
   layout symbol resets everything.
 - A bare `+ - ! % ? * @` is always literal, so `C++`, `100%`, `Really?!`,
   and `you@example.com` need no escaping. This is what the `:` prefix buys.
 - `:@...:@` marks a run actionable without saying what acting on it means.
   The run's own text is the whole payload.
+- There are two semantic colors, not three. `:?` (info) was dropped. It named
+  nothing a writer means -- every sentence is information -- and it rendered
+  in the same colour as `:@`, so it was an action span without the underline.
+  Three documents written against this spec by people seeing it for the first
+  time used it once between them, and that once was to set an aside apart from
+  the body, which is a block's job rather than a colour's. `danger` and
+  `success` stay because "careful" and "done" are things a writer means; note
+  that they are not opposites, which is a loose end rather than a design.
+  Dropping it also frees `?`, one of the rarest characters left.
 
 ### Verbatim regions
 

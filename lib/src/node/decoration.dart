@@ -56,7 +56,6 @@ class _Decoration {
     DecorationAction.smaller => _copy(sizeOffset: sizeOffset - 1),
     DecorationAction.danger => _copy(color: _toggle(SemanticColor.danger)),
     DecorationAction.success => _copy(color: _toggle(SemanticColor.success)),
-    DecorationAction.info => _copy(color: _toggle(SemanticColor.info)),
     DecorationAction.emphasis => _copy(emphasis: !emphasis),
     DecorationAction.action => _copy(isAction: !isAction),
     DecorationAction.reset => _copy(

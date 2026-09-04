@@ -14,7 +14,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 * **Decoration clusters (`:`-led)**
   All decoration -- size, semantic color, emphasis, and actionability -- is triggered by a `:` immediately followed by one or more decoration characters, forming a *cluster*. Each character in the cluster applies in order:
   * `:+` one step larger, `:-` one step smaller -- repeat the character to stack without retyping the colon (`:+++` is +3).
-  * `:!` Danger / Warning color, `:%` Success color, `:?` Info color -- each **toggles**: typing it again turns it back off.
+  * `:!` Danger / Warning color, `:%` Success color -- each **toggles**: typing it again turns it back off.
   * `:*` Emphasis / Bold -- also toggles.
   * `:@` Actionable text -- also toggles. See below.
   * `::` resets color, emphasis, and actionability together (a cluster whose only character is `:`). It does **not** reset the size offset.
@@ -149,7 +149,7 @@ void main() {
 
   // Example 1: Layout with semantic color clusters.
   // Layout symbols (| and ^) reset styles at each boundary they create.
-  const input1 = "|:!Danger Zone^:?Safe Zone|";
+  const input1 = "|:!Danger Zone^:%Safe Zone|";
   final nodes1 = NaturalBlockParser.parse(input1);
   print(nodes1);
 

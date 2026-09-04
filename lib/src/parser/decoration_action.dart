@@ -3,7 +3,6 @@ enum DecorationAction {
   smaller('-'),
   danger('!'),
   success('%'),
-  info('?'),
   emphasis('*'),
   action('@'),
   reset(':');

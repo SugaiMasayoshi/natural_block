@@ -1,1 +1,1 @@
-enum SemanticColor { danger, success, info, none }
+enum SemanticColor { danger, success, none }

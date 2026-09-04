@@ -14,10 +14,10 @@ import 'package:test/test.dart';
 void main() {
   group("SemanticColor & toggle parsing edge cases", () {
     test("switching between multiple styles in sequence", () {
-      // Each of the four decoration kinds (danger, info, success, emphasis)
+      // Each of the three decoration kinds (danger, success, emphasis)
       // toggles on then off in turn, with plain text in between -- verifies
       // they don't interfere with each other across the whole sequence.
-      const input = ":!赤:!通常:?青:?通常:%緑:%通常:*太字:*";
+      const input = ":!赤:!通常:%緑:%通常:*太字:*";
       final expected = DocumentNode(
         children: [
           ColumnNode(
@@ -25,8 +25,6 @@ void main() {
               TextNode(
                 children: [
                   TextSpanNode(text: "赤", color: SemanticColor.danger),
-                  TextSpanNode(text: "通常"),
-                  TextSpanNode(text: "青", color: SemanticColor.info),
                   TextSpanNode(text: "通常"),
                   TextSpanNode(text: "緑", color: SemanticColor.success),
                   TextSpanNode(text: "通常"),
@@ -43,10 +41,10 @@ void main() {
     });
 
     test("overwriting a style directly with a different one", () {
-      // Danger is closed by opening info directly -- no explicit `:!` or
+      // Danger is closed by opening success directly -- no explicit `:!` or
       // `::` reset is written in between -- so switching colors mid-stream
       // must not require closing the previous one first.
-      const input = ":!危険から:?情報へ切り替え:?最後は通常";
+      const input = ":!危険から:%成功へ切り替え:%最後は通常";
       final expected = DocumentNode(
         children: [
           ColumnNode(
@@ -54,7 +52,7 @@ void main() {
               TextNode(
                 children: [
                   TextSpanNode(text: "危険から", color: SemanticColor.danger),
-                  TextSpanNode(text: "情報へ切り替え", color: SemanticColor.info),
+                  TextSpanNode(text: "成功へ切り替え", color: SemanticColor.success),
                   TextSpanNode(text: "最後は通常"),
                 ],
               ),
@@ -155,7 +153,7 @@ void main() {
 |
 :!警告: システムエラー:!
 :*補足事項:*
-|エラーコード: 500^解決策: :?管理者へ連絡:?|
+|エラーコード: 500^解決策: :%管理者へ連絡:%|
 処理完了
 |""";
 
@@ -187,7 +185,7 @@ void main() {
                   TextNode(
                     children: [
                       TextSpanNode(text: "解決策: "),
-                      TextSpanNode(text: "管理者へ連絡", color: SemanticColor.info),
+                      TextSpanNode(text: "管理者へ連絡", color: SemanticColor.success),
                     ],
                   ),
                 ],
