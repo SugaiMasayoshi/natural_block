@@ -11,10 +11,13 @@ Initial release.
   rather than one four-cell row.
 - An empty Column block contributes no node; an empty Row cell keeps its
   position, which is what makes `左==右` push `右` to the far edge.
-- A row is properly written wrapped in `|`. Omitting the leading one works
-  only when nothing precedes the row on its own line; otherwise the
-  preceding line is absorbed into the row's first cell, since a cell holds
-  lines and nothing said the cell began at the row.
+- A `|` ends the block before it. Reading it as "a new block starts here"
+  agrees everywhere but one place: a row is properly written wrapped in
+  `|`, and the leading one is not part of the row -- it is the full stop on
+  whatever came before. Without it nothing ends the preceding line, so that
+  line joins the row's first cell, since a cell holds lines and nothing said
+  the cell began at the row. `=` cannot stand in for it: it separates cells
+  within a block and has no authority to end one.
 - A newline is a character, not a boundary: a block is one `TextNode`
   however many lines it has. The one thing a newline does is reset
   decoration, so a cluster cannot leak past the end of its line -- a rule

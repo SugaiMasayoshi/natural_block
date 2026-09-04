@@ -231,7 +231,25 @@ void main() {
     );
   });
 
-  group('Wrap a row in `|`', () {
+  group('A `|` ends the block before it', () {
+    test('`=` cannot do the job: it separates cells within a block and has '
+        'no business ending one', () {
+      // Why the leading separator has to be `|`. `=` sits below `|` in the
+      // hierarchy, so it cannot end what `|` ends -- the preceding line
+      // just becomes the first cell, one cell later than without it.
+      final row =
+          NaturalBlockParser.parse('前の行\n=A=B').children.single as RowNode;
+
+      expect(
+        [for (final c in row.children) c.children.length],
+        [1, 1, 1],
+        reason: 'three cells, not a block and a row',
+      );
+      expect(row.children.first.children, [
+        TextNode(children: [TextSpanNode(text: '前の行')]),
+      ]);
+    });
+
     test('a line before a row without a leading `|` is absorbed into the '
         "row's first cell", () {
       // The failure this rule warns about: nothing throws and nothing is

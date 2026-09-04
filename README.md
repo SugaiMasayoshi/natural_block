@@ -43,8 +43,14 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   A block is one `TextNode` however many lines it has, and the newlines sit inside it as ordinary characters. A newline still does one thing: it resets decoration, so a cluster applies until the end of its line and cannot leak into the rest of the block. That is a rule the parser applies while reading, not a division the tree records. A single blank line at the start or end of a block is dropped, so a block's opening or closing symbol can sit on a line of its own. CRLF input is normalized first, so a document written on Windows parses identically.
 * **An empty cell holds its place; an empty block does not**
   The two are treated differently on purpose. A Column block is *content*, so an empty one contributes no node at all -- `左||右` is two text nodes, not three, and an alignment marker does not change that. A Row cell is a *position*, so it survives even when blank: `左==右` is three cells with an empty middle, which is what pushes `右` to the far edge.
-* **Wrap a row in `|`**
-  A row is properly written `|A=B=C|`. Omitting the leading `|` works only when nothing precedes the row on its own line -- otherwise the preceding line is absorbed into the row's *first cell* rather than staying its own block, because a cell holds lines and nothing said the cell started at the row. `前の行\nA=B|` is one row whose first cell holds two lines; `前の行\n|A=B|` is a text node and a row. Nothing fails and nothing is lost, so this is only visible once it is rendered -- when in doubt, write the leading `|`.
+* **A `|` ends the block before it**
+  Reading `|` as "a new block starts here" gives the right answer everywhere but one place, and this is that place.
+
+  A row is properly written `|A=B=C|`. The leading `|` is not part of the row -- it is the full stop on whatever came before. Leave it out and nothing ends the preceding line, so that line joins the row's *first cell*: a cell holds lines, and nothing said this cell began at the row. `前の行\nA=B|` is one row whose first cell holds two lines; `前の行\n|A=B|` is a text node and a row.
+
+  This is also why the row's own symbol cannot do the job. `前の行\n=A=B` does not split anything -- `=` separates cells within a block and has no business ending one, so `前の行` simply becomes the first cell.
+
+  Nothing throws and nothing is lost, so the difference only shows once it is rendered. When in doubt, write the leading `|`.
 * **Tables (`~`)**
   `~` is the third layout symbol, one level above `|`. Where `=` separates the cells of a row and `|` separates rows and blocks, `~` separates table regions from ordinary ones -- so a `~` both ends whatever preceded it and starts the table, exactly as `|` does one level down.
 
