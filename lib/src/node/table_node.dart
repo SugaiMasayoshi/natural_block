@@ -28,20 +28,8 @@ final class TableNode extends BlockNode {
           (columnAligns == null || cells.length == columnAligns.length);
 
       if (fits) {
-        // The first row states the columns. A later cell that said nothing
-        // takes what its column said -- which may itself be nothing, and
-        // then the cell stays unstated rather than being forced to start.
-        final aligns = columnAligns ??= [for (final c in cells) c.align];
         rows.add(
-          RowNode(
-            children: [
-              for (var i = 0; i < cells.length; i++)
-                ColumnNode(
-                  children: cells[i].children,
-                  align: cells[i].align ?? aligns[i],
-                ),
-            ],
-          ),
+          _inherit(cells, columnAligns ??= [for (final c in cells) c.align]),
         );
       } else {
         // An empty block contributes nothing, so it cannot end a table --
@@ -57,21 +45,7 @@ final class TableNode extends BlockNode {
       if (scanner.isEnd) break;
       cluster = BlockNode._openNext(scanner);
       if (cluster.togglesTable) {
-        // Closing. The alignment in this cluster belongs to the block being
-        // opened after the table, not to the table that just ended -- but
-        // the `~` itself is spent on closing, so the block is read without
-        // it. Passing the cluster on unchanged would open a second table.
-        if (scanner.isEnd) break;
-        after.addAll(
-          BlockNode._parse(
-            scanner,
-            MarkerCluster(
-              align: cluster.align,
-              togglesTable: false,
-              end: cluster.end,
-            ),
-          ),
-        );
+        after.addAll(_afterClose(scanner, cluster));
         break;
       }
     }
@@ -80,6 +54,40 @@ final class TableNode extends BlockNode {
       if (rows.isNotEmpty) TableNode(children: rows, align: align),
       ...after,
     ];
+  }
+
+  /// Resolves each cell's alignment against the column it sits in.
+  ///
+  /// The first row states the columns. A later cell that said nothing takes
+  /// what its column said -- which may itself be nothing, and then the cell
+  /// stays unstated rather than being forced to start.
+  static RowNode _inherit(List<ColumnNode> cells, List<BlockAlign?> columns) =>
+      RowNode(
+        children: [
+          for (var i = 0; i < cells.length; i++)
+            ColumnNode(
+              children: cells[i].children,
+              align: cells[i].align ?? columns[i],
+            ),
+        ],
+      );
+
+  /// Reads whatever follows the `|~` that closed the table.
+  ///
+  /// The alignment in that cluster belongs to the block being opened after
+  /// the table, not to the table that just ended -- but the `~` itself is
+  /// spent on closing, so the block is read without it. Passing the cluster
+  /// on unchanged would open a second table.
+  static List<BlockNode> _afterClose(Scanner scanner, MarkerCluster cluster) {
+    if (scanner.isEnd) return const [];
+    return BlockNode._parse(
+      scanner,
+      MarkerCluster(
+        align: cluster.align,
+        togglesTable: false,
+        end: cluster.end,
+      ),
+    );
   }
 
   @override
