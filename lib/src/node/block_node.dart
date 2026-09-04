@@ -11,19 +11,16 @@ sealed class BlockNode extends NaturalBlockNode {
   /// already read is handed on rather than re-read or re-labelled.
   static List<BlockNode> _parse(Scanner scanner, MarkerCluster cluster) {
     if (cluster.togglesTable) {
-      return TableNode._parse(scanner, cluster.align ?? BlockAlign.start);
+      return TableNode._parse(scanner, cluster.align);
     }
 
-    final first = _Cell(
-      ColumnNode._parse(scanner, cluster.align),
-      cluster.align,
-    );
+    final first = ColumnNode._parse(scanner, cluster.align);
     final cells = RowNode._parseCells(scanner, first);
-    if (cells != null) return [RowNode._of(cells)];
+    if (cells != null) return [RowNode(children: cells)];
 
     // An empty Column block is content that is not there, so it contributes
     // no node -- `左||右` is two blocks, not three.
-    return first.node.children.isEmpty ? const [] : [first.node];
+    return first.children.isEmpty ? const [] : [first];
   }
 
   /// Consumes the `|` the cursor is on and reads the markers written after

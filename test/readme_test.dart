@@ -269,9 +269,9 @@ void main() {
             [for (final c in row.children) c.align],
         ],
         [
-          [BlockAlign.start, BlockAlign.end],
-          [BlockAlign.start, BlockAlign.end],
-          [BlockAlign.start, BlockAlign.end],
+          [null, BlockAlign.end],
+          [null, BlockAlign.end],
+          [null, BlockAlign.end],
         ],
       );
     });

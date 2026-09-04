@@ -22,13 +22,13 @@ TextNode line(String text) => TextNode(children: [TextSpanNode(text: text)]);
 ColumnNode block(String text) => ColumnNode(children: [line(text)]);
 
 /// A single-line cell.
-ColumnNode cell(String text, [BlockAlign align = BlockAlign.start]) =>
+ColumnNode cell(String text, [BlockAlign? align]) =>
     ColumnNode(children: [line(text)], align: align);
 
 void main() {
   /// The alignment of every cell of every row, as a grid -- the thing column
   /// inheritance is about.
-  List<List<BlockAlign>> aligns(TableNode table) => [
+  List<List<BlockAlign?>> aligns(TableNode table) => [
     for (final row in table.children) [for (final c in row.children) c.align],
   ];
 
@@ -210,8 +210,8 @@ void main() {
 
       expect(table.align, BlockAlign.center);
       expect(aligns(table), [
-        [BlockAlign.start, BlockAlign.start],
-        [BlockAlign.start, BlockAlign.start],
+        [null, null],
+        [null, null],
       ]);
     });
 
@@ -221,23 +221,23 @@ void main() {
       // its content, so there is room around it to be positioned within.
       expect(onlyTable('|~^A=B|').align, BlockAlign.center);
       expect(onlyTable('|~>A=B|').align, BlockAlign.end);
-      expect(onlyTable('|~A=B|').align, BlockAlign.start);
+      expect(onlyTable('|~A=B|').align, isNull);
     });
 
     test('a later row inherits each column from the first row', () {
       // The point of inheriting by column: writing `=>` on every row of a
       // numeric column is repetition that carries no information.
       expect(aligns(onlyTable('|~A=>B|C=D|E=F|')), [
-        [BlockAlign.start, BlockAlign.end],
-        [BlockAlign.start, BlockAlign.end],
-        [BlockAlign.start, BlockAlign.end],
+        [null, BlockAlign.end],
+        [null, BlockAlign.end],
+        [null, BlockAlign.end],
       ]);
     });
 
     test('a cell with its own marker overrides what it would inherit', () {
       expect(aligns(onlyTable('|~A=>B|C=<D|')), [
-        [BlockAlign.start, BlockAlign.end],
-        [BlockAlign.start, BlockAlign.start],
+        [null, BlockAlign.end],
+        [null, BlockAlign.start],
       ]);
     });
 
@@ -245,9 +245,9 @@ void main() {
       // The override is local to that cell: inheritance keeps coming from
       // the first row, not from whatever the previous row happened to say.
       expect(aligns(onlyTable('|~A=>B|C=<D|E=F|')), [
-        [BlockAlign.start, BlockAlign.end],
-        [BlockAlign.start, BlockAlign.start],
-        [BlockAlign.start, BlockAlign.end],
+        [null, BlockAlign.end],
+        [null, BlockAlign.start],
+        [null, BlockAlign.end],
       ]);
     });
 
@@ -261,15 +261,15 @@ void main() {
         [BlockAlign.start, BlockAlign.end],
       ]);
       expect(aligns(onlyTable('|~|>A=B|C=D|')), [
-        [BlockAlign.end, BlockAlign.start],
-        [BlockAlign.end, BlockAlign.start],
+        [BlockAlign.end, null],
+        [BlockAlign.end, null],
       ]);
     });
 
     test('closing a table aligns the block that follows, not the table', () {
       final document = NaturalBlockParser.parse('|~A=B|~^after');
 
-      expect((document.children[0] as TableNode).align, BlockAlign.start);
+      expect((document.children[0] as TableNode).align, isNull);
       expect((document.children[1] as ColumnNode).align, BlockAlign.center);
     });
   });

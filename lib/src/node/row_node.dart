@@ -5,15 +5,12 @@ final class RowNode extends BlockNode {
 
   RowNode({this.children = const []});
 
-  static RowNode _of(List<_Cell> cells) =>
-      RowNode(children: [for (final c in cells) c.resolve(BlockAlign.start)]);
-
   /// Continues a block that turned out to be a row, given the cell already
   /// read. Null when it was not one: a row is a block that read a `=`.
   ///
   /// Each `=` is consumed because it is the row's own; the `|` that ends the
   /// row is left for whoever arranges blocks.
-  static List<_Cell>? _parseCells(Scanner scanner, _Cell first) {
+  static List<ColumnNode>? _parseCells(Scanner scanner, ColumnNode first) {
     if (LayoutSymbol.byChar[scanner.peek] != LayoutSymbol.row) return null;
 
     final cells = [first];
@@ -30,9 +27,7 @@ final class RowNode extends BlockNode {
         allowTable: false,
       );
       scanner.skipTo(cluster.end);
-      cells.add(
-        _Cell(ColumnNode._parse(scanner, cluster.align), cluster.align),
-      );
+      cells.add(ColumnNode._parse(scanner, cluster.align));
     }
     return cells;
   }
@@ -50,18 +45,4 @@ final class RowNode extends BlockNode {
   @override
   int get hashCode =>
       Object.hash(runtimeType, _childrenEquality.hash(children));
-}
-
-/// A cell, plus whether its alignment was stated rather than defaulted.
-///
-/// Null is not the same as [BlockAlign.start]: inside a table only a cell
-/// that said nothing inherits its column's alignment.
-class _Cell {
-  final ColumnNode node;
-  final BlockAlign? statedAlign;
-
-  const _Cell(this.node, this.statedAlign);
-
-  ColumnNode resolve(BlockAlign inherited) =>
-      ColumnNode(children: node.children, align: statedAlign ?? inherited);
 }

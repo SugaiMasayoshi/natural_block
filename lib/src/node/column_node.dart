@@ -2,9 +2,15 @@ part of '../node.dart';
 
 final class ColumnNode extends BlockNode {
   final List<LineNode> children;
-  final BlockAlign align;
 
-  ColumnNode({this.children = const [], this.align = BlockAlign.start});
+  /// The alignment written for this block, or null when none was.
+  ///
+  /// Null is not [BlockAlign.start]. Inside a table only a cell that stated
+  /// nothing inherits its column's alignment, and a renderer is free to draw
+  /// an unstated block differently from one that asked for the start.
+  final BlockAlign? align;
+
+  ColumnNode({this.children = const [], this.align});
 
   /// Reads one cell or block: everything up to the next `|` or `=`, which it
   /// leaves for whoever those belong to -- `=` divides cells and is the
@@ -30,7 +36,7 @@ final class ColumnNode extends BlockNode {
       );
     }
 
-    return ColumnNode(children: lines, align: align ?? BlockAlign.start);
+    return ColumnNode(children: lines, align: align);
   }
 
   @override

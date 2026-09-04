@@ -460,7 +460,7 @@ void main() {
       expect(nodes, expected);
     });
 
-    test("a cell with no marker keeps the default start alignment", () {
+    test("a cell with no marker states no alignment at all", () {
       const input = "左=右";
       final expected = DocumentNode(
         children: [
@@ -470,13 +470,13 @@ void main() {
                 children: [
                   TextNode(children: [TextSpanNode(text: "左")]),
                 ],
-                align: BlockAlign.start,
+                align: null,
               ),
               ColumnNode(
                 children: [
                   TextNode(children: [TextSpanNode(text: "右")]),
                 ],
-                align: BlockAlign.start,
+                align: null,
               ),
             ],
           ),
@@ -485,6 +485,18 @@ void main() {
 
       final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
+    });
+
+    test("saying nothing is not the same as saying `<`", () {
+      // The whole reason align is nullable. A theme can give unaligned
+      // blocks whatever it likes -- centered headings, say -- and a block
+      // that wrote `<` still opts out of that and sits at the start.
+      ColumnNode only(String source) =>
+          NaturalBlockParser.parse(source).children.single as ColumnNode;
+
+      expect(only("本文").align, isNull);
+      expect(only("|<本文|").align, BlockAlign.start);
+      expect(only("本文"), isNot(only("|<本文|")));
     });
 
     test("an unaligned plain block is still a bare TextNode", () {

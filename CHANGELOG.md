@@ -34,6 +34,9 @@ Initial release.
 - `<`, `^`, `>` immediately after an unescaped `|` or `=` set the block's
   `BlockAlign`. Anywhere else they are ordinary text, so `a > b`, `->`, and
   `List<String>` need no escaping.
+- `align` is null when the source stated none, which is not the same as
+  `BlockAlign.start`. A theme is free to draw an unstated block differently,
+  and a block that wrote `<` opts out of that.
 
 ### Tables
 
