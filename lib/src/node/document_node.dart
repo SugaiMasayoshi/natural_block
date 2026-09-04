@@ -5,7 +5,7 @@ final class DocumentNode extends NaturalBlockNode {
 
   DocumentNode({this.children = const []});
 
-  static DocumentNode parse(String source) {
+  static DocumentNode _parse(String source) {
     final scanner = Scanner(
       source.replaceAll('\r\n', '\n').replaceAll('\r', '\n'),
     );

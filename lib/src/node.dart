@@ -25,3 +25,4 @@ part 'node/row_node.dart';
 part 'node/table_node.dart';
 
 part 'node/document_node.dart';
+part 'node/parser.dart';
