@@ -45,45 +45,23 @@ final class TextSpanNode extends InlineNode {
       pending.write(escaped);
     }
 
-    var outgoing = style;
-
+    // The scanner stops in front of everything that could end the run, so
+    // this loop only has to say which of those actually do. A candidate that
+    // does not -- a `:` that opens no cluster, a newline with nothing to
+    // reset -- is taken as text and the read resumes.
     while (true) {
-      final scanned = scanner.read(_runEndsAt);
-      pending.write(scanned.text);
-
-      if (scanned.symbol == null) break;
-
-      if (LayoutSymbol.byChar.containsKey(scanned.symbol)) {
-        scanner.skipTo(scanner.position - 1);
-        break;
-      }
-
-      if (scanned.symbol == '\n') {
-        // A newline resets decoration. When there is something to reset the
-        // run ends here and the newline belongs to the fresh one after it.
-        const fresh = _Decoration();
-        if (style != fresh) {
-          scanner.skipTo(scanner.position - 1);
-          outgoing = fresh;
-          break;
-        }
-        pending.write('\n');
-        continue;
-      }
-
-      // A `:` with no decoration character after it is ordinary text; one
-      // with is the next run's cluster, and not this run's to consume.
-      if (DecorationAction.byChar.containsKey(scanner.peek)) {
-        scanner.skipTo(scanner.position - 1);
-        break;
-      }
-      pending.write(':');
+      pending.write(scanner.read(_clusterOpener));
+      if (scanner.isEnd || scanner.atVerbatimFence) break;
+      if (_endsRun(scanner, style)) break;
+      pending.write(scanner.take());
     }
 
-    // The newline written against a boundary belongs to that boundary. Which
-    // of the five ways out of the loop was taken is not tracked: whether the
-    // run stopped at a boundary is a question the cursor can answer, and
-    // asking it here leaves no branch that can forget to say so.
+    // Only the newline-reset exit leaves the cursor on a `'\n'`; every other
+    // one leaves it on a layout symbol, a fence, a `:` or the end. So which
+    // exit was taken need not be tracked either.
+    final outgoing = scanner.peek == '\n' ? const _Decoration() : style;
+
+    // The newline written against a boundary belongs to that boundary.
     final atBoundary =
         scanner.isEnd ||
         LayoutSymbol.byChar.containsKey(scanner.peek) ||
@@ -96,13 +74,23 @@ final class TextSpanNode extends InlineNode {
     return (run.isEmpty ? null : TextSpanNode._of(run, style), outgoing);
   }
 
-  /// The characters that can end a run. Constant, so it is built once
-  /// rather than per run.
-  static final Set<String> _runEndsAt = {
-    ':',
-    '\n',
-    ...LayoutSymbol.byChar.keys,
-  };
+  /// Whether the character the cursor stopped in front of really ends the
+  /// run. Peeks only -- it never moves the cursor.
+  static bool _endsRun(Scanner scanner, _Decoration style) =>
+      switch (scanner.peek) {
+        // A newline resets decoration, so it ends a run that has some. With
+        // nothing to reset it is an ordinary character in the middle of one.
+        '\n' => style != const _Decoration(),
+        // A `:` with no decoration character after it is ordinary text; one
+        // with is the next run's cluster, and not this run's to consume.
+        ':' => _opensCluster(scanner),
+        // A layout symbol. Nothing else gets here.
+        _ => true,
+      };
+
+  /// The one terminator the scanner cannot know about: a decoration cluster
+  /// opens with `:`, which is this layer's syntax rather than the scanner's.
+  static const _clusterOpener = {':'};
 
   static bool _opensCluster(Scanner scanner) =>
       scanner.peek == ':' &&

@@ -2,18 +2,6 @@ import 'block_align.dart';
 import 'parser/layout_symbol.dart';
 import 'parser/verbatim_region.dart';
 
-class Scanned {
-  final String text;
-
-  /// The symbol the scan stopped at, or null when nothing was left to take:
-  /// the end of the source, or a verbatim region the caller must decide
-  /// about. Which of those two it was is a question for the cursor, which
-  /// has not moved.
-  final String? symbol;
-
-  const Scanned({required this.text, this.symbol});
-}
-
 class Scanner {
   final String source;
 
@@ -114,51 +102,49 @@ class Scanner {
       next == verbatimFenceChar ||
       LayoutSymbol.byChar.containsKey(next);
 
-  /// Reads up to the next character of [symbols], resolving escapes and
-  /// stopping in front of a verbatim region rather than reading through it.
+  /// Reads text up to the next thing that could end it, resolving escapes,
+  /// and **stops in front of it** -- the same rule every node follows.
   ///
-  /// The region is left for the caller because whether it is a block or a
-  /// run depends on where it was written, which the scanner does not judge.
-  Scanned read(Set<String> symbols) {
-    bool escapes(String next) =>
-        next != '\n' && (escapesAlwaysActive(next) || symbols.contains(next));
-
-    final start = _position;
-    StringBuffer? buffer;
-    var literalStart = start;
-
-    String literal() {
-      if (buffer == null) return source.substring(literalStart, _position);
-      buffer.write(source.substring(literalStart, _position));
-      return buffer.toString();
-    }
+  /// What could end it: a newline, a layout symbol, a verbatim region, one
+  /// of [symbols], or the end of the source. Which of those it turned out to
+  /// be is not returned, because the cursor has not moved past it and can be
+  /// asked. Consuming the terminator here would make the caller put it back,
+  /// which is what it used to do three times over.
+  String read(Set<String> symbols) {
+    final buffer = StringBuffer();
+    var literalStart = _position;
 
     while (_position < source.length) {
       final char = source[_position];
 
       if (char == r'\' &&
           _position + 1 < source.length &&
-          escapes(source[_position + 1])) {
-        buffer ??= StringBuffer();
+          _escapes(source[_position + 1], symbols)) {
         buffer.write(source.substring(literalStart, _position));
         literalStart = _position + 1;
         _position += 2;
         continue;
       }
 
-      if (char == verbatimFenceChar && _regionHere != null) {
-        return Scanned(text: literal());
-      }
-
-      if (symbols.contains(char)) {
-        final text = literal();
-        _position += 1;
-        return Scanned(text: text, symbol: char);
+      if (char == '\n' ||
+          LayoutSymbol.byChar.containsKey(char) ||
+          symbols.contains(char) ||
+          (char == verbatimFenceChar && _regionHere != null)) {
+        break;
       }
 
       _position += 1;
     }
 
-    return Scanned(text: literal());
+    buffer.write(source.substring(literalStart, _position));
+    return buffer.toString();
   }
+
+  /// Whether a backslash before [next] escapes it rather than standing as a
+  /// literal backslash.
+  ///
+  /// A newline is never escapable -- a line break is not markup, so there is
+  /// nothing for a backslash to cancel.
+  bool _escapes(String next, Set<String> symbols) =>
+      next != '\n' && (escapesAlwaysActive(next) || symbols.contains(next));
 }
