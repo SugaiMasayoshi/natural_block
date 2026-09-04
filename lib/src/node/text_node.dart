@@ -12,70 +12,25 @@ final class TextNode extends LineNode {
   /// Neither is consumed. A node never eats what belongs to something else,
   /// so the caller can look at the cursor and decide what comes next.
   static TextNode _parse(Scanner scanner) {
-    final symbols = {':', '\n', ...LayoutSymbol.byChar.keys};
     final children = <InlineNode>[];
-    final pending = StringBuffer();
     var style = const _Decoration();
 
-    void flush({bool atBoundary = false}) {
-      var run = pending.toString();
-      pending.clear();
-      // The newline written against a boundary belongs to that boundary.
-      if (atBoundary && run.endsWith('\n')) {
-        run = run.substring(0, run.length - 1);
-      }
-      if (run.isEmpty) return;
-      children.add(style.span(run));
-    }
-
-    while (true) {
-      final scanned = scanner.read(
-        symbols,
-        resolveEscapes: true,
-        stopBeforeVerbatim: true,
-      );
-      pending.write(scanned.text);
-
-      if (scanned.atVerbatim) {
-        // A region on a line of its own is a block, and so not this line's
-        // to hold. Left untouched for the caller.
-        if (scanner.atBlockRegion) break;
-        flush();
-        final text = scanner.takeVerbatim();
-        if (text.isNotEmpty) children.add(VerbatimSpanNode(text: text));
-        continue;
-      }
-
-      if (scanned.symbol == null) break;
-
-      if (LayoutSymbol.byChar.containsKey(scanned.symbol)) {
-        // The block's own terminator. Hand it back unconsumed.
-        scanner.skipTo(scanner.position - 1);
-        break;
-      }
-
-      if (scanned.symbol == '\n') {
-        const fresh = _Decoration();
-        if (style != fresh) {
-          flush();
-          style = fresh;
-        }
-        pending.write('\n');
-        continue;
-      }
-
-      if (!DecorationAction.byChar.containsKey(scanner.peek)) {
-        pending.write(':');
-        continue;
-      }
-
-      flush();
-      final (next, escaped) = style.readCluster(scanner);
+    while (!scanner.isEnd &&
+        !scanner.atBlockRegion &&
+        !LayoutSymbol.byChar.containsKey(scanner.peek)) {
+      final before = scanner.position;
+      final (node, next) = InlineNode._parse(scanner, style);
       style = next;
-      pending.write(escaped);
+      if (node != null) children.add(node);
+      // A child that reads nothing where the loop expects content would spin
+      // here forever. The mistake is silent otherwise -- it hangs rather
+      // than producing a wrong tree -- so it is worth saying out loud.
+      assert(
+        scanner.position > before,
+        'inline parse made no progress at ${scanner.position}',
+      );
     }
 
-    flush(atBoundary: true);
     return TextNode(children: children);
   }
 
