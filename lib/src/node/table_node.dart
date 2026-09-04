@@ -1,7 +1,27 @@
 part of '../node.dart';
 
 final class TableNode extends BlockNode {
+  /// The rows as the source wrote them. A row may be shorter than the table
+  /// is wide; it is not padded here, because the author wrote no cell there.
   final List<RowNode> children;
+
+  /// What each column declared, and by its length how wide the table is.
+  ///
+  /// Two facts in one list because they come from one place: a column exists
+  /// because some row had a cell at that position, and its alignment is what
+  /// that row's cell stated -- which may be nothing.
+  ///
+  /// This is where a table's column alignment lives, rather than being
+  /// stamped onto every cell. A cell's own `align` therefore keeps meaning
+  /// "what this cell stated", and a consumer resolves the two:
+  ///
+  /// ```dart
+  /// final effective = cell.align ?? table.columns[i];
+  /// ```
+  ///
+  /// Read from the rows rather than passed in, so a hand-built table cannot
+  /// disagree with itself. Computed once, on first use.
+  late final List<BlockAlign?> columns = _columns(children);
 
   /// The alignment written for the table itself, or null when none was.
   final BlockAlign? align;
@@ -11,11 +31,10 @@ final class TableNode extends BlockNode {
   /// Reads the run of rows between the `~` that opened the table and the one
   /// that ends it, which it stops in front of rather than consuming.
   ///
-  /// Everything in between is the table's, so there is nothing to hand back:
-  /// a row of a different width is padded rather than thrown out. Null when
-  /// no row had any content.
+  /// Everything in between is the table's, so there is nothing to hand back.
+  /// Null when no row had any content.
   static TableNode? _parse(Scanner scanner, BlockAlign? align) {
-    final rows = <List<ColumnNode>>[];
+    final rows = <RowNode>[];
 
     // The alignment that opened the table describes the table, not its
     // first cell, so the first row starts with nothing stated.
@@ -23,13 +42,12 @@ final class TableNode extends BlockNode {
 
     while (true) {
       final first = ColumnNode._parse(scanner, cluster.align);
-      final cells = RowNode._parseCells(scanner, first) ?? [first];
+      final row = RowNode._parse(scanner, first) ?? RowNode(children: [first]);
 
       // A block with nothing in it contributes nothing, here as anywhere,
       // which is what lets every row be written with a leading `|`.
-      if (cells.length > 1 || cells.single.children.isNotEmpty) {
-        rows.add(cells);
-      }
+      final cells = row.children;
+      if (cells.length > 1 || cells.single.children.isNotEmpty) rows.add(row);
 
       if (scanner.isEnd) break;
       if (LayoutSymbol.byChar[scanner.peek] == LayoutSymbol.table) break;
@@ -37,44 +55,27 @@ final class TableNode extends BlockNode {
     }
 
     if (rows.isEmpty) return null;
-    return TableNode(align: align, children: _grid(rows));
+    return TableNode(align: align, children: rows);
   }
 
-  /// Squares the rows off into a grid, resolving each cell's alignment
-  /// against its column.
+  /// What each column declared, taken from the first row that reached it.
   ///
-  /// A table is a grid, so a short row is padded rather than left ragged --
-  /// the renderer gives each cell an equal share of its own row's width, so
-  /// a ragged row would put its cells out of line with every other row.
-  ///
-  /// A column's alignment is stated by the first row that has that column,
-  /// which for a table whose first row is its widest is just "the first
-  /// row". A cell that said nothing takes what its column said, which may
-  /// itself be nothing.
-  static List<RowNode> _grid(List<List<ColumnNode>> rows) {
+  /// For the ordinary table -- whose first row is its widest -- that is just
+  /// "the first row". A later row that is wider than every row before it
+  /// declares the columns it adds.
+  static List<BlockAlign?> _columns(List<RowNode> rows) {
     final columns = <BlockAlign?>[];
     for (final row in rows) {
-      for (var i = columns.length; i < row.length; i++) {
-        columns.add(row[i].align);
+      for (var i = columns.length; i < row.children.length; i++) {
+        columns.add(row.children[i].align);
       }
     }
-
-    return [
-      for (final row in rows)
-        RowNode(
-          children: [
-            for (var i = 0; i < columns.length; i++)
-              ColumnNode(
-                children: i < row.length ? row[i].children : const [],
-                align: (i < row.length ? row[i].align : null) ?? columns[i],
-              ),
-          ],
-        ),
-    ];
+    return columns;
   }
 
   @override
-  String toString() => 'TableNode(children: $children, align: $align)';
+  String toString() =>
+      'TableNode(children: $children, columns: $columns, align: $align)';
 
   @override
   bool operator ==(Object other) {

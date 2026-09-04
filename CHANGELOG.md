@@ -50,9 +50,13 @@ Initial release.
   regions from ordinary ones. Each ends everything below it, so a `~` ends
   whatever preceded it and starts the table in one stroke.
 - **A table ends at `~` or at the end of the document, and nowhere else.**
-  Everything between belongs to it: a short row is padded with empty cells,
-  and a line with no `=` becomes a one-cell row. The table is as wide as its
-  widest row.
+  Everything between belongs to it: a short row does not end it, and a line
+  with no `=` becomes a one-cell row. The table is as wide as its widest row.
+- `TableNode.columns` holds what each column declared, and by its length how
+  wide the table is. Rows keep exactly the cells the author wrote, each
+  carrying only its own marker, so `align == null` keeps meaning "the source
+  said nothing" inside a table too. A consumer resolves the two with
+  `cell.align ?? table.columns[i]`, and squares short rows off itself.
 - Write one row per line with a leading `|`. The `|` opens an empty block,
   which contributes nothing -- it is there so every line has the same shape
   and every row's first cell has a marker slot of its own. With the `|` at

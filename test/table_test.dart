@@ -30,10 +30,22 @@ ColumnNode cell(String text, [BlockAlign? align]) =>
     ColumnNode(children: [line(text)], align: align);
 
 void main() {
-  /// The alignment of every cell of every row, as a grid -- the thing column
-  /// inheritance is about.
+  /// What each cell *stated*, as a grid. Null where the source wrote no
+  /// marker on that cell, whatever its column says.
   List<List<BlockAlign?>> aligns(TableNode table) => [
     for (final row in table.children) [for (final c in row.children) c.align],
+  ];
+
+  /// The alignment each cell is *drawn* with -- the resolution a consumer
+  /// performs, squared off to the table's width. This is the whole of what
+  /// column inheritance means; the tree itself never stamps it onto a cell.
+  List<List<BlockAlign?>> effective(TableNode table) => [
+    for (final row in table.children)
+      [
+        for (var i = 0; i < table.columns.length; i++)
+          (i < row.children.length ? row.children[i].align : null) ??
+              table.columns[i],
+      ],
   ];
 
   TableNode onlyTable(String source) =>
@@ -105,16 +117,15 @@ void main() {
       expect(document.children[1], isA<RowNode>());
     });
 
-    test('a row of a different width is padded, not thrown out', () {
-      // Everything between the two `~` is the table's, so a short row is
-      // squared off into the grid rather than ending it. The renderer gives
-      // each cell an equal share of its own row's width, so a ragged row
-      // would put its cells out of line with every other row.
+    test('a row of a different width does not end it -- the table widens', () {
+      // Everything between the two `~` is the table's. The rows keep exactly
+      // the cells the author wrote; the table records how wide that makes
+      // it, and squaring the grid off is the drawing layer's business.
       final table = onlyTable('~A=B|C=D|E=F=G~');
 
       expect(table.children, hasLength(3));
-      expect([for (final r in table.children) r.children.length], [3, 3, 3]);
-      expect(table.children.first.children.last, empty());
+      expect([for (final r in table.children) r.children.length], [2, 2, 3]);
+      expect(table.columns, hasLength(3), reason: 'as wide as its widest row');
     });
 
     test('anything that is not a row becomes a one-cell row', () {
@@ -123,10 +134,7 @@ void main() {
       final table = onlyTable('~A=B|paragraph|C=D~');
 
       expect(table.children, hasLength(3));
-      expect(
-        table.children[1],
-        RowNode(children: [cell('paragraph'), empty()]),
-      );
+      expect(table.children[1], RowNode(children: [cell('paragraph')]));
     });
 
     test('an empty block contributes nothing, here as anywhere', () {
@@ -215,15 +223,30 @@ void main() {
     test('a later row inherits each column from the first row', () {
       // The point of inheriting by column: writing `=>` on every row of a
       // numeric column is repetition that carries no information.
-      expect(aligns(onlyTable('~A=>B|C=D|E=F~')), [
+      final table = onlyTable('~A=>B|C=D|E=F~');
+
+      expect(table.columns, [null, BlockAlign.end]);
+      expect(effective(table), [
         [null, BlockAlign.end],
         [null, BlockAlign.end],
         [null, BlockAlign.end],
       ]);
     });
 
+    test('inheriting is not stamping: only the cell that wrote a marker '
+        'carries one', () {
+      // The distinction `align` being nullable exists to keep. Rows 2 and 3
+      // stated nothing, and the tree says so; what they are drawn with is a
+      // separate question, answered against `columns`.
+      expect(aligns(onlyTable('~A=>B|C=D|E=F~')), [
+        [null, BlockAlign.end],
+        [null, null],
+        [null, null],
+      ]);
+    });
+
     test('a cell with its own marker overrides what it would inherit', () {
-      expect(aligns(onlyTable('~A=>B|C=<D~')), [
+      expect(effective(onlyTable('~A=>B|C=<D~')), [
         [null, BlockAlign.end],
         [null, BlockAlign.start],
       ]);
@@ -231,8 +254,11 @@ void main() {
 
     test('an overriding cell does not change the column for later rows', () {
       // The override is local to that cell: inheritance keeps coming from
-      // the first row, not from whatever the previous row happened to say.
-      expect(aligns(onlyTable('~A=>B|C=<D|E=F~')), [
+      // the column, not from whatever the previous row happened to say.
+      final table = onlyTable('~A=>B|C=<D|E=F~');
+
+      expect(table.columns, [null, BlockAlign.end]);
+      expect(effective(table), [
         [null, BlockAlign.end],
         [null, BlockAlign.start],
         [null, BlockAlign.end],
@@ -245,11 +271,11 @@ void main() {
       // the table, whose markers describe the table -- so the cell has no
       // marker slot of its own. Writing `|` opens an empty block (which
       // vanishes) and gives that cell its slot back, uniformly on every row.
-      expect(aligns(onlyTable('~|<A=>B|C=D~')), [
+      expect(effective(onlyTable('~|<A=>B|C=D~')), [
         [BlockAlign.start, BlockAlign.end],
         [BlockAlign.start, BlockAlign.end],
       ]);
-      expect(aligns(onlyTable('~|>A=B|C=D~')), [
+      expect(effective(onlyTable('~|>A=B|C=D~')), [
         [BlockAlign.end, null],
         [BlockAlign.end, null],
       ]);

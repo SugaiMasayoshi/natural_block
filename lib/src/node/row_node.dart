@@ -10,7 +10,7 @@ final class RowNode extends BlockNode {
   ///
   /// Each `=` is consumed because it is the row's own; the `|` that ends the
   /// row is left for whoever arranges blocks.
-  static List<ColumnNode>? _parseCells(Scanner scanner, ColumnNode first) {
+  static RowNode? _parse(Scanner scanner, ColumnNode first) {
     if (LayoutSymbol.byChar[scanner.peek] != LayoutSymbol.row) return null;
 
     final cells = [first];
@@ -25,7 +25,7 @@ final class RowNode extends BlockNode {
       scanner.skipTo(cluster.end);
       cells.add(ColumnNode._parse(scanner, cluster.align));
     }
-    return cells;
+    return RowNode(children: cells);
   }
 
   @override

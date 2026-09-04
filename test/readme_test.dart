@@ -279,6 +279,17 @@ void main() {
     TableNode onlyTable(String source) =>
         NaturalBlockParser.parse(source).children.single as TableNode;
 
+    /// The alignment each cell is drawn with: what it stated, else what its
+    /// column stated. The resolution the README documents for consumers.
+    List<List<BlockAlign?>> effective(TableNode table) => [
+      for (final row in table.children)
+        [
+          for (var i = 0; i < table.columns.length; i++)
+            (i < row.children.length ? row.children[i].align : null) ??
+                table.columns[i],
+        ],
+    ];
+
     test('the README\'s worked example parses as the table it shows', () {
       final table = onlyTable(
         '~\n'
@@ -289,18 +300,15 @@ void main() {
       );
 
       expect(table.children, hasLength(3));
-      expect(
-        [
-          for (final row in table.children)
-            [for (final c in row.children) c.align],
-        ],
-        [
-          [BlockAlign.start, BlockAlign.end],
-          [BlockAlign.start, BlockAlign.end],
-          [BlockAlign.start, BlockAlign.end],
-        ],
-        reason: 'the leading `|` gives every row a marker slot of its own',
-      );
+      expect(table.columns, [
+        BlockAlign.start,
+        BlockAlign.end,
+      ], reason: 'the leading `|` gives the first column a marker slot');
+      expect(effective(table), [
+        [BlockAlign.start, BlockAlign.end],
+        [BlockAlign.start, BlockAlign.end],
+        [BlockAlign.start, BlockAlign.end],
+      ]);
     });
 
     test('a marker after the opening `~` describes the table, not the '
@@ -332,7 +340,7 @@ void main() {
     });
 
     test('a line with no `=` becomes a one-cell row', () {
-      expect(onlyTable('~A=B|note~').children[1].children, hasLength(2));
+      expect(onlyTable('~A=B|note~').children[1].children, hasLength(1));
       expect(onlyTable('~A|B~').children, hasLength(2));
     });
 
@@ -340,17 +348,13 @@ void main() {
       '`~|Item=>Price|...~` right-aligns the price column for every row',
       () {
         final table = onlyTable('~|Item=>Price|A=100|B=200~');
-        expect(
-          [
-            for (final row in table.children)
-              [for (final c in row.children) c.align],
-          ],
-          [
-            [null, BlockAlign.end],
-            [null, BlockAlign.end],
-            [null, BlockAlign.end],
-          ],
-        );
+
+        expect(table.columns, [null, BlockAlign.end]);
+        expect(effective(table), [
+          [null, BlockAlign.end],
+          [null, BlockAlign.end],
+          [null, BlockAlign.end],
+        ]);
       },
     );
 
@@ -374,11 +378,12 @@ void main() {
     });
 
     test(
-      'a short row is padded into the grid rather than ending the table',
+      'a short row does not end the table -- the table records the width',
       () {
         final table = onlyTable('~A=B|C=D=E~');
 
-        expect([for (final r in table.children) r.children.length], [3, 3]);
+        expect([for (final r in table.children) r.children.length], [2, 3]);
+        expect(table.columns, hasLength(3), reason: 'the table is 3 wide');
       },
     );
 

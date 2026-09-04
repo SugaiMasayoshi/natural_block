@@ -66,11 +66,19 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   A table's columns are as wide as their content and line up across every row; plain rows, by contrast, split the available width evenly. That difference is why a table has to be *declared* rather than inferred -- `Left==Right` is three cells with an empty middle, written that way to push `Right` to the far edge, and it only does that because plain rows divide the width.
 
-  **A table ends at `~` or at the end of the document, and nowhere else.** Everything in between belongs to it: a short row is padded with empty cells rather than thrown out, and a line with no `=` becomes a one-cell row. The table is as wide as its widest row.
+  **A table ends at `~` or at the end of the document, and nowhere else.** Everything in between belongs to it: a short row does not end it, and a line with no `=` becomes a one-cell row. The table is as wide as its widest row.
 
   Alignment markers combine with it in the same cluster (`~^` is a centered table, meaningful because a table is sized to its content). A marker written straight after the opening `~` describes the *table*, not its first cell -- which is the other reason to write the leading `|` on every row: `~|<Item=...` aligns the Item column, where `~<Item=...` would align the table itself.
 
   A column takes its alignment from the first row that has that column, so `~|Item=>Price|apple=100~` right-aligns the price column for every row without repeating the marker; a marker on an individual cell overrides just that cell.
+
+  **The tree records what was written, not what will be drawn.** `TableNode.columns` holds what each column declared (and, by its length, how wide the table is); every row keeps exactly the cells the author wrote, each carrying only the marker that cell itself had. Resolving the two is the consumer's step:
+
+  ```dart
+  final effective = row.children[i].align ?? table.columns[i];
+  ```
+
+  This is what keeps `align == null` meaning "the source said nothing" inside a table as well as outside. Squaring short rows off into a rectangle is likewise the renderer's job -- `natural_block_flutter` does both.
 * **Verbatim regions (`` ` ``)**
   A pair of backticks opens and closes a region taken exactly as written. Nothing inside is a separator, a decoration, or an escape.
 

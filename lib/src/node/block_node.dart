@@ -11,8 +11,8 @@ sealed class BlockNode extends NaturalBlockNode {
   /// already read is handed on rather than re-read or re-labelled.
   static List<BlockNode> _parse(Scanner scanner, MarkerCluster cluster) {
     final first = ColumnNode._parse(scanner, cluster.align);
-    final cells = RowNode._parseCells(scanner, first);
-    if (cells != null) return [RowNode(children: cells)];
+    final row = RowNode._parse(scanner, first);
+    if (row != null) return [row];
 
     // An empty Column block is content that is not there, so it contributes
     // no node -- `左||右` is two blocks, not three.
