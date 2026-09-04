@@ -20,15 +20,19 @@ void main() {
       const input = ":!赤:!通常:?青:?通常:%緑:%通常:*太字:*";
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(text: "赤", color: SemanticColor.danger),
-              TextSpanNode(text: "通常"),
-              TextSpanNode(text: "青", color: SemanticColor.info),
-              TextSpanNode(text: "通常"),
-              TextSpanNode(text: "緑", color: SemanticColor.success),
-              TextSpanNode(text: "通常"),
-              TextSpanNode(text: "太字", emphasis: true),
+              TextNode(
+                children: [
+                  TextSpanNode(text: "赤", color: SemanticColor.danger),
+                  TextSpanNode(text: "通常"),
+                  TextSpanNode(text: "青", color: SemanticColor.info),
+                  TextSpanNode(text: "通常"),
+                  TextSpanNode(text: "緑", color: SemanticColor.success),
+                  TextSpanNode(text: "通常"),
+                  TextSpanNode(text: "太字", emphasis: true),
+                ],
+              ),
             ],
           ),
         ],
@@ -45,11 +49,15 @@ void main() {
       const input = ":!危険から:?情報へ切り替え:?最後は通常";
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(text: "危険から", color: SemanticColor.danger),
-              TextSpanNode(text: "情報へ切り替え", color: SemanticColor.info),
-              TextSpanNode(text: "最後は通常"),
+              TextNode(
+                children: [
+                  TextSpanNode(text: "危険から", color: SemanticColor.danger),
+                  TextSpanNode(text: "情報へ切り替え", color: SemanticColor.info),
+                  TextSpanNode(text: "最後は通常"),
+                ],
+              ),
             ],
           ),
         ],
@@ -66,12 +74,16 @@ void main() {
       const input = "通常テキスト:!ここから文末までずっと危険状態";
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(text: "通常テキスト"),
-              TextSpanNode(
-                text: "ここから文末までずっと危険状態",
-                color: SemanticColor.danger,
+              TextNode(
+                children: [
+                  TextSpanNode(text: "通常テキスト"),
+                  TextSpanNode(
+                    text: "ここから文末までずっと危険状態",
+                    color: SemanticColor.danger,
+                  ),
+                ],
               ),
             ],
           ),
@@ -89,11 +101,15 @@ void main() {
       const input = ":!危険:!普通:!!普通";
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(text: "危険", color: SemanticColor.danger),
-              TextSpanNode(text: "普通"),
-              TextSpanNode(text: "普通"),
+              TextNode(
+                children: [
+                  TextSpanNode(text: "危険", color: SemanticColor.danger),
+                  TextSpanNode(text: "普通"),
+                  TextSpanNode(text: "普通"),
+                ],
+              ),
             ],
           ),
         ],
@@ -145,11 +161,18 @@ void main() {
 
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(text: "警告: システムエラー", color: SemanticColor.danger),
-              TextSpanNode(text: "\n"),
-              TextSpanNode(text: "補足事項", emphasis: true),
+              TextNode(
+                children: [
+                  TextSpanNode(
+                    text: "警告: システムエラー",
+                    color: SemanticColor.danger,
+                  ),
+                  TextSpanNode(text: "\n"),
+                  TextSpanNode(text: "補足事項", emphasis: true),
+                ],
+              ),
             ],
           ),
           RowNode(
@@ -171,7 +194,11 @@ void main() {
               ),
             ],
           ),
-          TextNode(children: [TextSpanNode(text: "処理完了")]),
+          ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "処理完了")]),
+            ],
+          ),
         ],
       );
 
@@ -185,12 +212,16 @@ void main() {
       const input = ":!*緊急対応::";
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(
-                text: "緊急対応",
-                color: SemanticColor.danger,
-                emphasis: true,
+              TextNode(
+                children: [
+                  TextSpanNode(
+                    text: "緊急対応",
+                    color: SemanticColor.danger,
+                    emphasis: true,
+                  ),
+                ],
               ),
             ],
           ),
@@ -209,7 +240,11 @@ void main() {
         const input = "Really?! It's on sale for 50% off, and it's *great*!";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: input)]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: input)]),
+              ],
+            ),
           ],
         );
 
@@ -221,14 +256,18 @@ void main() {
         const input = ":!*緊急::普通";
         final expected = DocumentNode(
           children: [
-            TextNode(
+            ColumnNode(
               children: [
-                TextSpanNode(
-                  text: "緊急",
-                  color: SemanticColor.danger,
-                  emphasis: true,
+                TextNode(
+                  children: [
+                    TextSpanNode(
+                      text: "緊急",
+                      color: SemanticColor.danger,
+                      emphasis: true,
+                    ),
+                    TextSpanNode(text: "普通"),
+                  ],
                 ),
-                TextSpanNode(text: "普通"),
               ],
             ),
           ],
@@ -242,10 +281,14 @@ void main() {
         const input = ":*太字だけ::普通";
         final expected = DocumentNode(
           children: [
-            TextNode(
+            ColumnNode(
               children: [
-                TextSpanNode(text: "太字だけ", emphasis: true),
-                TextSpanNode(text: "普通"),
+                TextNode(
+                  children: [
+                    TextSpanNode(text: "太字だけ", emphasis: true),
+                    TextSpanNode(text: "普通"),
+                  ],
+                ),
               ],
             ),
           ],
@@ -266,12 +309,16 @@ void main() {
         const input = ":!*緊急対応";
         final expected = DocumentNode(
           children: [
-            TextNode(
+            ColumnNode(
               children: [
-                TextSpanNode(
-                  text: "緊急対応",
-                  color: SemanticColor.danger,
-                  emphasis: true,
+                TextNode(
+                  children: [
+                    TextSpanNode(
+                      text: "緊急対応",
+                      color: SemanticColor.danger,
+                      emphasis: true,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -286,13 +333,17 @@ void main() {
         const input = ":+!*重要";
         final expected = DocumentNode(
           children: [
-            TextNode(
+            ColumnNode(
               children: [
-                TextSpanNode(
-                  text: "重要",
-                  sizeOffset: 1,
-                  color: SemanticColor.danger,
-                  emphasis: true,
+                TextNode(
+                  children: [
+                    TextSpanNode(
+                      text: "重要",
+                      sizeOffset: 1,
+                      color: SemanticColor.danger,
+                      emphasis: true,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -316,12 +367,16 @@ void main() {
 
         final combinedExpected = DocumentNode(
           children: [
-            TextNode(
+            ColumnNode(
               children: [
-                TextSpanNode(
-                  text: "結果",
-                  color: SemanticColor.danger,
-                  emphasis: true,
+                TextNode(
+                  children: [
+                    TextSpanNode(
+                      text: "結果",
+                      color: SemanticColor.danger,
+                      emphasis: true,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -329,7 +384,11 @@ void main() {
         );
         final separateExpected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "結果", emphasis: true)]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "結果", emphasis: true)]),
+              ],
+            ),
           ],
         );
 
@@ -343,10 +402,14 @@ void main() {
         const input = ":!危険::普通";
         final expected = DocumentNode(
           children: [
-            TextNode(
+            ColumnNode(
               children: [
-                TextSpanNode(text: "危険", color: SemanticColor.danger),
-                TextSpanNode(text: "普通"),
+                TextNode(
+                  children: [
+                    TextSpanNode(text: "危険", color: SemanticColor.danger),
+                    TextSpanNode(text: "普通"),
+                  ],
+                ),
               ],
             ),
           ],

@@ -21,13 +21,18 @@ void main() {
 
   TextNode line(String text) => TextNode(children: [TextSpanNode(text: text)]);
 
+  /// The one block a source parses to. A line always sits inside one, even
+  /// when the block carries no marker of its own.
+  ColumnNode onlyBlock(String source) =>
+      NaturalBlockParser.parse(source).children.single as ColumnNode;
+
   /// The one line a source parses to.
   TextNode onlyLine(String source) =>
-      NaturalBlockParser.parse(source).children.single as TextNode;
+      onlyBlock(source).children.single as TextNode;
 
   /// The one verbatim region a source parses to.
   VerbatimNode onlyRegion(String source) =>
-      NaturalBlockParser.parse(source).children.single as VerbatimNode;
+      onlyBlock(source).children.single as VerbatimNode;
 
   group('why this exists: code survives', () {
     test('a line of code is not split into cells', () {
@@ -72,9 +77,7 @@ void main() {
     test('a region standing alone is the whole line', () {
       // Same node, different placement -- which is what lets a renderer
       // draw this one as a block and the one above as a run of text.
-      expect(NaturalBlockParser.parse('`code`').children, [
-        VerbatimNode(text: 'code'),
-      ]);
+      expect(onlyBlock('`code`').children, [VerbatimNode(text: 'code')]);
     });
 
     test('a multi-line region stays one node', () {
@@ -148,9 +151,7 @@ void main() {
       // own is a boundary, so the newline against it is the boundary's. Miss
       // this and the text after a code block opens with a blank line that
       // nobody wrote.
-      final document = NaturalBlockParser.parse('文章\n`code`\n続き');
-
-      expect(document.children, [
+      expect(onlyBlock('文章\n`code`\n続き').children, [
         line('文章'),
         VerbatimNode(text: 'code'),
         line('続き'),
@@ -165,7 +166,11 @@ void main() {
     test('an empty region contributes no node', () {
       expect(
         NaturalBlockParser.parse('a``b'),
-        DocumentNode(children: [line('a``b')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line('a``b')]),
+          ],
+        ),
       );
     });
   });
@@ -177,14 +182,23 @@ void main() {
       // looks ahead and only then commits.
       expect(
         NaturalBlockParser.parse('a `b'),
-        DocumentNode(children: [line('a `b')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line('a `b')]),
+          ],
+        ),
       );
     });
 
     test('separators after it still work', () {
       expect(
         NaturalBlockParser.parse('a `b | c'),
-        DocumentNode(children: [line('a `b '), line(' c')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line('a `b ')]),
+            ColumnNode(children: [line(' c')]),
+          ],
+        ),
       );
     });
   });
@@ -193,7 +207,11 @@ void main() {
     test('an escaped fence is a literal backtick and opens nothing', () {
       expect(
         NaturalBlockParser.parse('a $bs` b'),
-        DocumentNode(children: [line('a ` b')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line('a ` b')]),
+          ],
+        ),
       );
     });
 
@@ -202,7 +220,12 @@ void main() {
       // escaped fence as opening a region, this `|` would be swallowed.
       expect(
         NaturalBlockParser.parse('a $bs` b | c'),
-        DocumentNode(children: [line('a ` b '), line(' c')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line('a ` b ')]),
+            ColumnNode(children: [line(' c')]),
+          ],
+        ),
       );
     });
   });

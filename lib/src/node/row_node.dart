@@ -5,29 +5,24 @@ final class RowNode extends BlockNode {
 
   RowNode({this.children = const []});
 
-  /// Reads the cells joined by `=`, consuming each `=` because it is the
-  /// row's own. Stops in front of the `|` that ends the row, which is not.
+  static RowNode _of(List<_Cell> cells) =>
+      RowNode(children: [for (final c in cells) c.resolve(BlockAlign.start)]);
+
+  /// Continues a block that turned out to be a row, given the cell already
+  /// read. Null when it was not one: a row is a block that read a `=`.
   ///
-  /// A row is discovered rather than declared: a block that never read a
-  /// separator was not one, and the caller unwraps it.
-  static _CellRun _parseCells(Scanner scanner, BlockAlign? firstAlign) {
-    final cells = <_Cell>[];
-    var align = firstAlign;
-    var sawRow = false;
+  /// Each `=` is consumed because it is the row's own; the `|` that ends the
+  /// row is left for whoever arranges blocks.
+  static List<_Cell>? _parseCells(Scanner scanner, _Cell first) {
+    if (LayoutSymbol.byChar[scanner.peek] != LayoutSymbol.row) return null;
 
-    while (true) {
-      cells.add(_Cell(ColumnNode._parse(scanner, align), align));
-
-      if (LayoutSymbol.byChar[scanner.peek] != LayoutSymbol.row) {
-        return _CellRun(cells, sawRow);
-      }
+    final cells = [first];
+    while (LayoutSymbol.byChar[scanner.peek] == LayoutSymbol.row) {
       scanner.take();
-      sawRow = true;
-
       // A separator at the very end of the source opens nothing: without
       // this, `a=b=` would gain a third cell the author never wrote, and an
       // empty cell is a position the layout keeps.
-      if (scanner.isEnd) return _CellRun(cells, sawRow);
+      if (scanner.isEnd) break;
 
       final cluster = readMarkerCluster(
         scanner.source,
@@ -35,8 +30,11 @@ final class RowNode extends BlockNode {
         allowTable: false,
       );
       scanner.skipTo(cluster.end);
-      align = cluster.align;
+      cells.add(
+        _Cell(ColumnNode._parse(scanner, cluster.align), cluster.align),
+      );
     }
+    return cells;
   }
 
   @override
@@ -66,16 +64,4 @@ class _Cell {
 
   ColumnNode resolve(BlockAlign inherited) =>
       ColumnNode(children: node.children, align: statedAlign ?? inherited);
-}
-
-/// The cells of one block, and whether a `=` was ever read.
-///
-/// A row is a block that contained a separator, not one that ended up with
-/// more than one cell -- `a=` drops its empty trailing cell and is still a
-/// row.
-class _CellRun {
-  final List<_Cell> cells;
-  final bool isRow;
-
-  const _CellRun(this.cells, this.isRow);
 }

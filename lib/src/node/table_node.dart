@@ -18,11 +18,14 @@ final class TableNode extends BlockNode {
     var cluster = const MarkerCluster(align: null, togglesTable: false, end: 0);
 
     while (true) {
-      final run = RowNode._parseCells(scanner, cluster.align);
-      final cells = run.cells;
+      final first = _Cell(
+        ColumnNode._parse(scanner, cluster.align),
+        cluster.align,
+      );
+      final cells = RowNode._parseCells(scanner, first);
 
       final fits =
-          run.isRow &&
+          cells != null &&
           (columnAligns == null || cells.length == columnAligns.length);
 
       if (fits) {
@@ -38,12 +41,12 @@ final class TableNode extends BlockNode {
           ),
         );
       } else {
-        final blocks = BlockNode._blocksFrom(run, cluster.align);
         // An empty block contributes nothing, so it cannot end a table --
         // otherwise `||` would be an invisible separator splitting one in
         // two on something the AST does not record.
-        if (blocks.isNotEmpty) {
-          after.addAll(blocks);
+        final block = cells == null ? first.node : RowNode._of(cells);
+        if (block is! ColumnNode || block.children.isNotEmpty) {
+          after.add(block);
           break;
         }
       }
@@ -52,12 +55,18 @@ final class TableNode extends BlockNode {
       cluster = BlockNode._openNext(scanner);
       if (cluster.togglesTable) {
         // Closing. The alignment in this cluster belongs to the block being
-        // opened after the table, not to the table that just ended.
+        // opened after the table, not to the table that just ended -- but
+        // the `~` itself is spent on closing, so the block is read without
+        // it. Passing the cluster on unchanged would open a second table.
         if (scanner.isEnd) break;
         after.addAll(
-          BlockNode._blocksFrom(
-            RowNode._parseCells(scanner, cluster.align),
-            cluster.align,
+          BlockNode._parse(
+            scanner,
+            MarkerCluster(
+              align: cluster.align,
+              togglesTable: false,
+              end: cluster.end,
+            ),
           ),
         );
         break;

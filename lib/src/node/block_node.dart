@@ -4,33 +4,26 @@ sealed class BlockNode extends NaturalBlockNode {
   /// Reads whichever block starts here, given the marker cluster that opened
   /// it. Stops in front of the `|` that ends it, which belongs to whatever
   /// arranges the blocks.
+  ///
+  /// The first cell is read before anything is known about what the block
+  /// is, because the same text serves either reading. What the separator
+  /// after it turns out to be decides who finishes the job, and the cell
+  /// already read is handed on rather than re-read or re-labelled.
   static List<BlockNode> _parse(Scanner scanner, MarkerCluster cluster) {
     if (cluster.togglesTable) {
       return TableNode._parse(scanner, cluster.align ?? BlockAlign.start);
     }
-    return _blocksFrom(
-      RowNode._parseCells(scanner, cluster.align),
+
+    final first = _Cell(
+      ColumnNode._parse(scanner, cluster.align),
       cluster.align,
     );
-  }
+    final cells = RowNode._parseCells(scanner, first);
+    if (cells != null) return [RowNode._of(cells)];
 
-  /// What a run of cells contributes.
-  ///
-  /// A run that read a `=` is a row. One that did not was never a row at
-  /// all: an empty block contributes nothing (a Column block is content), a
-  /// marked one is a block of its own, and a bare one hands its lines up.
-  static List<BlockNode> _blocksFrom(_CellRun run, BlockAlign? align) {
-    if (run.isRow) {
-      return [
-        RowNode(
-          children: [for (final c in run.cells) c.resolve(BlockAlign.start)],
-        ),
-      ];
-    }
-    final only = run.cells.single.node;
-    if (only.children.isEmpty) return const [];
-    if (align != null) return [only];
-    return only.children;
+    // An empty Column block is content that is not there, so it contributes
+    // no node -- `左||右` is two blocks, not three.
+    return first.node.children.isEmpty ? const [] : [first.node];
   }
 
   /// Consumes the `|` the cursor is on and reads the markers written after

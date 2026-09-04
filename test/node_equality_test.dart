@@ -42,12 +42,20 @@ void main() {
     test("equal ColumnNodes have equal hashCode", () {
       final a = DocumentNode(
         children: [
-          TextNode(children: [TextSpanNode(text: "本文")]),
+          ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "本文")]),
+            ],
+          ),
         ],
       );
       final b = DocumentNode(
         children: [
-          TextNode(children: [TextSpanNode(text: "本文")]),
+          ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "本文")]),
+            ],
+          ),
         ],
       );
 

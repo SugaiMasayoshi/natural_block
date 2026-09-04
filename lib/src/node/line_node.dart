@@ -1,14 +1,14 @@
 part of '../node.dart';
 
-sealed class LineNode extends BlockNode {
+/// Something that stacks inside a [ColumnNode].
+///
+/// Not a [BlockNode]: a line never stands directly in a document, because a
+/// block always wraps it. That wrapping is unconditional, so the depth of
+/// the tree does not change with whether a marker happened to be written.
+sealed class LineNode extends NaturalBlockNode {
   /// Reads whichever kind of line starts here.
   ///
-  /// The same shape [BlockNode] has one level up: the sealed supertype is
-  /// what decides which of its subtypes a piece of source becomes, so the
-  /// node holding the list does not have to know how either is spelled.
-  ///
-  /// Null when the line turned out to have no content -- a block with
-  /// nothing in it contributes nothing.
+  /// Null when the line turned out to have no content.
   static LineNode? _parse(Scanner scanner) {
     if (scanner.atBlockRegion) return VerbatimNode._parse(scanner);
     final line = TextNode._parse(scanner);

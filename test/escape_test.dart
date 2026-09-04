@@ -19,7 +19,11 @@ void main() {
         const input = r"|A\|B|";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "A|B")]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "A|B")]),
+              ],
+            ),
           ],
         );
 
@@ -31,7 +35,11 @@ void main() {
         const input = r"左\=右";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "左=右")]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "左=右")]),
+              ],
+            ),
           ],
         );
 
@@ -74,7 +82,11 @@ void main() {
         const input = "-100点、10-20人";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "-100点、10-20人")]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "-100点、10-20人")]),
+              ],
+            ),
           ],
         );
 
@@ -85,7 +97,11 @@ void main() {
         const input = "こんにちは!世界";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "こんにちは!世界")]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "こんにちは!世界")]),
+              ],
+            ),
           ],
         );
 
@@ -97,7 +113,11 @@ void main() {
         const input = "本当ですか?はい";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "本当ですか?はい")]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "本当ですか?はい")]),
+              ],
+            ),
           ],
         );
 
@@ -109,7 +129,11 @@ void main() {
         const input = "進捗100%完了";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "進捗100%完了")]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "進捗100%完了")]),
+              ],
+            ),
           ],
         );
 
@@ -121,7 +145,11 @@ void main() {
         const input = "*太字にしない*";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "*太字にしない*")]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "*太字にしない*")]),
+              ],
+            ),
           ],
         );
 
@@ -135,9 +163,13 @@ void main() {
         const input = r"こんにちは\:!世界";
         final expected = DocumentNode(
           children: [
-            TextNode(
+            ColumnNode(
               children: [
-                TextSpanNode(text: "こんにちは:!世界", color: SemanticColor.none),
+                TextNode(
+                  children: [
+                    TextSpanNode(text: "こんにちは:!世界", color: SemanticColor.none),
+                  ],
+                ),
               ],
             ),
           ],
@@ -153,9 +185,13 @@ void main() {
           const input = r":!危険\::普通:!";
           final expected = DocumentNode(
             children: [
-              TextNode(
+              ColumnNode(
                 children: [
-                  TextSpanNode(text: "危険::普通", color: SemanticColor.danger),
+                  TextNode(
+                    children: [
+                      TextSpanNode(text: "危険::普通", color: SemanticColor.danger),
+                    ],
+                  ),
                 ],
               ),
             ],
@@ -172,7 +208,11 @@ void main() {
           const input = r"サイズ\:+固定";
           final expected = DocumentNode(
             children: [
-              TextNode(children: [TextSpanNode(text: "サイズ:+固定")]),
+              ColumnNode(
+                children: [
+                  TextNode(children: [TextSpanNode(text: "サイズ:+固定")]),
+                ],
+              ),
             ],
           );
 
@@ -194,10 +234,14 @@ void main() {
           const input = r":+++100:---\%off";
           final expected = DocumentNode(
             children: [
-              TextNode(
+              ColumnNode(
                 children: [
-                  TextSpanNode(text: "100", sizeOffset: 3),
-                  TextSpanNode(text: "%off"),
+                  TextNode(
+                    children: [
+                      TextSpanNode(text: "100", sizeOffset: 3),
+                      TextSpanNode(text: "%off"),
+                    ],
+                  ),
                 ],
               ),
             ],
@@ -211,7 +255,13 @@ void main() {
         const input = r":---\%%%off";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "%%%off", sizeOffset: -3)]),
+            ColumnNode(
+              children: [
+                TextNode(
+                  children: [TextSpanNode(text: "%%%off", sizeOffset: -3)],
+                ),
+              ],
+            ),
           ],
         );
 
@@ -224,7 +274,13 @@ void main() {
         const input = r":---\abc";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: r"\abc", sizeOffset: -3)]),
+            ColumnNode(
+              children: [
+                TextNode(
+                  children: [TextSpanNode(text: r"\abc", sizeOffset: -3)],
+                ),
+              ],
+            ),
           ],
         );
 
@@ -239,7 +295,11 @@ void main() {
           const input = r"100\%off";
           final expected = DocumentNode(
             children: [
-              TextNode(children: [TextSpanNode(text: r"100\%off")]),
+              ColumnNode(
+                children: [
+                  TextNode(children: [TextSpanNode(text: r"100\%off")]),
+                ],
+              ),
             ],
           );
 
@@ -251,7 +311,11 @@ void main() {
         const input = r"C:\Users\sugai";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: r"C:\Users\sugai")]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: r"C:\Users\sugai")]),
+              ],
+            ),
           ],
         );
 
@@ -266,9 +330,13 @@ void main() {
           const input = r":!重要\:!警告:!";
           final expected = DocumentNode(
             children: [
-              TextNode(
+              ColumnNode(
                 children: [
-                  TextSpanNode(text: "重要:!警告", color: SemanticColor.danger),
+                  TextNode(
+                    children: [
+                      TextSpanNode(text: "重要:!警告", color: SemanticColor.danger),
+                    ],
+                  ),
                 ],
               ),
             ],
@@ -284,8 +352,14 @@ void main() {
         const input = r":!\:";
         final expected = DocumentNode(
           children: [
-            TextNode(
-              children: [TextSpanNode(text: ":", color: SemanticColor.danger)],
+            ColumnNode(
+              children: [
+                TextNode(
+                  children: [
+                    TextSpanNode(text: ":", color: SemanticColor.danger),
+                  ],
+                ),
+              ],
             ),
           ],
         );
@@ -323,21 +397,34 @@ void main() {
       test("the same holds for a Column separator", () {
         expect(
           NaturalBlockParser.parse('$bs$bs|B'),
-          DocumentNode(children: [line(bs), line('B')]),
+          DocumentNode(
+            children: [
+              ColumnNode(children: [line(bs)]),
+              ColumnNode(children: [line('B')]),
+            ],
+          ),
         );
       });
 
       test("a single `\\` before a separator still escapes it", () {
         expect(
           NaturalBlockParser.parse('$bs=B'),
-          DocumentNode(children: [line('=B')]),
+          DocumentNode(
+            children: [
+              ColumnNode(children: [line('=B')]),
+            ],
+          ),
         );
       });
 
       test("three backslashes are a literal one plus an escaped separator", () {
         expect(
           NaturalBlockParser.parse('$bs$bs$bs=B'),
-          DocumentNode(children: [line('$bs=B')]),
+          DocumentNode(
+            children: [
+              ColumnNode(children: [line('$bs=B')]),
+            ],
+          ),
         );
       });
 
@@ -346,7 +433,11 @@ void main() {
         // layout scan to collapse `\\` too, the lone backslash it left
         // behind would be read as an escape again here and swallow the `:`.
         final spans =
-            (NaturalBlockParser.parse('$bs$bs:*x').children.single as TextNode)
+            ((NaturalBlockParser.parse('$bs$bs:*x').children.single
+                            as ColumnNode)
+                        .children
+                        .single
+                    as TextNode)
                 .children
                 .cast<TextSpanNode>();
 
@@ -360,18 +451,30 @@ void main() {
         // Unchanged, and the reason Windows paths need no escaping at all.
         expect(
           NaturalBlockParser.parse('C:${bs}Users${bs}sugai'),
-          DocumentNode(children: [line('C:${bs}Users${bs}sugai')]),
+          DocumentNode(
+            children: [
+              ColumnNode(children: [line('C:${bs}Users${bs}sugai')]),
+            ],
+          ),
         );
         expect(
           NaturalBlockParser.parse('$bs!'),
-          DocumentNode(children: [line('$bs!')]),
+          DocumentNode(
+            children: [
+              ColumnNode(children: [line('$bs!')]),
+            ],
+          ),
         );
       });
 
       test("a lone trailing backslash is literal", () {
         expect(
           NaturalBlockParser.parse(bs),
-          DocumentNode(children: [line(bs)]),
+          DocumentNode(
+            children: [
+              ColumnNode(children: [line(bs)]),
+            ],
+          ),
         );
       });
 
@@ -381,7 +484,11 @@ void main() {
         // being able to write one before a separator at all.
         expect(
           NaturalBlockParser.parse('A$bs${bs}B'),
-          DocumentNode(children: [line('A${bs}B')]),
+          DocumentNode(
+            children: [
+              ColumnNode(children: [line('A${bs}B')]),
+            ],
+          ),
         );
       });
 

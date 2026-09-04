@@ -20,6 +20,8 @@ import 'package:test/test.dart';
 void main() {
   TextNode line(String text) => TextNode(children: [TextSpanNode(text: text)]);
 
+  ColumnNode block(String text) => ColumnNode(children: [line(text)]);
+
   group('line endings', () {
     test('a CRLF document parses exactly like the LF one', () {
       // Not cosmetic. `_parseBlock` splits on `\n` and then drops a line
@@ -36,7 +38,7 @@ void main() {
     test('no CR survives into the text of a CRLF document', () {
       final document = NaturalBlockParser.parse('one\r\ntwo\r\nthree');
 
-      expect(document.children, [line('one\ntwo\nthree')]);
+      expect(document.children, [block('one\ntwo\nthree')]);
     });
 
     test('a trailing CRLF leaves no empty line behind', () {
@@ -62,7 +64,7 @@ void main() {
       // Pins the order of the two replacements. Doing `\r` first turns
       // every `\r\n` into `\n\n`, which is silent: the document still
       // renders, with a blank line inserted after every line.
-      expect(NaturalBlockParser.parse('a\r\nb').children, [line('a\nb')]);
+      expect(NaturalBlockParser.parse('a\r\nb').children, [block('a\nb')]);
     });
   });
 
@@ -73,7 +75,11 @@ void main() {
     test('a space at each end of the document survives', () {
       expect(
         NaturalBlockParser.parse('  text  '),
-        DocumentNode(children: [line('  text  ')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line('  text  ')]),
+          ],
+        ),
       );
     });
 
@@ -84,7 +90,11 @@ void main() {
       // both indents sit in one node.
       expect(
         NaturalBlockParser.parse('    A\n    B'),
-        DocumentNode(children: [line('    A\n    B')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line('    A\n    B')]),
+          ],
+        ),
       );
     });
 
@@ -94,7 +104,11 @@ void main() {
       // block's symbol sit on a line of its own.
       expect(
         NaturalBlockParser.parse('|\ntext\n|'),
-        DocumentNode(children: [line('text')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line('text')]),
+          ],
+        ),
       );
     });
 
@@ -104,14 +118,22 @@ void main() {
       // parser trimmed at all.
       expect(
         NaturalBlockParser.parse('　indented'),
-        DocumentNode(children: [line('　indented')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line('　indented')]),
+          ],
+        ),
       );
     });
 
     test('a non-breaking space is kept too', () {
       expect(
         NaturalBlockParser.parse(' text '),
-        DocumentNode(children: [line(' text ')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line(' text ')]),
+          ],
+        ),
       );
     });
   });
@@ -134,7 +156,7 @@ void main() {
       // The parser has no opinion about content: spaces were typed, so
       // spaces come out. Newlines are different -- a block drops one at
       // each end, so `\n\n` has nothing left to place.
-      expect(NaturalBlockParser.parse('   ').children, [line('   ')]);
+      expect(NaturalBlockParser.parse('   ').children, [block('   ')]);
       expect(NaturalBlockParser.parse('\n\n').children, isEmpty);
     });
 
@@ -151,7 +173,11 @@ void main() {
     test('a bare `~` with no separator before it is ordinary text', () {
       expect(
         NaturalBlockParser.parse('~'),
-        DocumentNode(children: [line('~')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line('~')]),
+          ],
+        ),
       );
     });
   });
@@ -164,14 +190,22 @@ void main() {
     test('an emoji outside the BMP survives intact', () {
       expect(
         NaturalBlockParser.parse('a\u{1F600}b'),
-        DocumentNode(children: [line('a\u{1F600}b')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line('a\u{1F600}b')]),
+          ],
+        ),
       );
     });
 
     test('a combining mark stays attached', () {
       expect(
         NaturalBlockParser.parse('é'),
-        DocumentNode(children: [line('é')]),
+        DocumentNode(
+          children: [
+            ColumnNode(children: [line('é')]),
+          ],
+        ),
       );
     });
 

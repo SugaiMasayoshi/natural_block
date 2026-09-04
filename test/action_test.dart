@@ -18,10 +18,14 @@ void main() {
       const input = ":@https://example.com:@ を参照してください";
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(text: "https://example.com", isAction: true),
-              TextSpanNode(text: " を参照してください"),
+              TextNode(
+                children: [
+                  TextSpanNode(text: "https://example.com", isAction: true),
+                  TextSpanNode(text: " を参照してください"),
+                ],
+              ),
             ],
           ),
         ],
@@ -35,10 +39,14 @@ void main() {
       const input = "詳細は:@#売上データ に記載";
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(text: "詳細は"),
-              TextSpanNode(text: "#売上データ に記載", isAction: true),
+              TextNode(
+                children: [
+                  TextSpanNode(text: "詳細は"),
+                  TextSpanNode(text: "#売上データ に記載", isAction: true),
+                ],
+              ),
             ],
           ),
         ],
@@ -55,15 +63,19 @@ void main() {
       // chars -- `!`, `*`, `@` all apply in order.
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(
-                text: "赤太字押せる",
-                color: SemanticColor.danger,
-                emphasis: true,
-                isAction: true,
+              TextNode(
+                children: [
+                  TextSpanNode(
+                    text: "赤太字押せる",
+                    color: SemanticColor.danger,
+                    emphasis: true,
+                    isAction: true,
+                  ),
+                  TextSpanNode(text: "通常"),
+                ],
               ),
-              TextSpanNode(text: "通常"),
             ],
           ),
         ],
@@ -77,9 +89,13 @@ void main() {
       const input = ":@*重要:@*";
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(text: "重要", emphasis: true, isAction: true),
+              TextNode(
+                children: [
+                  TextSpanNode(text: "重要", emphasis: true, isAction: true),
+                ],
+              ),
             ],
           ),
         ],
@@ -95,7 +111,11 @@ void main() {
         NaturalBlockParser.parse(input1),
         DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "user@example.com")]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "user@example.com")]),
+              ],
+            ),
           ],
         ),
       );
@@ -105,7 +125,11 @@ void main() {
         NaturalBlockParser.parse(input2),
         DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "@mention")]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "@mention")]),
+              ],
+            ),
           ],
         ),
       );
@@ -115,7 +139,11 @@ void main() {
         NaturalBlockParser.parse(input3),
         DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "メール: a@b.jp")]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "メール: a@b.jp")]),
+              ],
+            ),
           ],
         ),
       );
@@ -125,7 +153,11 @@ void main() {
       const input = r":---\@abc";
       final expected = DocumentNode(
         children: [
-          TextNode(children: [TextSpanNode(text: "@abc", sizeOffset: -3)]),
+          ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "@abc", sizeOffset: -3)]),
+            ],
+          ),
         ],
       );
 
@@ -137,11 +169,15 @@ void main() {
       const input = ":+++大:@押せる::普通";
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(text: "大", sizeOffset: 3),
-              TextSpanNode(text: "押せる", sizeOffset: 3, isAction: true),
-              TextSpanNode(text: "普通", sizeOffset: 3),
+              TextNode(
+                children: [
+                  TextSpanNode(text: "大", sizeOffset: 3),
+                  TextSpanNode(text: "押せる", sizeOffset: 3, isAction: true),
+                  TextSpanNode(text: "普通", sizeOffset: 3),
+                ],
+              ),
             ],
           ),
         ],

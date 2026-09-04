@@ -18,10 +18,14 @@ void main() {
       const input = ":++大きい:--標準サイズ";
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(text: "大きい", sizeOffset: 2),
-              TextSpanNode(text: "標準サイズ", sizeOffset: 0),
+              TextNode(
+                children: [
+                  TextSpanNode(text: "大きい", sizeOffset: 2),
+                  TextSpanNode(text: "標準サイズ", sizeOffset: 0),
+                ],
+              ),
             ],
           ),
         ],
@@ -36,10 +40,14 @@ void main() {
       const input = ":-少し小さい:---もっと小さい";
       final expected = DocumentNode(
         children: [
-          TextNode(
+          ColumnNode(
             children: [
-              TextSpanNode(text: "少し小さい", sizeOffset: -1),
-              TextSpanNode(text: "もっと小さい", sizeOffset: -4),
+              TextNode(
+                children: [
+                  TextSpanNode(text: "少し小さい", sizeOffset: -1),
+                  TextSpanNode(text: "もっと小さい", sizeOffset: -4),
+                ],
+              ),
             ],
           ),
         ],
@@ -59,7 +67,11 @@ void main() {
         const input = ":+++大きい";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "大きい", sizeOffset: 3)]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "大きい", sizeOffset: 3)]),
+              ],
+            ),
           ],
         );
 
@@ -102,13 +114,17 @@ void main() {
         const input = ":++大きく:!危険";
         final expected = DocumentNode(
           children: [
-            TextNode(
+            ColumnNode(
               children: [
-                TextSpanNode(text: "大きく", sizeOffset: 2),
-                TextSpanNode(
-                  text: "危険",
-                  color: SemanticColor.danger,
-                  sizeOffset: 2,
+                TextNode(
+                  children: [
+                    TextSpanNode(text: "大きく", sizeOffset: 2),
+                    TextSpanNode(
+                      text: "危険",
+                      color: SemanticColor.danger,
+                      sizeOffset: 2,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -125,17 +141,21 @@ void main() {
           const input = ":!危険状態:++大きく";
           final expected = DocumentNode(
             children: [
-              TextNode(
+              ColumnNode(
                 children: [
-                  TextSpanNode(
-                    text: "危険状態",
-                    color: SemanticColor.danger,
-                    sizeOffset: 0,
-                  ),
-                  TextSpanNode(
-                    text: "大きく",
-                    color: SemanticColor.danger,
-                    sizeOffset: 2,
+                  TextNode(
+                    children: [
+                      TextSpanNode(
+                        text: "危険状態",
+                        color: SemanticColor.danger,
+                        sizeOffset: 0,
+                      ),
+                      TextSpanNode(
+                        text: "大きく",
+                        color: SemanticColor.danger,
+                        sizeOffset: 2,
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -151,19 +171,23 @@ void main() {
         const input = ":!*重要な警告:*危険は継続:!普通";
         final expected = DocumentNode(
           children: [
-            TextNode(
+            ColumnNode(
               children: [
-                TextSpanNode(
-                  text: "重要な警告",
-                  color: SemanticColor.danger,
-                  emphasis: true,
+                TextNode(
+                  children: [
+                    TextSpanNode(
+                      text: "重要な警告",
+                      color: SemanticColor.danger,
+                      emphasis: true,
+                    ),
+                    TextSpanNode(
+                      text: "危険は継続",
+                      color: SemanticColor.danger,
+                      emphasis: false,
+                    ),
+                    TextSpanNode(text: "普通", color: SemanticColor.none),
+                  ],
                 ),
-                TextSpanNode(
-                  text: "危険は継続",
-                  color: SemanticColor.danger,
-                  emphasis: false,
-                ),
-                TextSpanNode(text: "普通", color: SemanticColor.none),
               ],
             ),
           ],
@@ -177,13 +201,17 @@ void main() {
         const input = ":++!*重要";
         final expected = DocumentNode(
           children: [
-            TextNode(
+            ColumnNode(
               children: [
-                TextSpanNode(
-                  text: "重要",
-                  sizeOffset: 2,
-                  color: SemanticColor.danger,
-                  emphasis: true,
+                TextNode(
+                  children: [
+                    TextSpanNode(
+                      text: "重要",
+                      sizeOffset: 2,
+                      color: SemanticColor.danger,
+                      emphasis: true,
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -229,8 +257,18 @@ void main() {
         const input = "|:++上は大きい|下は標準|";
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: "上は大きい", sizeOffset: 2)]),
-            TextNode(children: [TextSpanNode(text: "下は標準", sizeOffset: 0)]),
+            ColumnNode(
+              children: [
+                TextNode(
+                  children: [TextSpanNode(text: "上は大きい", sizeOffset: 2)],
+                ),
+              ],
+            ),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: "下は標準", sizeOffset: 0)]),
+              ],
+            ),
           ],
         );
 

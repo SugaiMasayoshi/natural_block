@@ -18,7 +18,11 @@ void main() {
     // Expected: root keeps its Column wrapper
     final expected = DocumentNode(
       children: [
-        TextNode(children: [TextSpanNode(text: "本文")]),
+        ColumnNode(
+          children: [
+            TextNode(children: [TextSpanNode(text: "本文")]),
+          ],
+        ),
       ],
     );
 
@@ -135,8 +139,16 @@ void main() {
       const input = "左||右";
       final expected = DocumentNode(
         children: [
-          TextNode(children: [TextSpanNode(text: "左")]),
-          TextNode(children: [TextSpanNode(text: "右")]),
+          ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "左")]),
+            ],
+          ),
+          ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "右")]),
+            ],
+          ),
         ],
       );
 
@@ -335,7 +347,11 @@ void main() {
               ),
             ],
           ),
-          TextNode(children: [TextSpanNode(text: "text")]),
+          ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "text")]),
+            ],
+          ),
         ],
       );
 
@@ -347,7 +363,11 @@ void main() {
       const input = "text|a=b";
       final expected = DocumentNode(
         children: [
-          TextNode(children: [TextSpanNode(text: "text")]),
+          ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "text")]),
+            ],
+          ),
           RowNode(
             children: [
               ColumnNode(
@@ -471,7 +491,11 @@ void main() {
       const input = "本文";
       final expected = DocumentNode(
         children: [
-          TextNode(children: [TextSpanNode(text: "本文")]),
+          ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "本文")]),
+            ],
+          ),
         ],
       );
 
@@ -483,7 +507,11 @@ void main() {
       const input = r"x \=> y";
       final expected = DocumentNode(
         children: [
-          TextNode(children: [TextSpanNode(text: "x => y")]),
+          ColumnNode(
+            children: [
+              TextNode(children: [TextSpanNode(text: "x => y")]),
+            ],
+          ),
         ],
       );
 
@@ -496,7 +524,11 @@ void main() {
       for (final input in cases) {
         final expected = DocumentNode(
           children: [
-            TextNode(children: [TextSpanNode(text: input)]),
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: input)]),
+              ],
+            ),
           ],
         );
 

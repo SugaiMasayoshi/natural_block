@@ -18,6 +18,9 @@ import 'package:test/test.dart';
 /// One line of text, the shape most table cells take.
 TextNode line(String text) => TextNode(children: [TextSpanNode(text: text)]);
 
+/// A single-line block, which is what a bare paragraph parses to.
+ColumnNode block(String text) => ColumnNode(children: [line(text)]);
+
 /// A single-line cell.
 ColumnNode cell(String text, [BlockAlign align = BlockAlign.start]) =>
     ColumnNode(children: [line(text)], align: align);
@@ -107,7 +110,7 @@ void main() {
       final document = NaturalBlockParser.parse('|~A=B|paragraph|C=D|');
 
       expect(document.children[0], isA<TableNode>());
-      expect(document.children[1], line('paragraph'));
+      expect(document.children[1], block('paragraph'));
       expect(
         document.children[2],
         isA<RowNode>(),
@@ -144,7 +147,7 @@ void main() {
       // the parser for it.
       final twoTables = NaturalBlockParser.parse('|~A=B|note|~C=D|');
       expect(twoTables.children[0], isA<TableNode>());
-      expect(twoTables.children[1], line('note'));
+      expect(twoTables.children[1], block('note'));
       expect(
         twoTables.children[2],
         isA<TableNode>(),
@@ -158,8 +161,8 @@ void main() {
     });
 
     test('a table given no rows contributes no node', () {
-      expect(NaturalBlockParser.parse('|~text').children, [line('text')]);
-      expect(NaturalBlockParser.parse('a|~').children, [line('a')]);
+      expect(NaturalBlockParser.parse('|~text').children, [block('text')]);
+      expect(NaturalBlockParser.parse('a|~').children, [block('a')]);
     });
 
     test('a run of single-cell blocks is not a table', () {
@@ -168,7 +171,7 @@ void main() {
       // limitation is visible rather than discovered.
       final document = NaturalBlockParser.parse('|~A|B|');
 
-      expect(document.children, [line('A'), line('B')]);
+      expect(document.children, [block('A'), block('B')]);
     });
   });
 

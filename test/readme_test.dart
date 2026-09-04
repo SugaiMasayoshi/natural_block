@@ -27,9 +27,21 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
+/// The document's only block. A line always sits inside one, even when the
+/// block carries no marker of its own.
+ColumnNode onlyBlock(String source) =>
+    NaturalBlockParser.parse(source).children.single as ColumnNode;
+
 /// The document's only line, for the many claims about a single line.
 TextNode onlyLine(String source) =>
-    NaturalBlockParser.parse(source).children.single as TextNode;
+    onlyBlock(source).children.single as TextNode;
+
+/// A single-line block, which is what a bare paragraph parses to.
+ColumnNode block(String text) => ColumnNode(
+  children: [
+    TextNode(children: [TextSpanNode(text: text)]),
+  ],
+);
 
 /// That line's runs, as the styled spans they are.
 List<TextSpanNode> runs(String source) =>
@@ -156,7 +168,7 @@ void main() {
   group('A newline is a character, not a boundary', () {
     test('a block is one node however many lines it has', () {
       expect(NaturalBlockParser.parse('|one\ntwo|').children, [
-        TextNode(children: [TextSpanNode(text: 'one\ntwo')]),
+        block('one\ntwo'),
       ]);
     });
 
@@ -164,11 +176,7 @@ void main() {
       // The one thing a newline still does. It is a rule the parser applies
       // while reading, not a division the tree records -- so the runs on
       // either side end up in the same node, styled differently.
-      final line =
-          NaturalBlockParser.parse('|:!red\nplain|').children.single
-              as TextNode;
-
-      expect(line.children, [
+      expect(onlyLine('|:!red\nplain|').children, [
         TextSpanNode(text: 'red', color: SemanticColor.danger),
         TextSpanNode(text: '\nplain'),
       ]);
@@ -176,15 +184,11 @@ void main() {
 
     test("a single blank line at each end of a block is dropped, so a block's "
         'symbol can sit on its own line', () {
-      expect(NaturalBlockParser.parse('|\nonly\n|').children, [
-        TextNode(children: [TextSpanNode(text: 'only')]),
-      ]);
+      expect(NaturalBlockParser.parse('|\nonly\n|').children, [block('only')]);
     });
 
     test('a genuine blank line in the middle is preserved, as characters', () {
-      expect(NaturalBlockParser.parse('|a\n\nb|').children, [
-        TextNode(children: [TextSpanNode(text: 'a\n\nb')]),
-      ]);
+      expect(NaturalBlockParser.parse('|a\n\nb|').children, [block('a\n\nb')]);
     });
 
     test('CRLF input parses identically', () {
@@ -244,7 +248,7 @@ void main() {
       expect(
         NaturalBlockParser.parse('前の行\n|A=B|').children
             .map((c) => c.runtimeType),
-        [TextNode, RowNode],
+        [ColumnNode, RowNode],
       );
     });
 
@@ -295,7 +299,7 @@ void main() {
       expect(
         NaturalBlockParser.parse('|~A=B|note|').children
             .map((c) => c.runtimeType),
-        [TableNode, TextNode],
+        [TableNode, ColumnNode],
       );
     });
 
@@ -337,9 +341,7 @@ void main() {
     test('a fence on its own line gives one node, the command intact', () {
       // README's second example.
       expect(
-        NaturalBlockParser.parse('`\ncat file.txt | grep foo | wc -l\n`')
-            .children
-            .single,
+        onlyBlock('`\ncat file.txt | grep foo | wc -l\n`').children.single,
         VerbatimNode(text: 'cat file.txt | grep foo | wc -l'),
       );
     });
@@ -377,7 +379,7 @@ void main() {
 
     test('nothing inside is a separator, a decoration, or an escape', () {
       expect(
-        NaturalBlockParser.parse(r'`| = : \n :!`').children.single,
+        onlyBlock(r'`| = : \n :!`').children.single,
         VerbatimNode(text: r'| = : \n :!'),
       );
     });
@@ -385,14 +387,14 @@ void main() {
     test('the fence run length sets the closer, so a doubled fence may '
         'contain a single backtick', () {
       expect(
-        NaturalBlockParser.parse('``a `b` c``').children.single,
+        onlyBlock('``a `b` c``').children.single,
         VerbatimNode(text: 'a `b` c'),
       );
     });
 
     test('the newline directly against each fence belongs to that fence', () {
       expect(
-        NaturalBlockParser.parse('`\ncode\n`').children.single,
+        onlyBlock('`\ncode\n`').children.single,
         VerbatimNode(text: 'code'),
       );
     });
@@ -408,10 +410,7 @@ void main() {
         'separators after it still work', () {
       final doc = NaturalBlockParser.parse('a`b|c');
       expect(doc.children.length, 2);
-      expect(
-        (doc.children.first as TextNode).children.single,
-        TextSpanNode(text: 'a`b'),
-      );
+      expect(doc.children.first, block('a`b'));
     });
   });
 
