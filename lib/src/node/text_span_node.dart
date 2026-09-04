@@ -93,7 +93,7 @@ final class TextSpanNode extends InlineNode {
     if (atBoundary && run.endsWith('\n')) {
       run = run.substring(0, run.length - 1);
     }
-    return (run.isEmpty ? null : style.span(run), outgoing);
+    return (run.isEmpty ? null : TextSpanNode._of(run, style), outgoing);
   }
 
   /// The characters that can end a run. Constant, so it is built once

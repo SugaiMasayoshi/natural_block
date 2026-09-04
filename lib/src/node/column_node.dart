@@ -19,9 +19,11 @@ final class ColumnNode extends BlockNode {
   /// Decides only what kind of child comes next, by looking at the cursor.
   /// Each child reads itself and stops before anything that is not its own.
   static ColumnNode _parse(Scanner scanner, BlockAlign? align) {
-    // The newline written against the separator that opened this block
-    // belongs to that separator, which is what lets `|` sit on a line of
-    // its own without opening a blank one.
+    // A block drops one blank line at its start, which is what lets the
+    // separator that opened it sit on a line of its own. The block's rule,
+    // not the separator's: a document beginning with a newline drops it too,
+    // and there is no separator there at all. (The matching newline at the
+    // end is dropped by the run that holds it, where the text is.)
     if (scanner.peek == '\n') scanner.take();
 
     final lines = <LineNode>[];

@@ -29,7 +29,8 @@ final class DocumentNode extends NaturalBlockNode {
         final table = TableNode._parse(scanner, align);
         if (table != null) children.add(table);
       } else {
-        children.addAll(BlockNode._parse(scanner, align));
+        final block = BlockNode._parse(scanner, align);
+        if (block != null) children.add(block);
       }
 
       if (scanner.isEnd) break;

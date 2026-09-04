@@ -17,8 +17,6 @@ class _Decoration {
     this.isAction = false,
   });
 
-  TextSpanNode span(String text) => TextSpanNode._of(text, this);
-
   /// Reads the cluster the cursor has just entered and returns the state it
   /// leaves behind, together with any character a backslash rescued from it.
   ///
