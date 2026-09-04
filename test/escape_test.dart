@@ -32,12 +32,12 @@ void main() {
       });
 
       test("an escaped equals sign is parsed as a single literal text, not a Row separator", () {
-        const input = r"左\=右";
+        const input = r"左\^右";
         final expected = DocumentNode(
           children: [
             ColumnNode(
               children: [
-                TextNode(children: [TextSpanNode(text: "左=右")]),
+                TextNode(children: [TextSpanNode(text: "左^右")]),
               ],
             ),
           ],
@@ -54,7 +54,7 @@ void main() {
       // `-` -- extremely common in ordinary prose in both Japanese and
       // English -- is always literal text on its own, with no escaping.
       test("a bare plus sign is literal, no escaping needed", () {
-        const input = "C++言語、1+1=2";
+        const input = "C++言語、1+1^2";
         final expected = DocumentNode(
           children: [
             RowNode(
@@ -385,7 +385,7 @@ void main() {
         // cell with a backslash, because `\\=` escapes the separator and
         // yields one cell holding `=` instead of two cells split after `\`.
         expect(
-          NaturalBlockParser.parse('$bs$bs=B'),
+          NaturalBlockParser.parse('$bs$bs^B'),
           DocumentNode(
             children: [
               RowNode(children: [cell(bs), cell('B')]),
@@ -408,10 +408,10 @@ void main() {
 
       test("a single `\\` before a separator still escapes it", () {
         expect(
-          NaturalBlockParser.parse('$bs=B'),
+          NaturalBlockParser.parse('$bs^B'),
           DocumentNode(
             children: [
-              ColumnNode(children: [line('=B')]),
+              ColumnNode(children: [line('^B')]),
             ],
           ),
         );
@@ -419,10 +419,10 @@ void main() {
 
       test("three backslashes are a literal one plus an escaped separator", () {
         expect(
-          NaturalBlockParser.parse('$bs$bs$bs=B'),
+          NaturalBlockParser.parse('$bs$bs$bs^B'),
           DocumentNode(
             children: [
-              ColumnNode(children: [line('$bs=B')]),
+              ColumnNode(children: [line('$bs^B')]),
             ],
           ),
         );
@@ -494,7 +494,7 @@ void main() {
 
       test("it works inside a table cell too", () {
         final table =
-            NaturalBlockParser.parse('~x=y|$bs$bs=z~').children.single
+            NaturalBlockParser.parse('~x^y|$bs$bs^z~').children.single
                 as TableNode;
 
         expect(table.children[1].children.first, cell(bs));

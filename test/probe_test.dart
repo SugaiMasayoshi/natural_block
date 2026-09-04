@@ -27,34 +27,34 @@ const _cases = [
   '', ' ', '   ', '\n', 'a',
 
   // One separator, and separators with nothing between them.
-  '|', '=', '~', '|=', '=|', '~~', '|~', '~|~',
+  '|', '^', '~', '|^', '^|', '~~', '|~', '~|~',
 
   // A separator at each end, where "opens a cell" and "ends a block" meet.
-  'a|', '|a', 'a=', '=a', 'a=b=', 'a=b=|', 'a=b=|c', '~a=b=~',
+  'a|', '|a', 'a^', '^a', 'a^b^', 'a^b^|', 'a^b^|c', '~a^b^~',
 
   // Blocks and rows.
-  'a|b', 'a=b', 'a||b', 'a==b', 'a=b|c=d', 'left line 1\nleft line 2=right',
+  'a|b', 'a^b', 'a||b', 'a^^b', 'a^b|c^d', 'left line 1\nleft line 2^right',
 
   // Alignment markers, including the ones that must stay literal.
-  'a|>|b', '|^a|', '|>a|', '|<a|', 'a > b', '=>', 'List<String>',
+  'a|>|b', '|=a|', '|>a|', '|<a|', 'a > b', '=>', '^>', 'List<String>',
 
   // Tables, in both spellings, and the alignment that belongs to the table.
-  '~a=b|c=d~', '~^A=B~', '~A|B|C~', '~A=B|C=D', 'まえ~A=B~あと',
-  '|~a=b|', '|~a=b|~', '|~^a=b|', '|~a=b|c=d|~e', '|~a=b|c|', '|~a|', '|~|',
-  '|~a=b|~^c', '|~x=`a|b`|y=z|',
+  '~a^b|c^d~', '~=A^B~', '~A|B|C~', '~A^B|C^D', 'まえ~A^B~あと',
+  '|~a^b|', '|~a^b|~', '|~=a^b|', '|~a^b|c^d|~e', '|~a^b|c|', '|~a|', '|~|',
+  '|~a^b|~=c', '|~x^`a|b`|y^z|',
 
   // Newlines: characters, except for the one at each end of a block.
   'a\nb', 'a\n\nb', '\na\n', 'a\n\n\nb', 'a\r\nb', 'a\rb',
 
   // Verbatim regions, closed and not.
   '`c`', 'a`c`b', '`\nc\n`', 'a`b', '``a`b`c``', 'a``b', '\n`c`\n',
-  '文章\n`c`\n続き', 'x=`a|b`|y=z', 'a `b | c', '`a ~ b`',
+  '文章\n`c`\n続き', 'x^`a|b`|y^z', 'a `b | c', '`a ~ b`',
 
   // Decoration.
   ':*b:*', ':!d:!p', ':+x', ':::a', ':@u:@',
 
   // Escapes and paths.
-  r'a\|b', r'a\=b', r'a \~ b', r'C:\Users', r'\\server', r':---\%%%',
+  r'a\|b', r'a\^b', r'a \~ b', r'C:\Users', r'\\server', r':---\%%%',
 
   // Prose that must come through with no escaping at all.
   'C++', '10-20', '100%', 'you@example.com',
@@ -85,7 +85,7 @@ void main() {
       isTrue,
       reason:
           'test/probe.expected.txt is missing. Regenerate it with '
-          'UPDATE_PROBE=1 dart test test/probe_test.dart',
+          'UPDATE_PROBE^1 dart test test/probe_test.dart',
     );
     expect(
       actual.split('\n'),
@@ -93,7 +93,7 @@ void main() {
       reason:
           'a source parses differently than it used to. If the change was '
           'intended, check that only the cases you meant to change moved, '
-          'then regenerate with UPDATE_PROBE=1.',
+          'then regenerate with UPDATE_PROBE^1.',
     );
   });
 

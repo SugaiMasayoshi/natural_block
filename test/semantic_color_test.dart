@@ -122,7 +122,7 @@ void main() {
     test("style independence between cells inside a Row block", () {
       // Danger is opened and closed inside the left cell only -- it must
       // not leak across the `=` boundary into the right cell.
-      const input = "||:!左は危険:!=右は通常||";
+      const input = "||:!左は危険:!^右は通常||";
       final expected = DocumentNode(
         children: [
           RowNode(
@@ -155,7 +155,7 @@ void main() {
 |
 :!警告: システムエラー:!
 :*補足事項:*
-|エラーコード: 500=解決策: :?管理者へ連絡:?|
+|エラーコード: 500^解決策: :?管理者へ連絡:?|
 処理完了
 |""";
 

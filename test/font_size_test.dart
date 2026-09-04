@@ -80,7 +80,7 @@ void main() {
       });
 
       test("bare + and - never trigger a size change on their own", () {
-        const input = "10-20人がA+の評価、1+1=2も普通の文章";
+        const input = "10-20人がA+の評価、1+1^2も普通の文章";
         final expected = DocumentNode(
           children: [
             RowNode(
@@ -224,8 +224,8 @@ void main() {
     });
 
     group("Reset at layout boundaries", () {
-      test("the Row layout symbol (=) resets the font size", () {
-        const input = ":++大きい=右は標準";
+      test("the Row layout symbol (^) resets the font size", () {
+        const input = ":++大きい^右は標準";
         final expected = DocumentNode(
           children: [
             RowNode(

@@ -109,18 +109,18 @@ void main() {
   });
 
   group('Block alignment', () {
-    test('`|<品名=^数量=>価格|` sets start, center and end', () {
+    test('`|<品名^=数量^>価格|` sets start, center and end', () {
       final row =
-          NaturalBlockParser.parse('|<品名=^数量=>価格|').children.single as RowNode;
+          NaturalBlockParser.parse('|<品名^=数量^>価格|').children.single as RowNode;
       expect(
         [for (final c in row.children) c.align],
         [BlockAlign.start, BlockAlign.center, BlockAlign.end],
       );
     });
 
-    test(r'`a\=>b` is literally `a=>b` -- an escaped separator leaves the '
+    test(r'`a\^>b` is literally `a^>b` -- an escaped separator leaves the '
         'marker alone too', () {
-      expect(runs(r'a\=>b'), [TextSpanNode(text: 'a=>b')]);
+      expect(runs(r'a\^>b'), [TextSpanNode(text: 'a^>b')]);
     });
 
     test('anywhere else the markers are ordinary text', () {
@@ -140,7 +140,7 @@ void main() {
 
     test('only a layout symbol resets everything', () {
       final row =
-          NaturalBlockParser.parse(':++:!A=B').children.single as RowNode;
+          NaturalBlockParser.parse(':++:!A^B').children.single as RowNode;
       final second =
           (row.children[1].children.single as TextNode).children.single
               as TextSpanNode;
@@ -208,22 +208,22 @@ void main() {
       expect(NaturalBlockParser.parse('左|>|右').children.length, 2);
     });
 
-    test('`左==右` is three cells with an empty middle', () {
-      final row = NaturalBlockParser.parse('左==右').children.single as RowNode;
+    test('`左^^右` is three cells with an empty middle', () {
+      final row = NaturalBlockParser.parse('左^^右').children.single as RowNode;
       expect(row.children.length, 3);
       expect(row.children[1].children, isEmpty);
     });
 
-    test('which is what distinguishes it from `左=右`', () {
-      final row = NaturalBlockParser.parse('左=右').children.single as RowNode;
+    test('which is what distinguishes it from `左^右`', () {
+      final row = NaturalBlockParser.parse('左^右').children.single as RowNode;
       expect(row.children.length, 2);
     });
 
     test(
-      'a run of `=`-joined cells ends at a `|`, so `a=b|c=d` is two rows',
+      'a run of `^`-joined cells ends at a `|`, so `a^b|c^d` is two rows',
       () {
         expect(
-          NaturalBlockParser.parse('a=b|c=d').children
+          NaturalBlockParser.parse('a^b|c^d').children
               .map((c) => c.runtimeType),
           [RowNode, RowNode],
         );
@@ -232,13 +232,13 @@ void main() {
   });
 
   group('A `|` ends the block before it', () {
-    test('`=` cannot do the job: it separates cells within a block and has '
+    test('`^` cannot do the job: it separates cells within a block and has '
         'no business ending one', () {
       // Why the leading separator has to be `|`. `=` sits below `|` in the
       // hierarchy, so it cannot end what `|` ends -- the preceding line
       // just becomes the first cell, one cell later than without it.
       final row =
-          NaturalBlockParser.parse('前の行\n=A=B').children.single as RowNode;
+          NaturalBlockParser.parse('前の行\n^A^B').children.single as RowNode;
 
       expect(
         [for (final c in row.children) c.children.length],
@@ -256,7 +256,7 @@ void main() {
       // lost, so it is invisible until the document is drawn. It caught the
       // author out writing the renderer's own showcase.
       final row =
-          NaturalBlockParser.parse('前の行\nA=B|').children.single as RowNode;
+          NaturalBlockParser.parse('前の行\nA^B|').children.single as RowNode;
       expect(row.children.first.children, [
         TextNode(children: [TextSpanNode(text: '前の行\nA')]),
       ]);
@@ -264,14 +264,14 @@ void main() {
 
     test('the leading `|` keeps the preceding line its own block', () {
       expect(
-        NaturalBlockParser.parse('前の行\n|A=B|').children
+        NaturalBlockParser.parse('前の行\n|A^B|').children
             .map((c) => c.runtimeType),
         [ColumnNode, RowNode],
       );
     });
 
     test('omitting it is fine when nothing precedes the row', () {
-      expect(NaturalBlockParser.parse('A=B|').children.single, isA<RowNode>());
+      expect(NaturalBlockParser.parse('A^B|').children.single, isA<RowNode>());
     });
   });
 
@@ -293,9 +293,9 @@ void main() {
     test('the README\'s worked example parses as the table it shows', () {
       final table = onlyTable(
         '~\n'
-        '|<Item  =>Price\n'
-        '|apple  =   100\n'
-        '|orange =    80\n'
+        '|<Item  ^>Price\n'
+        '|apple  ^   100\n'
+        '|orange ^    80\n'
         '~',
       );
 
@@ -313,9 +313,9 @@ void main() {
 
     test('a marker after the opening `~` describes the table, not the '
         'first cell', () {
-      expect(onlyTable('~<Item=>Price|apple=100~').align, BlockAlign.start);
+      expect(onlyTable('~<Item^>Price|apple^100~').align, BlockAlign.start);
       expect(
-        onlyTable('~|<Item=>Price|apple=100~')
+        onlyTable('~|<Item^>Price|apple^100~')
             .children
             .first
             .children
@@ -323,13 +323,13 @@ void main() {
             .align,
         BlockAlign.start,
       );
-      expect(onlyTable('~|<Item=>Price|apple=100~').align, isNull);
+      expect(onlyTable('~|<Item^>Price|apple^100~').align, isNull);
     });
 
     test('with the `|` written at the end of each line instead, a marker '
         'lands after a newline and stays literal', () {
       // The reason the README recommends the leading `|`.
-      final table = onlyTable('~Item=Price|\n<apple=100\n~');
+      final table = onlyTable('~Item^Price|\n<apple^100\n~');
       final firstCell = table.children[1].children.first;
 
       expect(firstCell.align, isNull);
@@ -339,15 +339,15 @@ void main() {
       );
     });
 
-    test('a line with no `=` becomes a one-cell row', () {
-      expect(onlyTable('~A=B|note~').children[1].children, hasLength(1));
+    test('a line with no `^` becomes a one-cell row', () {
+      expect(onlyTable('~A^B|note~').children[1].children, hasLength(1));
       expect(onlyTable('~A|B~').children, hasLength(2));
     });
 
     test(
-      '`~|Item=>Price|...~` right-aligns the price column for every row',
+      '`~|Item^>Price|...~` right-aligns the price column for every row',
       () {
-        final table = onlyTable('~|Item=>Price|A=100|B=200~');
+        final table = onlyTable('~|Item^>Price|A^100|B^200~');
 
         expect(table.columns, [null, BlockAlign.end]);
         expect(effective(table), [
@@ -360,18 +360,18 @@ void main() {
 
     test('a marker on an individual cell overrides just that cell', () {
       expect(
-        onlyTable('~|Item=>Price|A=^100~').children[1].children[1].align,
+        onlyTable('~|Item^>Price|A^=100~').children[1].children[1].align,
         BlockAlign.center,
       );
     });
 
-    test('`~^` is a centered table -- markers share one cluster', () {
-      expect(onlyTable('~^A=B~').align, BlockAlign.center);
+    test('`~=` is a centered table -- markers share one cluster', () {
+      expect(onlyTable('~=A^B~').align, BlockAlign.center);
     });
 
     test('a table ends only at `~` or the end of the document', () {
       expect(
-        NaturalBlockParser.parse('~A=B|C=D=E|note~after').children
+        NaturalBlockParser.parse('~A^B|C^D^E|note~after').children
             .map((c) => c.runtimeType),
         [TableNode, ColumnNode],
       );
@@ -380,7 +380,7 @@ void main() {
     test(
       'a short row does not end the table -- the table records the width',
       () {
-        final table = onlyTable('~A=B|C=D=E~');
+        final table = onlyTable('~A^B|C^D^E~');
 
         expect([for (final r in table.children) r.children.length], [2, 3]);
         expect(table.columns, hasLength(3), reason: 'the table is 3 wide');
@@ -389,14 +389,14 @@ void main() {
 
     test('a table ends at the end of the document', () {
       expect(
-        NaturalBlockParser.parse('~A=B').children.single,
+        NaturalBlockParser.parse('~A^B').children.single,
         isA<TableNode>(),
       );
     });
 
     test('writing `~` again closes it', () {
       expect(
-        NaturalBlockParser.parse('~A=B~C=D').children.map((c) => c.runtimeType),
+        NaturalBlockParser.parse('~A^B~C^D').children.map((c) => c.runtimeType),
         [TableNode, RowNode],
       );
     });
@@ -404,7 +404,7 @@ void main() {
     test('an empty block does not end a table, or `||` would be an invisible '
         'separator', () {
       expect(
-        NaturalBlockParser.parse('~A=B||C=D~').children.single,
+        NaturalBlockParser.parse('~A^B||C^D~').children.single,
         isA<TableNode>(),
       );
     });
@@ -439,16 +439,18 @@ void main() {
       );
     });
 
-    test('and `final x = a == b ? 1 : 2;` becomes a four-cell row', () {
-      final row =
-          NaturalBlockParser.parse('final x = a == b ? 1 : 2;').children.single
-              as RowNode;
-      expect(row.children.length, 4);
+    test('while `final x = a == b ? 1 : 2;` needs no region at all', () {
+      // It used to be the README's headline example of prose that breaks --
+      // four cells, back when `=` separated them. Moving the separator to
+      // `^` retired the example, and this pins that it stays retired.
+      expect(NaturalBlockParser.parse('final x = a == b ? 1 : 2;').children, [
+        block('final x = a == b ? 1 : 2;'),
+      ]);
     });
 
     test('a region can go in a table cell', () {
       final table =
-          NaturalBlockParser.parse('~A=`x`|B=`y`~').children.single
+          NaturalBlockParser.parse('~A^`x`|B^`y`~').children.single
               as TableNode;
       // A run, not a block: the cell sits on the same line as `A`, and a
       // region is a block only when it opens on a line of its own.
@@ -462,8 +464,8 @@ void main() {
 
     test('nothing inside is a separator, a decoration, or an escape', () {
       expect(
-        onlyBlock(r'`| = : \n :!`').children.single,
-        VerbatimNode(text: r'| = : \n :!'),
+        onlyBlock(r'`| ^ : \n :!`').children.single,
+        VerbatimNode(text: r'| ^ : \n :!'),
       );
     });
 
@@ -498,9 +500,9 @@ void main() {
   });
 
   group('Escape characters', () {
-    test(r'`\|`, `\=`, `\:` and an escaped fence are literal characters', () {
+    test(r'`\|`, `\^`, `\:` and an escaped fence are literal characters', () {
       expect(runs(r'\|'), [TextSpanNode(text: '|')]);
-      expect(runs(r'\='), [TextSpanNode(text: '=')]);
+      expect(runs(r'\^'), [TextSpanNode(text: '^')]);
       expect(runs(r'\:'), [TextSpanNode(text: ':')]);
       expect(runs(r'\`'), [TextSpanNode(text: '`')]);
     });
@@ -531,10 +533,10 @@ void main() {
     });
 
     test(
-      r'`\\=` is a cell holding a backslash followed by a real separator',
+      r'`\\^` is a cell holding a backslash followed by a real separator',
       () {
         final row =
-            NaturalBlockParser.parse(r'\\=b').children.single as RowNode;
+            NaturalBlockParser.parse(r'\\^b').children.single as RowNode;
         expect(row.children.length, 2);
         expect(
           (row.children[0].children.single as TextNode).children.single,
@@ -543,8 +545,8 @@ void main() {
       },
     );
 
-    test(r'where a lone `\=` would just be a literal `=`', () {
-      expect(runs(r'\=b'), [TextSpanNode(text: '=b')]);
+    test(r'where a lone `\^` would just be a literal `^`', () {
+      expect(runs(r'\^b'), [TextSpanNode(text: '^b')]);
     });
   });
 
@@ -567,9 +569,9 @@ void main() {
 
   group('README usage examples', () {
     test('example 1: layout symbols reset styles at each boundary', () {
-      // const input1 = "|:!Danger Zone=:?Safe Zone|";
+      // const input1 = "|:!Danger Zone^:?Safe Zone|";
       final row =
-          NaturalBlockParser.parse('|:!Danger Zone=:?Safe Zone|')
+          NaturalBlockParser.parse('|:!Danger Zone^:?Safe Zone|')
                   .children
                   .single
               as RowNode;

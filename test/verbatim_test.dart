@@ -35,10 +35,25 @@ void main() {
       onlyBlock(source).children.single as VerbatimNode;
 
   group('why this exists: code survives', () {
-    test('a line of code is not split into cells', () {
-      // Measured before verbatim existed: this became a four-cell row,
-      // because `=` and `==` are what code is made of.
+    test('a line of code full of `=` now needs no region at all', () {
+      // This used to be the headline argument for verbatim: while `=`
+      // separated cells, `final x = a == b ? 1 : 2;` parsed as a four-cell
+      // row, and `=` is what code is made of. Moving the separator to `^`
+      // took the argument away, which is the point -- code in prose survives
+      // on its own now.
       const code = 'final x = a == b ? 1 : 2;';
+
+      expect(
+        NaturalBlockParser.parse(code).children,
+        [line(code)].map((l) => ColumnNode(children: [l])),
+      );
+      expect(onlyRegion('`$code`').text, code, reason: 'still quotable');
+    });
+
+    test('a line of code containing `^` does need one', () {
+      // What is left of the argument. `^` is rarer in code than `=` was, but
+      // it is not absent: exponents, regexes, and version constraints.
+      const code = 'assert(2^10 == 1024)';
 
       expect(NaturalBlockParser.parse(code).children.single, isA<RowNode>());
       expect(onlyRegion('`$code`').text, code);
@@ -52,7 +67,7 @@ void main() {
     });
 
     test('nothing inside is markup: no separators, decoration or escapes', () {
-      const raw = r':*bold:* and \| and :@action:@ and |a=b| and :---%%%';
+      const raw = r':*bold:* and \| and :@action:@ and |a^b| and :---%%%';
 
       expect(onlyRegion('`$raw`').text, raw);
     });
@@ -106,7 +121,7 @@ void main() {
       // opened on a line of its own, and this one sits beside `x` on the
       // same line -- the separator before it divides cells, not lines.
       final table =
-          NaturalBlockParser.parse('~x=`a|b`|y=z~').children.single
+          NaturalBlockParser.parse('~x^`a|b`|y^z~').children.single
               as TableNode;
       final cell = table.children.first.children.last.children.single;
 

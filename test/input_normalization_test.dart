@@ -203,7 +203,7 @@ void main() {
 
     test('right-to-left text passes through', () {
       expect(
-        NaturalBlockParser.parse('שלום=עולם').children.single,
+        NaturalBlockParser.parse('שלום^עולם').children.single,
         isA<RowNode>(),
       );
     });

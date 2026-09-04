@@ -1,6 +1,6 @@
 enum LayoutSymbol {
   column('|'),
-  row('='),
+  row('^'),
   table('~');
 
   final String char;

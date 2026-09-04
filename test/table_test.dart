@@ -54,7 +54,7 @@ void main() {
   group('declaring a table', () {
     test('`~` turns a run of rows into one TableNode', () {
       expect(
-        NaturalBlockParser.parse('~A=B|C=D~'),
+        NaturalBlockParser.parse('~A^B|C^D~'),
         DocumentNode(
           children: [
             TableNode(
@@ -73,7 +73,7 @@ void main() {
       // idiom that depends on plain rows splitting the width evenly, so a
       // run of rows must not silently become a table.
       expect(
-        NaturalBlockParser.parse('A=B|C=D|'),
+        NaturalBlockParser.parse('A^B|C^D|'),
         DocumentNode(
           children: [
             RowNode(children: [cell('A'), cell('B')]),
@@ -87,7 +87,7 @@ void main() {
       // `=` separates cells, `|` separates rows, `~` separates tables. Each
       // ends everything below it, so a `~` written mid-row closes the cell,
       // closes the row, and opens the table.
-      final document = NaturalBlockParser.parse('A=~B~');
+      final document = NaturalBlockParser.parse('A^~B~');
 
       expect(document.children.first, RowNode(children: [cell('A'), empty()]));
       expect(document.children[1], isA<TableNode>());
@@ -110,7 +110,7 @@ void main() {
       // The case that makes an explicit closer necessary: rows of the same
       // shape following a table, which no implicit rule could separate --
       // an empty block between them would not survive parsing.
-      final document = NaturalBlockParser.parse('~A=B|C=D~E=F');
+      final document = NaturalBlockParser.parse('~A^B|C^D~E^F');
 
       expect(document.children, hasLength(2));
       expect((document.children[0] as TableNode).children, hasLength(2));
@@ -121,7 +121,7 @@ void main() {
       // Everything between the two `~` is the table's. The rows keep exactly
       // the cells the author wrote; the table records how wide that makes
       // it, and squaring the grid off is the drawing layer's business.
-      final table = onlyTable('~A=B|C=D|E=F=G~');
+      final table = onlyTable('~A^B|C^D|E^F^G~');
 
       expect(table.children, hasLength(3));
       expect([for (final r in table.children) r.children.length], [2, 2, 3]);
@@ -131,7 +131,7 @@ void main() {
     test('anything that is not a row becomes a one-cell row', () {
       // The rule it replaces -- "a paragraph ends the table" -- meant a
       // table could end on something the author never wrote as an ending.
-      final table = onlyTable('~A=B|paragraph|C=D~');
+      final table = onlyTable('~A^B|paragraph|C^D~');
 
       expect(table.children, hasLength(3));
       expect(table.children[1], RowNode(children: [cell('paragraph')]));
@@ -140,19 +140,19 @@ void main() {
     test('an empty block contributes nothing, here as anywhere', () {
       // Which is what lets every row be written with a leading `|`: the
       // separator that opens the first row opens an empty block first.
-      expect(onlyTable('~A=B||C=D~').children, hasLength(2));
-      expect(onlyTable('~\n|A=B\n|C=D\n~').children, hasLength(2));
+      expect(onlyTable('~A^B||C^D~').children, hasLength(2));
+      expect(onlyTable('~\n|A^B\n|C^D\n~').children, hasLength(2));
     });
 
     test('the end of the document closes it', () {
-      expect(onlyTable('~A=B').children, hasLength(1));
+      expect(onlyTable('~A^B').children, hasLength(1));
     });
 
     test('`~` alternates: table, prose, table', () {
       // `~` separates table regions from ordinary ones, the way `|`
       // separates blocks. Nothing else opens or closes one, so the author
       // can see from the source alone which side of a `~` they are on.
-      final document = NaturalBlockParser.parse('~A=B~note~C=D~');
+      final document = NaturalBlockParser.parse('~A^B~note~C^D~');
 
       expect(document.children[0], isA<TableNode>());
       expect(document.children[1], block('note'));
@@ -179,15 +179,15 @@ void main() {
       // Two separators with nothing between them, the same as `||`. The
       // table they delimit receives no rows, so it emits no node and what
       // follows is ordinary.
-      expect(NaturalBlockParser.parse('~~A=B').children.single, isA<RowNode>());
+      expect(NaturalBlockParser.parse('~~A^B').children.single, isA<RowNode>());
       expect(
-        NaturalBlockParser.parse('~~~A=B~').children.single,
+        NaturalBlockParser.parse('~~~A^B~').children.single,
         isA<TableNode>(),
       );
     });
 
     test('contradictory alignment markers keep the last one', () {
-      final table = onlyTable('~<^>A=B~');
+      final table = onlyTable('~<=>A^B~');
 
       expect(table.align, BlockAlign.end);
     });
@@ -202,7 +202,7 @@ void main() {
       // be worse than a one-off mistake: the first row fixes every column's
       // alignment, so a leaked `^` would center that whole column in every
       // row that follows.
-      final table = onlyTable('~^A=B|C=D~');
+      final table = onlyTable('~=A^B|C^D~');
 
       expect(table.align, BlockAlign.center);
       expect(aligns(table), [
@@ -215,15 +215,15 @@ void main() {
       // `~^` reads as one cluster describing one block: `~` says it is a
       // table, `^` says how it sits. Meaningful because a table is sized to
       // its content, so there is room around it to be positioned within.
-      expect(onlyTable('~^A=B~').align, BlockAlign.center);
-      expect(onlyTable('~>A=B~').align, BlockAlign.end);
-      expect(onlyTable('~A=B~').align, isNull);
+      expect(onlyTable('~=A^B~').align, BlockAlign.center);
+      expect(onlyTable('~>A^B~').align, BlockAlign.end);
+      expect(onlyTable('~A^B~').align, isNull);
     });
 
     test('a later row inherits each column from the first row', () {
       // The point of inheriting by column: writing `=>` on every row of a
       // numeric column is repetition that carries no information.
-      final table = onlyTable('~A=>B|C=D|E=F~');
+      final table = onlyTable('~A^>B|C^D|E^F~');
 
       expect(table.columns, [null, BlockAlign.end]);
       expect(effective(table), [
@@ -238,7 +238,7 @@ void main() {
       // The distinction `align` being nullable exists to keep. Rows 2 and 3
       // stated nothing, and the tree says so; what they are drawn with is a
       // separate question, answered against `columns`.
-      expect(aligns(onlyTable('~A=>B|C=D|E=F~')), [
+      expect(aligns(onlyTable('~A^>B|C^D|E^F~')), [
         [null, BlockAlign.end],
         [null, null],
         [null, null],
@@ -246,7 +246,7 @@ void main() {
     });
 
     test('a cell with its own marker overrides what it would inherit', () {
-      expect(effective(onlyTable('~A=>B|C=<D~')), [
+      expect(effective(onlyTable('~A^>B|C^<D~')), [
         [null, BlockAlign.end],
         [null, BlockAlign.start],
       ]);
@@ -255,7 +255,7 @@ void main() {
     test('an overriding cell does not change the column for later rows', () {
       // The override is local to that cell: inheritance keeps coming from
       // the column, not from whatever the previous row happened to say.
-      final table = onlyTable('~A=>B|C=<D|E=F~');
+      final table = onlyTable('~A^>B|C^<D|E^F~');
 
       expect(table.columns, [null, BlockAlign.end]);
       expect(effective(table), [
@@ -271,18 +271,18 @@ void main() {
       // the table, whose markers describe the table -- so the cell has no
       // marker slot of its own. Writing `|` opens an empty block (which
       // vanishes) and gives that cell its slot back, uniformly on every row.
-      expect(effective(onlyTable('~|<A=>B|C=D~')), [
+      expect(effective(onlyTable('~|<A^>B|C^D~')), [
         [BlockAlign.start, BlockAlign.end],
         [BlockAlign.start, BlockAlign.end],
       ]);
-      expect(effective(onlyTable('~|>A=B|C=D~')), [
+      expect(effective(onlyTable('~|>A^B|C^D~')), [
         [BlockAlign.end, null],
         [BlockAlign.end, null],
       ]);
     });
 
     test('closing a table aligns the block that follows, not the table', () {
-      final document = NaturalBlockParser.parse('~A=B~^after');
+      final document = NaturalBlockParser.parse('~A^B~=after');
 
       expect((document.children[0] as TableNode).align, isNull);
       expect((document.children[1] as ColumnNode).align, BlockAlign.center);
@@ -291,20 +291,20 @@ void main() {
 
   group('cells keep their existing behaviour inside a table', () {
     test('an empty cell still holds its position', () {
-      final table = onlyTable('~A==C|D==F~');
+      final table = onlyTable('~A^^C|D^^F~');
 
       expect(table.children.first.children, hasLength(3));
       expect(table.children.first.children[1], ColumnNode(children: []));
     });
 
     test('a multi-line cell stacks its lines', () {
-      final table = onlyTable('~one\ntwo=B|C=D~');
+      final table = onlyTable('~one\ntwo^B|C^D~');
 
       expect(table.children.first.children.first.children, [line('one\ntwo')]);
     });
 
     test('decoration inside a table cell is parsed as usual', () {
-      final table = onlyTable('~:*bold=B|C=D~');
+      final table = onlyTable('~:*bold^B|C^D~');
       final span =
           (table.children.first.children.first.children.first as TextNode)
                   .children

@@ -70,18 +70,18 @@ void main() {
     );
 
     const cases = [
-      "左=右",
-      "|左=右",
-      "|左=右|",
-      "||左=右|",
-      "|左=右||",
-      "||左=右||",
-      "||\n左=右||",
-      "||左=右\n||",
-      "||\n左=右\n||",
-      "|\n|左=右||",
-      "||左=右|\n|",
-      "|\n|左=右|\n|",
+      "左^右",
+      "|左^右",
+      "|左^右|",
+      "||左^右|",
+      "|左^右||",
+      "||左^右||",
+      "||\n左^右||",
+      "||左^右\n||",
+      "||\n左^右\n||",
+      "|\n|左^右||",
+      "||左^右|\n|",
+      "|\n|左^右|\n|",
     ];
 
     for (final (index, input) in cases.indexed) {
@@ -102,9 +102,9 @@ void main() {
     // A Row cell is a position, not just content: the cells around it are
     // laid out relative to it, so a blank one has to survive. This is what
     // makes a deliberately empty middle cell expressible at all -- without
-    // it, "左==右" and "左=右" would parse identically.
+    // it, "左^^右" and "左^右" would parse identically.
     test("an empty Row cell between two filled ones is kept as a position", () {
-      const input = "左==右";
+      const input = "左^^右";
       final expected = DocumentNode(
         children: [
           RowNode(
@@ -127,8 +127,8 @@ void main() {
 
       expect(NaturalBlockParser.parse(input), expected);
       expect(
-        NaturalBlockParser.parse("左==右"),
-        isNot(NaturalBlockParser.parse("左=右")),
+        NaturalBlockParser.parse("左^^右"),
+        isNot(NaturalBlockParser.parse("左^右")),
         reason: "an extra empty cell must change the result",
       );
     });
@@ -180,7 +180,7 @@ void main() {
     ];
 
     test("a trailing Row separator adds a final empty cell", () {
-      const input = "左=右=";
+      const input = "左^右^";
       final expected = DocumentNode(
         children: [
           RowNode(
@@ -208,28 +208,28 @@ void main() {
     test("the same row is the same width whatever follows it", () {
       // The regression this group exists for. Appending one character must
       // not change how many cells the row before it has.
-      expect(widths("左=右="), [3]);
-      expect(widths("左=右=|c"), [3]);
-      expect(widths("左=右=~c").first, 3);
-      expect(widths("~左=右=~"), [3]);
+      expect(widths("左^右^"), [3]);
+      expect(widths("左^右^|c"), [3]);
+      expect(widths("左^右^~c").first, 3);
+      expect(widths("~左^右^~"), [3]);
     });
 
-    test("a trailing `=` does not change a table's declared width", () {
+    test("a trailing `^` does not change a table's declared width", () {
       // It reaches further inside a table: the width comes from the widest
       // row, so a row that changed width with the document's end would
       // change how every other row is squared off for drawing.
       final open =
-          NaturalBlockParser.parse("~左=右=").children.single as TableNode;
+          NaturalBlockParser.parse("~左^右^").children.single as TableNode;
       final closed =
-          NaturalBlockParser.parse("~左=右=~").children.single as TableNode;
+          NaturalBlockParser.parse("~左^右^~").children.single as TableNode;
 
       expect(open.columns.length, 3);
       expect(closed.columns.length, 3);
     });
 
-    test("both ends behave alike, and since nothing but '=' separates them, "
+    test("both ends behave alike, and since nothing but '^' separates them, "
         "all four cells land in a single row", () {
-      const input = "=左=右=";
+      const input = "^左^右^";
       final expected = DocumentNode(
         children: [
           RowNode(
@@ -257,7 +257,7 @@ void main() {
 
     test("a Row separator followed by a trailing Column separator does "
         "add a final empty cell to the row", () {
-      const input = "左=右=|";
+      const input = "左^右^|";
       final expected = DocumentNode(
         children: [
           RowNode(
@@ -285,7 +285,7 @@ void main() {
     test("a mid-stream empty block (for contrast with the trailing case) "
         "does produce an empty cell, and since both sides of the '|' are "
         "Row cells they land in the same row", () {
-      const input = "=|";
+      const input = "^|";
       final expected = DocumentNode(
         children: [
           RowNode(
@@ -303,7 +303,7 @@ void main() {
 
     test("an escaped separator at the very end is literal text, and the "
         "block it ends up in is still emitted", () {
-      const input = r"左=右\=";
+      const input = r"左^右\^";
       final expected = DocumentNode(
         children: [
           RowNode(
@@ -315,7 +315,7 @@ void main() {
               ),
               ColumnNode(
                 children: [
-                  TextNode(children: [TextSpanNode(text: "右=")]),
+                  TextNode(children: [TextSpanNode(text: "右^")]),
                 ],
               ),
             ],
@@ -330,7 +330,7 @@ void main() {
 
   group("Row boundaries are explicit, not sibling adjacency", () {
     test("a Column separator between two rows ends the first row", () {
-      const input = "a=b|c=d";
+      const input = "a^b|c^d";
       final expected = DocumentNode(
         children: [
           RowNode(
@@ -369,7 +369,7 @@ void main() {
     });
 
     test("a row followed by plain text still separates correctly", () {
-      const input = "a=b|text";
+      const input = "a^b|text";
       final expected = DocumentNode(
         children: [
           RowNode(
@@ -399,7 +399,7 @@ void main() {
     });
 
     test("plain text followed by a row still separates correctly", () {
-      const input = "text|a=b";
+      const input = "text|a^b";
       final expected = DocumentNode(
         children: [
           ColumnNode(
@@ -429,7 +429,7 @@ void main() {
     });
 
     test("a multi-line cell keeps its lines inside one ColumnNode", () {
-      const input = "左1\n左2=右";
+      const input = "左1\n左2^右";
       final expected = DocumentNode(
         children: [
           RowNode(
@@ -456,7 +456,7 @@ void main() {
 
   group("Block alignment", () {
     test("a marker after each separator aligns the cell it starts", () {
-      const input = "|<A=>B|";
+      const input = "|<A^>B|";
       final expected = DocumentNode(
         children: [
           RowNode(
@@ -483,7 +483,7 @@ void main() {
     });
 
     test("a marker on a plain block wraps it in a centered ColumnNode", () {
-      const input = "|^見出し|";
+      const input = "|=見出し|";
       final expected = DocumentNode(
         children: [
           ColumnNode(
@@ -500,7 +500,7 @@ void main() {
     });
 
     test("a cell with no marker states no alignment at all", () {
-      const input = "左=右";
+      const input = "左^右";
       final expected = DocumentNode(
         children: [
           RowNode(
@@ -555,12 +555,12 @@ void main() {
     });
 
     test("an escaped separator leaves a following '>' as literal text", () {
-      const input = r"x \=> y";
+      const input = r"x \^> y";
       final expected = DocumentNode(
         children: [
           ColumnNode(
             children: [
-              TextNode(children: [TextSpanNode(text: "x => y")]),
+              TextNode(children: [TextSpanNode(text: "x ^> y")]),
             ],
           ),
         ],
@@ -642,7 +642,7 @@ void main() {
     test("this holds for every alignment marker", () {
       final plain = NaturalBlockParser.parse("a||b");
 
-      for (final marker in ["<", "^", ">"]) {
+      for (final marker in ["<", "=", ">"]) {
         expect(
           NaturalBlockParser.parse("a|$marker|b"),
           plain,

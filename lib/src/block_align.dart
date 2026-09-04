@@ -1,6 +1,6 @@
 enum BlockAlign {
   start('<'),
-  center('^'),
+  center('='),
   end('>');
 
   final String char;

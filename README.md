@@ -9,7 +9,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 * **Vertical Layout (Column)**
   Use the `|` (pipe) symbol to create column blocks. Spaces are content and are never trimmed; the one thing that disappears is a single blank line at each end of a block, so a block's symbol can sit on a line of its own.
 * **Horizontal Layout (Row)**
-  Use the `=` (equal) symbol to split text into horizontal row nodes.
+  Use the `^` (caret) symbol to split text into horizontal row nodes.
   Layout symbols reset all decoration (size, color, emphasis, actionability) at the block boundary they create -- each block starts from a clean style.
 * **Decoration clusters (`:`-led)**
   All decoration -- size, semantic color, emphasis, and actionability -- is triggered by a `:` immediately followed by one or more decoration characters, forming a *cluster*. Each character in the cluster applies in order:
@@ -27,50 +27,59 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   ```
 
   Keeping the payload human-readable is the point: an implementation that does not recognise a payload still renders it as ordinary text, so nothing is lost that a person cannot read.
-* **Block alignment (`<`, `^`, `>`)**
-  An alignment marker written *immediately* after an unescaped `|`, `=`, or `~` sets how the block starting there is positioned: `<` start, `^` center, `>` end. `ColumnNode.align` carries it.
+* **Block alignment (`<`, `=`, `>`)**
+  An alignment marker written *immediately* after an unescaped `|`, `^`, or `~` sets how the block starting there is positioned: `<` start, `=` center, `>` end. `ColumnNode.align` carries it.
 
   ```dart
-  NaturalBlockParser.parse('|<品名=^数量=>価格|');
+  NaturalBlockParser.parse('|<品名^=数量^>価格|');
   ```
 
-  That position is the entire trigger -- anywhere else `<`, `^`, and `>` are ordinary text, which matters because `a > b`, `->`, `=>`, and `List<String>` are everywhere in normal prose. An escaped separator leaves a following marker alone too, so `a\=>b` is literally `a=>b`.
+  That position is the entire trigger -- anywhere else `<`, `=`, and `>` are ordinary text, which matters because `a > b`, `->`, `=>`, and `List<String>` are everywhere in normal prose. An escaped separator leaves a following marker alone too, so `a\^>b` is literally `a^>b`.
+* **Why the cell separator is `^` and the center marker is `=`**
+  They used to be the other way round. Three things argued for the swap, in this order.
+
+  First, `<` `=` `>` is a set that reads itself: `<` leans left, `>` leans right, `=` is balanced. `^` means *up*, which is not *center* -- it was the one member of a triple that had to be memorised rather than seen.
+
+  Second, `=` is too common a character to spend on a symbol that is active everywhere. Measured over 207,217 lines of real documentation, `=` appears on 3.17% of lines and `^` on 0.40%. As the cell separator, `=` turned 5,016 lines of ordinary prose into rows -- `x = 1`, `--flag=value`, and the query string of every URL. A separator has to be a character prose does not reach for, and `=` is one prose reaches for constantly.
+
+  Third, and noticed only after the first two had settled it: on a Japanese flick keyboard `<` `=` `>` share a single key, and the flick directions match the meanings -- left for left, right for right. `^` and `|` share a key too, so both layout separators are one key apart.
+
 * **Size, color, emphasis, and actionability are independent axes**
-  None of them resets another. A size change survives a following color/emphasis symbol and vice versa; only a layout symbol (`|`, `=`, or `~`) resets everything.
+  None of them resets another. A size change survives a following color/emphasis symbol and vice versa; only a layout symbol (`|`, `^`, or `~`) resets everything.
 * **Bare punctuation is always literal -- no escaping needed**
   A `+`, `-`, `!`, `%`, `?`, `*`, or `@` with no `:` immediately before it is always ordinary text. This is the whole point of the `:` prefix: everyday prose like `C++`, `10-20`, `100%`, `well-known`, `Really?!`, or `you@example.com` renders completely unchanged, in both Japanese and English, with zero escaping.
 * **A newline is a character, not a boundary**
   A block is one `TextNode` however many lines it has, and the newlines sit inside it as ordinary characters. A newline still does one thing: it resets decoration, so a cluster applies until the end of its line and cannot leak into the rest of the block. That is a rule the parser applies while reading, not a division the tree records. A single blank line at the start or end of a block is dropped, so a block's opening or closing symbol can sit on a line of its own. CRLF input is normalized first, so a document written on Windows parses identically.
 * **An empty cell holds its place; an empty block does not**
-  The two are treated differently on purpose. A Column block is *content*, so an empty one contributes no node at all -- `左||右` is two text nodes, not three, and an alignment marker does not change that. A Row cell is a *position*, so it survives even when blank: `左==右` is three cells with an empty middle, which is what pushes `右` to the far edge. A `=` at the very end opens a cell too -- `左=右=` is three cells wherever the row ends, so appending a character never changes the width of the row before it.
+  The two are treated differently on purpose. A Column block is *content*, so an empty one contributes no node at all -- `左||右` is two text nodes, not three, and an alignment marker does not change that. A Row cell is a *position*, so it survives even when blank: `左^^右` is three cells with an empty middle, which is what pushes `右` to the far edge. A `^` at the very end opens a cell too -- `左^右^` is three cells wherever the row ends, so appending a character never changes the width of the row before it.
 * **A `|` ends the block before it**
   Reading `|` as "a new block starts here" gives the right answer everywhere but one place, and this is that place.
 
-  A row is properly written `|A=B=C|`. The leading `|` is not part of the row -- it is the full stop on whatever came before. Leave it out and nothing ends the preceding line, so that line joins the row's *first cell*: a cell holds lines, and nothing said this cell began at the row. `前の行\nA=B|` is one row whose first cell holds two lines; `前の行\n|A=B|` is a text node and a row.
+  A row is properly written `|A^B^C|`. The leading `|` is not part of the row -- it is the full stop on whatever came before. Leave it out and nothing ends the preceding line, so that line joins the row's *first cell*: a cell holds lines, and nothing said this cell began at the row. `前の行\nA^B|` is one row whose first cell holds two lines; `前の行\n|A^B|` is a text node and a row.
 
-  This is also why the row's own symbol cannot do the job. `前の行\n=A=B` does not split anything -- `=` separates cells within a block and has no business ending one, so `前の行` simply becomes the first cell.
+  This is also why the row's own symbol cannot do the job. `前の行\n^A^B` does not split anything -- `^` separates cells within a block and has no business ending one, so `前の行` simply becomes the first cell.
 
   Nothing throws and nothing is lost, so the difference only shows once it is rendered. When in doubt, write the leading `|`.
 * **Tables (`~`)**
-  `~` is the third layout symbol, one level above `|`. Where `=` separates the cells of a row and `|` separates rows and blocks, `~` separates table regions from ordinary ones -- so a `~` both ends whatever preceded it and starts the table, exactly as `|` does one level down.
+  `~` is the third layout symbol, one level above `|`. Where `^` separates the cells of a row and `|` separates rows and blocks, `~` separates table regions from ordinary ones -- so a `~` both ends whatever preceded it and starts the table, exactly as `|` does one level down.
 
   ```
   ~
-  |<Item  =>Price
-  |apple  =   100
-  |orange =    80
+  |<Item  ^>Price
+  |apple  ^   100
+  |orange ^    80
   ~
   ```
 
   Write one row per line with a leading `|`. The `|` on the first row opens an empty block, which contributes nothing -- it is there so that every line has the same shape, and so that every row's first cell has a marker slot of its own. (`|<Item` aligns that cell; with the `|` written at the *end* of each line instead, the marker would land after a newline and stay literal.)
 
-  A table's columns are as wide as their content and line up across every row; plain rows, by contrast, split the available width evenly. That difference is why a table has to be *declared* rather than inferred -- `Left==Right` is three cells with an empty middle, written that way to push `Right` to the far edge, and it only does that because plain rows divide the width.
+  A table's columns are as wide as their content and line up across every row; plain rows, by contrast, split the available width evenly. That difference is why a table has to be *declared* rather than inferred -- `Left^^Right` is three cells with an empty middle, written that way to push `Right` to the far edge, and it only does that because plain rows divide the width.
 
-  **A table ends at `~` or at the end of the document, and nowhere else.** Everything in between belongs to it: a short row does not end it, and a line with no `=` becomes a one-cell row. The table is as wide as its widest row.
+  **A table ends at `~` or at the end of the document, and nowhere else.** Everything in between belongs to it: a short row does not end it, and a line with no `^` becomes a one-cell row. The table is as wide as its widest row.
 
-  Alignment markers combine with it in the same cluster (`~^` is a centered table, meaningful because a table is sized to its content). A marker written straight after the opening `~` describes the *table*, not its first cell -- which is the other reason to write the leading `|` on every row: `~|<Item=...` aligns the Item column, where `~<Item=...` would align the table itself.
+  Alignment markers combine with it in the same cluster (`~=` is a centered table, meaningful because a table is sized to its content). A marker written straight after the opening `~` describes the *table*, not its first cell -- which is the other reason to write the leading `|` on every row: `~|<Item^...` aligns the Item column, where `~<Item^...` would align the table itself.
 
-  A column takes its alignment from the first row that has that column, so `~|Item=>Price|apple=100~` right-aligns the price column for every row without repeating the marker; a marker on an individual cell overrides just that cell.
+  A column takes its alignment from the first row that has that column, so `~|Item^>Price|apple^100~` right-aligns the price column for every row without repeating the marker; a marker on an individual cell overrides just that cell.
 
   **The tree records what was written, not what will be drawn.** `TableNode.columns` holds what each column declared (and, by its length, how wide the table is); every row keeps exactly the cells the author wrote, each carrying only the marker that cell itself had. Resolving the two is the consumer's step:
 
@@ -90,7 +99,9 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   `
   ```
 
-  This is what makes code writable at all. Without it, `final x = a == b ? 1 : 2;` becomes a four-cell row and `cat a | grep b` becomes three blocks -- `=` and `|` are exactly the characters code uses most, so the promise that ordinary prose survives untouched runs backwards for code.
+  This is what makes code writable at all. `cat a | grep b` is three blocks without it, and `assert(2^10 == 1024)` is a two-cell row -- the promise that ordinary prose survives untouched runs backwards for code, which is made of exactly the characters a layout language wants.
+
+  It used to run much further backwards: while `=` separated cells, `final x = a == b ? 1 : 2;` was a four-cell row. Moving the separator to `^` retired that example -- assignments and comparisons now survive in prose on their own.
 
   **A region can go anywhere**: inside a sentence, alone on a line, or in a table cell. It is one construct, and where you put it is what the tree records -- a region standing alone on its line is a `VerbatimNode`, a block sitting among the lines of its column, while one written inside a sentence is a `VerbatimSpanNode` beside the styled runs. That is what lets a renderer draw the first as a boxed code block and the second as a run of monospaced text. `` ` `` is the price: it is the fifth character that is always active, so a literal backtick in prose is written `` \` ``. A marker built on `|` could never have been inline, since `|` always breaks a block.
 
@@ -102,11 +113,11 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 * **Escape characters**
   A backslash escapes whatever would otherwise be markup *at that point*, and nothing else. Which characters those are depends on where you are:
 
-  * Anywhere: `\|`, `\=`, `\~`, `\:` and `` \` `` render as literal `|`, `=`, `~`, `:` and `` ` ``, and `\\` renders as a literal `\`.
+  * Anywhere: `\|`, `\^`, `\~`, `\:` and `` \` `` render as literal `|`, `^`, `~`, `:` and `` ` ``, and `\\` renders as a literal `\`.
   * **Inside a cluster**, every decoration character is live, so a backslash escapes those too. `:---\%off` gives `%off` at -3, with the backslash gone. The escape also ends the cluster, which is what lets one backslash cover a whole run: `:---\%%%` needs one, not three.
   * Everywhere else a backslash is just a backslash -- `\+`, `\!`, and `C:\Users` keep it, because nothing there needed escaping.
 
-  Escaping the backslash is what makes it possible to put one immediately before a separator: `\\=` is a cell holding `\` followed by a real separator, where `\=` would just be a literal `=`.
+  Escaping the backslash is what makes it possible to put one immediately before a separator: `\\^` is a cell holding `\` followed by a real separator, where `\^` would just be a literal `^`.
 * **Filesystem paths need no escaping**
   Because a backslash only escapes what would otherwise be markup, `C:\Users\you\a.png` comes through untouched. The one thing to know is that a doubled backslash collapses to one, so a UNC path has to be written `\\\\server` to come out as `\\server`.
 
@@ -149,7 +160,7 @@ void main() {
   print(nodes2);
 
   // Example 3: Bare punctuation needs no escaping at all -- only `:`, `|`,
-  // and `=` are ever active symbols, and even those can be escaped with `\`.
+  // `^`, `~` and `` ` `` are ever active, and even those take a `\`.
   const input3 = "It costs -100 and has 100% success rate.";
   final nodes3 = NaturalBlockParser.parse(input3);
   print(nodes3);
