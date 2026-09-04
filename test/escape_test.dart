@@ -494,7 +494,7 @@ void main() {
 
       test("it works inside a table cell too", () {
         final table =
-            NaturalBlockParser.parse('|~x=y|$bs$bs=z|').children.single
+            NaturalBlockParser.parse('~x=y|$bs$bs=z~').children.single
                 as TableNode;
 
         expect(table.children[1].children.first, cell(bs));

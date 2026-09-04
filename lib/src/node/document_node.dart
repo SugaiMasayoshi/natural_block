@@ -12,15 +12,30 @@ final class DocumentNode extends NaturalBlockNode {
     final children = <BlockNode>[];
 
     // The first block is opened by the start of the source, not by a
-    // separator, so it carries no markers -- a leading `~` is text.
-    var cluster = const MarkerCluster(align: null, togglesTable: false, end: 0);
+    // separator, so it carries no markers.
+    var cluster = const MarkerCluster(align: null, end: 0);
+
+    // `~` separates table regions from ordinary ones, so eating one flips
+    // which of the two the next run is. This is the only place that `~` is
+    // consumed: a table stops in front of the one that ends it, exactly as
+    // a row stops in front of the `|` that ends it.
+    var inTable = false;
 
     // A separator at the very end of the source needs no special case: the
     // block it opens is empty, and an empty Column block contributes no
     // node.
     while (true) {
-      children.addAll(BlockNode._parse(scanner, cluster));
+      if (inTable) {
+        final table = TableNode._parse(scanner, cluster.align);
+        if (table != null) children.add(table);
+      } else {
+        children.addAll(BlockNode._parse(scanner, cluster));
+      }
+
       if (scanner.isEnd) break;
+      if (LayoutSymbol.byChar[scanner.peek] == LayoutSymbol.table) {
+        inTable = !inTable;
+      }
       cluster = BlockNode._openNext(scanner);
     }
 

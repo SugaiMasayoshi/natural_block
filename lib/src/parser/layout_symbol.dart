@@ -1,6 +1,7 @@
 enum LayoutSymbol {
   column('|'),
-  row('=');
+  row('='),
+  table('~');
 
   final String char;
   const LayoutSymbol(this.char);

@@ -261,59 +261,119 @@ void main() {
     TableNode onlyTable(String source) =>
         NaturalBlockParser.parse(source).children.single as TableNode;
 
-    test('`|~Item=>Price|` right-aligns the price column for every row', () {
-      final table = onlyTable('|~Item=>Price|A=100|B=200|');
+    test('the README\'s worked example parses as the table it shows', () {
+      final table = onlyTable(
+        '~\n'
+        '|<Item  =>Price\n'
+        '|apple  =   100\n'
+        '|orange =    80\n'
+        '~',
+      );
+
+      expect(table.children, hasLength(3));
       expect(
         [
           for (final row in table.children)
             [for (final c in row.children) c.align],
         ],
         [
-          [null, BlockAlign.end],
-          [null, BlockAlign.end],
-          [null, BlockAlign.end],
+          [BlockAlign.start, BlockAlign.end],
+          [BlockAlign.start, BlockAlign.end],
+          [BlockAlign.start, BlockAlign.end],
         ],
+        reason: 'the leading `|` gives every row a marker slot of its own',
       );
     });
 
+    test('a marker after the opening `~` describes the table, not the '
+        'first cell', () {
+      expect(onlyTable('~<Item=>Price|apple=100~').align, BlockAlign.start);
+      expect(
+        onlyTable('~|<Item=>Price|apple=100~')
+            .children
+            .first
+            .children
+            .first
+            .align,
+        BlockAlign.start,
+      );
+      expect(onlyTable('~|<Item=>Price|apple=100~').align, isNull);
+    });
+
+    test('with the `|` written at the end of each line instead, a marker '
+        'lands after a newline and stays literal', () {
+      // The reason the README recommends the leading `|`.
+      final table = onlyTable('~Item=Price|\n<apple=100\n~');
+      final firstCell = table.children[1].children.first;
+
+      expect(firstCell.align, isNull);
+      expect(
+        (firstCell.children.single as TextNode).children.single,
+        TextSpanNode(text: '<apple'),
+      );
+    });
+
+    test('a line with no `=` becomes a one-cell row', () {
+      expect(onlyTable('~A=B|note~').children[1].children, hasLength(2));
+      expect(onlyTable('~A|B~').children, hasLength(2));
+    });
+
+    test(
+      '`~|Item=>Price|...~` right-aligns the price column for every row',
+      () {
+        final table = onlyTable('~|Item=>Price|A=100|B=200~');
+        expect(
+          [
+            for (final row in table.children)
+              [for (final c in row.children) c.align],
+          ],
+          [
+            [null, BlockAlign.end],
+            [null, BlockAlign.end],
+            [null, BlockAlign.end],
+          ],
+        );
+      },
+    );
+
     test('a marker on an individual cell overrides just that cell', () {
       expect(
-        onlyTable('|~Item=>Price|A=^100|').children[1].children[1].align,
+        onlyTable('~|Item=>Price|A=^100~').children[1].children[1].align,
         BlockAlign.center,
       );
     });
 
-    test('`|~^` is a centered table -- markers share one cluster', () {
-      expect(onlyTable('|~^A=B|').align, BlockAlign.center);
+    test('`~^` is a centered table -- markers share one cluster', () {
+      expect(onlyTable('~^A=B~').align, BlockAlign.center);
     });
 
-    test('a table ends at a row with a different number of cells', () {
+    test('a table ends only at `~` or the end of the document', () {
       expect(
-        NaturalBlockParser.parse('|~A=B|C=D=E|').children
-            .map((c) => c.runtimeType),
-        [TableNode, RowNode],
-      );
-    });
-
-    test('a table ends at anything that is not a row', () {
-      expect(
-        NaturalBlockParser.parse('|~A=B|note|').children
+        NaturalBlockParser.parse('~A=B|C=D=E|note~after').children
             .map((c) => c.runtimeType),
         [TableNode, ColumnNode],
       );
     });
 
+    test(
+      'a short row is padded into the grid rather than ending the table',
+      () {
+        final table = onlyTable('~A=B|C=D=E~');
+
+        expect([for (final r in table.children) r.children.length], [3, 3]);
+      },
+    );
+
     test('a table ends at the end of the document', () {
       expect(
-        NaturalBlockParser.parse('|~A=B').children.single,
+        NaturalBlockParser.parse('~A=B').children.single,
         isA<TableNode>(),
       );
     });
 
-    test('writing `|~` again closes it', () {
+    test('writing `~` again closes it', () {
       expect(
-        NaturalBlockParser.parse('|~A=B|~C=D|').children
-            .map((c) => c.runtimeType),
+        NaturalBlockParser.parse('~A=B~C=D').children.map((c) => c.runtimeType),
         [TableNode, RowNode],
       );
     });
@@ -321,7 +381,7 @@ void main() {
     test('an empty block does not end a table, or `||` would be an invisible '
         'separator', () {
       expect(
-        NaturalBlockParser.parse('|~A=B||C=D|').children.single,
+        NaturalBlockParser.parse('~A=B||C=D~').children.single,
         isA<TableNode>(),
       );
     });
@@ -365,7 +425,7 @@ void main() {
 
     test('a region can go in a table cell', () {
       final table =
-          NaturalBlockParser.parse('|~A=`x`|B=`y`|').children.single
+          NaturalBlockParser.parse('~A=`x`|B=`y`~').children.single
               as TableNode;
       // A run, not a block: the cell sits on the same line as `A`, and a
       // region is a block only when it opens on a line of its own.

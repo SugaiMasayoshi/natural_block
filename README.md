@@ -28,7 +28,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   Keeping the payload human-readable is the point: an implementation that does not recognise a payload still renders it as ordinary text, so nothing is lost that a person cannot read.
 * **Block alignment (`<`, `^`, `>`)**
-  An alignment marker written *immediately* after an unescaped `|` or `=` sets how the block starting there is positioned: `<` start, `^` center, `>` end. `ColumnNode.align` carries it.
+  An alignment marker written *immediately* after an unescaped `|`, `=`, or `~` sets how the block starting there is positioned: `<` start, `^` center, `>` end. `ColumnNode.align` carries it.
 
   ```dart
   NaturalBlockParser.parse('|<品名=^数量=>価格|');
@@ -36,7 +36,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   That position is the entire trigger -- anywhere else `<`, `^`, and `>` are ordinary text, which matters because `a > b`, `->`, `=>`, and `List<String>` are everywhere in normal prose. An escaped separator leaves a following marker alone too, so `a\=>b` is literally `a=>b`.
 * **Size, color, emphasis, and actionability are independent axes**
-  None of them resets another. A size change survives a following color/emphasis symbol and vice versa; only a layout symbol (`|` or `=`) resets everything.
+  None of them resets another. A size change survives a following color/emphasis symbol and vice versa; only a layout symbol (`|`, `=`, or `~`) resets everything.
 * **Bare punctuation is always literal -- no escaping needed**
   A `+`, `-`, `!`, `%`, `?`, `*`, or `@` with no `:` immediately before it is always ordinary text. This is the whole point of the `:` prefix: everyday prose like `C++`, `10-20`, `100%`, `well-known`, `Really?!`, or `you@example.com` renders completely unchanged, in both Japanese and English, with zero escaping.
 * **A newline is a character, not a boundary**
@@ -45,12 +45,26 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   The two are treated differently on purpose. A Column block is *content*, so an empty one contributes no node at all -- `左||右` is two text nodes, not three, and an alignment marker does not change that. A Row cell is a *position*, so it survives even when blank: `左==右` is three cells with an empty middle, which is what pushes `右` to the far edge.
 * **Wrap a row in `|`**
   A row is properly written `|A=B=C|`. Omitting the leading `|` works only when nothing precedes the row on its own line -- otherwise the preceding line is absorbed into the row's *first cell* rather than staying its own block, because a cell holds lines and nothing said the cell started at the row. `前の行\nA=B|` is one row whose first cell holds two lines; `前の行\n|A=B|` is a text node and a row. Nothing fails and nothing is lost, so this is only visible once it is rendered -- when in doubt, write the leading `|`.
-* **Tables (`|~`)**
-  Writing `~` immediately after a `|` declares that the rows which follow are a table, and writing `|~` again closes it. A table's columns are as wide as their content and line up across every row; plain rows, by contrast, split the available width evenly. That difference is why a table has to be *declared* rather than inferred -- `Left==Right` is three cells with an empty middle, written that way to push `Right` to the far edge, and it only does that because plain rows divide the width.
+* **Tables (`~`)**
+  `~` is the third layout symbol, one level above `|`. Where `=` separates the cells of a row and `|` separates rows and blocks, `~` separates table regions from ordinary ones -- so a `~` both ends whatever preceded it and starts the table, exactly as `|` does one level down.
 
-  A table also ends on its own at the first thing that cannot belong to it: a row with a different number of cells, anything that is not a row, or the end of the document. The explicit `|~` is for the one case those cannot cover -- more rows of the same shape that are not part of the table.
+  ```
+  ~
+  |<Item  =>Price
+  |apple  =   100
+  |orange =    80
+  ~
+  ```
 
-  Alignment markers combine with it in the same cluster (`|~^` is a centered table, meaningful because a table is sized to its content). Inside a table, each column takes its alignment from the first row, so `|~Item=>Price|` right-aligns the price column for every row without repeating the marker; a marker on an individual cell overrides just that cell.
+  Write one row per line with a leading `|`. The `|` on the first row opens an empty block, which contributes nothing -- it is there so that every line has the same shape, and so that every row's first cell has a marker slot of its own. (`|<Item` aligns that cell; with the `|` written at the *end* of each line instead, the marker would land after a newline and stay literal.)
+
+  A table's columns are as wide as their content and line up across every row; plain rows, by contrast, split the available width evenly. That difference is why a table has to be *declared* rather than inferred -- `Left==Right` is three cells with an empty middle, written that way to push `Right` to the far edge, and it only does that because plain rows divide the width.
+
+  **A table ends at `~` or at the end of the document, and nowhere else.** Everything in between belongs to it: a short row is padded with empty cells rather than thrown out, and a line with no `=` becomes a one-cell row. The table is as wide as its widest row.
+
+  Alignment markers combine with it in the same cluster (`~^` is a centered table, meaningful because a table is sized to its content). A marker written straight after the opening `~` describes the *table*, not its first cell -- which is the other reason to write the leading `|` on every row: `~|<Item=...` aligns the Item column, where `~<Item=...` would align the table itself.
+
+  A column takes its alignment from the first row that has that column, so `~|Item=>Price|apple=100~` right-aligns the price column for every row without repeating the marker; a marker on an individual cell overrides just that cell.
 * **Verbatim regions (`` ` ``)**
   A pair of backticks opens and closes a region taken exactly as written. Nothing inside is a separator, a decoration, or an escape.
 
@@ -74,7 +88,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 * **Escape characters**
   A backslash escapes whatever would otherwise be markup *at that point*, and nothing else. Which characters those are depends on where you are:
 
-  * Anywhere: `\|`, `\=`, `\:` and `` \` `` render as literal `|`, `=`, `:` and `` ` ``, and `\\` renders as a literal `\`.
+  * Anywhere: `\|`, `\=`, `\~`, `\:` and `` \` `` render as literal `|`, `=`, `~`, `:` and `` ` ``, and `\\` renders as a literal `\`.
   * **Inside a cluster**, every decoration character is live, so a backslash escapes those too. `:---\%off` gives `%off` at -3, with the backslash gone. The escape also ends the cluster, which is what lets one backslash cover a whole run: `:---\%%%` needs one, not three.
   * Everywhere else a backslash is just a backslash -- `\+`, `\!`, and `C:\Users` keep it, because nothing there needed escaping.
 

@@ -21,11 +21,7 @@ final class RowNode extends BlockNode {
       // empty cell is a position the layout keeps.
       if (scanner.isEnd) break;
 
-      final cluster = readMarkerCluster(
-        scanner.source,
-        scanner.position,
-        allowTable: false,
-      );
+      final cluster = readMarkerCluster(scanner.source, scanner.position);
       scanner.skipTo(cluster.end);
       cells.add(ColumnNode._parse(scanner, cluster.align));
     }

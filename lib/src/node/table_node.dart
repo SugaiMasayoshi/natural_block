@@ -8,86 +8,69 @@ final class TableNode extends BlockNode {
 
   TableNode({this.children = const [], this.align});
 
-  /// Reads the run of rows this table owns, and closes itself.
+  /// Reads the run of rows between the `~` that opened the table and the one
+  /// that ends it, which it stops in front of rather than consuming.
   ///
-  /// Nothing above knows a table is open: the `~` that closes one is read
-  /// here, and the first thing that cannot join is handed back as a sibling
-  /// rather than pushed onto the cursor.
-  static List<BlockNode> _parse(Scanner scanner, BlockAlign? align) {
-    final rows = <RowNode>[];
-    final after = <BlockNode>[];
-    List<BlockAlign?>? columnAligns;
-    var cluster = const MarkerCluster(align: null, togglesTable: false, end: 0);
+  /// Everything in between is the table's, so there is nothing to hand back:
+  /// a row of a different width is padded rather than thrown out. Null when
+  /// no row had any content.
+  static TableNode? _parse(Scanner scanner, BlockAlign? align) {
+    final rows = <List<ColumnNode>>[];
+
+    // The alignment that opened the table describes the table, not its
+    // first cell, so the first row starts with nothing stated.
+    var cluster = const MarkerCluster(align: null, end: 0);
 
     while (true) {
       final first = ColumnNode._parse(scanner, cluster.align);
-      final cells = RowNode._parseCells(scanner, first);
+      final cells = RowNode._parseCells(scanner, first) ?? [first];
 
-      final fits =
-          cells != null &&
-          (columnAligns == null || cells.length == columnAligns.length);
-
-      if (fits) {
-        rows.add(
-          _inherit(cells, columnAligns ??= [for (final c in cells) c.align]),
-        );
-      } else {
-        // An empty block contributes nothing, so it cannot end a table --
-        // otherwise `||` would be an invisible separator splitting one in
-        // two on something the AST does not record.
-        final block = cells == null ? first : RowNode(children: cells);
-        if (block is! ColumnNode || block.children.isNotEmpty) {
-          after.add(block);
-          break;
-        }
+      // A block with nothing in it contributes nothing, here as anywhere,
+      // which is what lets every row be written with a leading `|`.
+      if (cells.length > 1 || cells.single.children.isNotEmpty) {
+        rows.add(cells);
       }
 
       if (scanner.isEnd) break;
+      if (LayoutSymbol.byChar[scanner.peek] == LayoutSymbol.table) break;
       cluster = BlockNode._openNext(scanner);
-      if (cluster.togglesTable) {
-        after.addAll(_afterClose(scanner, cluster));
-        break;
+    }
+
+    if (rows.isEmpty) return null;
+    return TableNode(align: align, children: _grid(rows));
+  }
+
+  /// Squares the rows off into a grid, resolving each cell's alignment
+  /// against its column.
+  ///
+  /// A table is a grid, so a short row is padded rather than left ragged --
+  /// the renderer gives each cell an equal share of its own row's width, so
+  /// a ragged row would put its cells out of line with every other row.
+  ///
+  /// A column's alignment is stated by the first row that has that column,
+  /// which for a table whose first row is its widest is just "the first
+  /// row". A cell that said nothing takes what its column said, which may
+  /// itself be nothing.
+  static List<RowNode> _grid(List<List<ColumnNode>> rows) {
+    final columns = <BlockAlign?>[];
+    for (final row in rows) {
+      for (var i = columns.length; i < row.length; i++) {
+        columns.add(row[i].align);
       }
     }
 
     return [
-      if (rows.isNotEmpty) TableNode(children: rows, align: align),
-      ...after,
+      for (final row in rows)
+        RowNode(
+          children: [
+            for (var i = 0; i < columns.length; i++)
+              ColumnNode(
+                children: i < row.length ? row[i].children : const [],
+                align: (i < row.length ? row[i].align : null) ?? columns[i],
+              ),
+          ],
+        ),
     ];
-  }
-
-  /// Resolves each cell's alignment against the column it sits in.
-  ///
-  /// The first row states the columns. A later cell that said nothing takes
-  /// what its column said -- which may itself be nothing, and then the cell
-  /// stays unstated rather than being forced to start.
-  static RowNode _inherit(List<ColumnNode> cells, List<BlockAlign?> columns) =>
-      RowNode(
-        children: [
-          for (var i = 0; i < cells.length; i++)
-            ColumnNode(
-              children: cells[i].children,
-              align: cells[i].align ?? columns[i],
-            ),
-        ],
-      );
-
-  /// Reads whatever follows the `|~` that closed the table.
-  ///
-  /// The alignment in that cluster belongs to the block being opened after
-  /// the table, not to the table that just ended -- but the `~` itself is
-  /// spent on closing, so the block is read without it. Passing the cluster
-  /// on unchanged would open a second table.
-  static List<BlockNode> _afterClose(Scanner scanner, MarkerCluster cluster) {
-    if (scanner.isEnd) return const [];
-    return BlockNode._parse(
-      scanner,
-      MarkerCluster(
-        align: cluster.align,
-        togglesTable: false,
-        end: cluster.end,
-      ),
-    );
   }
 
   @override

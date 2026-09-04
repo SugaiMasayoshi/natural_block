@@ -4,7 +4,9 @@ Initial release.
 
 ### Layout
 
-- `|` separates vertical blocks, `=` separates the cells of a horizontal row.
+- `|` separates vertical blocks, `=` separates the cells of a horizontal row,
+  and `~` delimits a table (see Tables). The three form one hierarchy: each
+  ends everything below it.
 - A run of `=`-joined cells becomes one `RowNode`, so `a=b|c=d` is two rows
   rather than one four-cell row.
 - An empty Column block contributes no node; an empty Row cell keeps its
@@ -31,7 +33,7 @@ Initial release.
 
 ### Alignment
 
-- `<`, `^`, `>` immediately after an unescaped `|` or `=` set the block's
+- `<`, `^`, `>` immediately after an unescaped `|`, `=`, or `~` set the block's
   `BlockAlign`. Anywhere else they are ordinary text, so `a > b`, `->`, and
   `List<String>` need no escaping.
 - `align` is null when the source stated none, which is not the same as
@@ -40,12 +42,23 @@ Initial release.
 
 ### Tables
 
-- `|~` declares that the rows which follow are a table, and `|~` again
-  closes it. A table also ends at a row of a different cell count, at
-  anything that is not a row, or at the end of the document.
-- Markers combine in one cluster: `|~^` is a centered table.
-- Inside a table, a cell with no marker of its own inherits its column's
-  alignment from the first row.
+- `~` is the third layout symbol, one level above `|`: `=` separates the
+  cells of a row, `|` separates rows and blocks, and `~` separates table
+  regions from ordinary ones. Each ends everything below it, so a `~` ends
+  whatever preceded it and starts the table in one stroke.
+- **A table ends at `~` or at the end of the document, and nowhere else.**
+  Everything between belongs to it: a short row is padded with empty cells,
+  and a line with no `=` becomes a one-cell row. The table is as wide as its
+  widest row.
+- Write one row per line with a leading `|`. The `|` opens an empty block,
+  which contributes nothing -- it is there so every line has the same shape
+  and every row's first cell has a marker slot of its own. With the `|` at
+  the end of each line instead, a marker would land after a newline and stay
+  literal.
+- Markers combine in one cluster: `~^` is a centered table. A marker written
+  straight after the opening `~` describes the table, not its first cell.
+- A column takes its alignment from the first row that has that column; a
+  marker on an individual cell overrides just that cell.
 
 ### Decoration
 
@@ -75,13 +88,13 @@ Initial release.
   sits among the lines of its column; one written inside a sentence is a
   `VerbatimSpanNode` beside the styled runs. One syntax, and the tree
   records which of the two places it was written in.
-- `` ` `` is therefore the fifth always-active character; a literal one in
-  prose is written `` \` ``.
+- `` ` `` is therefore an always-active character; a literal one in prose is
+  written `` \` ``.
 
 ### Escaping
 
 - `\` escapes what would otherwise be markup at that point: `\|`, `\=`,
-  `\:`, `` \` ``, `\\`, and any decoration character inside a cluster.
+  `\~`, `\:`, `` \` ``, `\\`, and any decoration character inside a cluster.
   Elsewhere the backslash is kept, so `C:\Users\you` needs no escaping.
 
 ### AST
@@ -103,10 +116,12 @@ Initial release.
 
 ### Internals
 
-- The scan and the assembly are separate: `NaturalBlockParser` decides where
-  the source is cut, `DocumentBuilder` (private) turns the resulting blocks
-  into a tree. `parse` went from 229 lines with nine mutable locals to 124,
-  and an alignment is now passed as an argument rather than read out of a
-  variable the scan writes. Behaviour is unchanged.
+- Each node reads itself. A `Scanner` holds the one cursor and the escape
+  and verbatim rules; every node's parse consumes only what belongs to it
+  and stops in front of the symbol that ends it, which its owner then eats.
+  `RowNode` consumes the `=` between cells but not the `|` that ends the
+  row; `TableNode` consumes the `|` between rows but not the `~` that ends
+  the table. There is no assembly pass and no shared mutable state: the
+  longest function is 22 lines, against 43 for the old `parse`.
 - `README.md`'s claims are executed as tests (`test/readme_test.dart`), so a
   statement in it that stops being true fails the suite.

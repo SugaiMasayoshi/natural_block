@@ -161,24 +161,16 @@ void main() {
     });
 
     test('separators with nothing between them produce nothing', () {
-      for (final source in ['|', '||||', '|~', '|~|~']) {
+      // `~` included: it is a layout symbol wherever it appears, so a bare
+      // one declares a table and then ends, and a table given no rows
+      // contributes no node.
+      for (final source in ['|', '||||', '~', '~~', '|~', '~|~']) {
         expect(
           NaturalBlockParser.parse(source).children,
           isEmpty,
           reason: '"$source" has no content to place',
         );
       }
-    });
-
-    test('a bare `~` with no separator before it is ordinary text', () {
-      expect(
-        NaturalBlockParser.parse('~'),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line('~')]),
-          ],
-        ),
-      );
     });
   });
 
