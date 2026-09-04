@@ -6,37 +6,31 @@ final class ColumnNode extends BlockNode {
 
   ColumnNode({this.children = const [], this.align = BlockAlign.start});
 
-  /// Reads one cell or block: everything up to the next `|` or `=`.
+  /// Reads one cell or block: everything up to the next `|` or `=`, which it
+  /// leaves for whoever those belong to -- `=` divides cells and is the
+  /// row's, `|` divides blocks and is the document's or the table's.
   ///
   /// Decides only what kind of child comes next, by looking at the cursor.
-  /// Each child reads itself and stops before anything that is not its own,
-  /// so nothing here needs to know how a line or a region is spelled.
-  static _Parsed<ColumnNode> _parse(Scanner scanner, BlockAlign? align) {
+  /// Each child reads itself and stops before anything that is not its own.
+  static ColumnNode _parse(Scanner scanner, BlockAlign? align) {
     // The newline written against the separator that opened this block
     // belongs to that separator, which is what lets `|` sit on a line of
     // its own without opening a blank one.
     if (scanner.peek == '\n') scanner.take();
 
     final lines = <LineNode>[];
-    String? terminator;
 
-    while (true) {
+    while (!scanner.isEnd && !LayoutSymbol.byChar.containsKey(scanner.peek)) {
+      final before = scanner.position;
       final line = LineNode._parse(scanner);
       if (line != null) lines.add(line);
-
-      if (scanner.isEnd) break;
-      final symbol = LayoutSymbol.byChar[scanner.peek];
-      if (symbol != null) {
-        terminator = scanner.take();
-        break;
-      }
-      // Anything else means the line stopped in front of a block region.
+      assert(
+        scanner.position > before,
+        'line parse made no progress at ${scanner.position}',
+      );
     }
 
-    return _Parsed(
-      ColumnNode(children: lines, align: align ?? BlockAlign.start),
-      terminator,
-    );
+    return ColumnNode(children: lines, align: align ?? BlockAlign.start);
   }
 
   @override
@@ -53,12 +47,4 @@ final class ColumnNode extends BlockNode {
   @override
   int get hashCode =>
       Object.hash(runtimeType, align, _childrenEquality.hash(children));
-}
-
-/// A node together with the symbol that ended it, or null at the source's end.
-class _Parsed<T> {
-  final T node;
-  final String? terminator;
-
-  const _Parsed(this.node, this.terminator);
 }

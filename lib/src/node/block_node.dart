@@ -1,16 +1,17 @@
 part of '../node.dart';
 
 sealed class BlockNode extends NaturalBlockNode {
-  static _Parsed<List<BlockNode>> _parse(
-    Scanner scanner,
-    MarkerCluster cluster,
-  ) {
+  /// Reads whichever block starts here, given the marker cluster that opened
+  /// it. Stops in front of the `|` that ends it, which belongs to whatever
+  /// arranges the blocks.
+  static List<BlockNode> _parse(Scanner scanner, MarkerCluster cluster) {
     if (cluster.togglesTable) {
       return TableNode._parse(scanner, cluster.align ?? BlockAlign.start);
     }
-
-    final row = RowNode._parseCells(scanner, cluster.align);
-    return _Parsed(_blocksFrom(row.node, cluster.align), row.terminator);
+    return _blocksFrom(
+      RowNode._parseCells(scanner, cluster.align),
+      cluster.align,
+    );
   }
 
   /// What a run of cells contributes.
@@ -32,7 +33,10 @@ sealed class BlockNode extends NaturalBlockNode {
     return only.children;
   }
 
-  static MarkerCluster _readCluster(Scanner scanner) {
+  /// Consumes the `|` the cursor is on and reads the markers written after
+  /// it -- they belong to the block that separator opens.
+  static MarkerCluster _openNext(Scanner scanner) {
+    scanner.take();
     final cluster = readMarkerCluster(
       scanner.source,
       scanner.position,

@@ -5,37 +5,30 @@ final class RowNode extends BlockNode {
 
   RowNode({this.children = const []});
 
-  /// Reads the cells joined by `=`, stopping at the `|` that ends the row
-  /// or at the end of the source.
+  /// Reads the cells joined by `=`, consuming each `=` because it is the
+  /// row's own. Stops in front of the `|` that ends the row, which is not.
   ///
-  /// A row is discovered rather than declared: one cell means this was never
-  /// a row, and the caller unwraps it.
-  static _Parsed<_CellRun> _parseCells(
-    Scanner scanner,
-    BlockAlign? firstAlign,
-  ) {
+  /// A row is discovered rather than declared: a block that never read a
+  /// separator was not one, and the caller unwraps it.
+  static _CellRun _parseCells(Scanner scanner, BlockAlign? firstAlign) {
     final cells = <_Cell>[];
     var align = firstAlign;
     var sawRow = false;
 
     while (true) {
-      final cell = ColumnNode._parse(scanner, align);
-      cells.add(_Cell(cell.node, align));
+      cells.add(_Cell(ColumnNode._parse(scanner, align), align));
 
-      if (LayoutSymbol.byChar[cell.terminator] != LayoutSymbol.row) {
-        // A separator at the very end of the source opens nothing: without
-        // this, `a=b=` would gain a third cell the author never wrote, and
-        // an empty cell is a position the layout keeps.
-        if (cell.terminator == null &&
-            cells.length > 1 &&
-            cells.last.node.children.isEmpty &&
-            cells.last.statedAlign == null) {
-          cells.removeLast();
-        }
-        return _Parsed(_CellRun(cells, sawRow), cell.terminator);
+      if (LayoutSymbol.byChar[scanner.peek] != LayoutSymbol.row) {
+        return _CellRun(cells, sawRow);
       }
-
+      scanner.take();
       sawRow = true;
+
+      // A separator at the very end of the source opens nothing: without
+      // this, `a=b=` would gain a third cell the author never wrote, and an
+      // empty cell is a position the layout keeps.
+      if (scanner.isEnd) return _CellRun(cells, sawRow);
+
       final cluster = readMarkerCluster(
         scanner.source,
         scanner.position,
@@ -77,9 +70,9 @@ class _Cell {
 
 /// The cells of one block, and whether a `=` was ever read.
 ///
-/// A row is a block that contained a separator, not a block that ended up
-/// with more than one cell -- `a=` drops its empty trailing cell and is
-/// still a row.
+/// A row is a block that contained a separator, not one that ended up with
+/// more than one cell -- `a=` drops its empty trailing cell and is still a
+/// row.
 class _CellRun {
   final List<_Cell> cells;
   final bool isRow;

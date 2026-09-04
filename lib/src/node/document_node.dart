@@ -15,13 +15,13 @@ final class DocumentNode extends NaturalBlockNode {
     // separator, so it carries no markers -- a leading `~` is text.
     var cluster = const MarkerCluster(align: null, togglesTable: false, end: 0);
 
+    // A separator at the very end of the source needs no special case: the
+    // block it opens is empty, and an empty Column block contributes no
+    // node.
     while (true) {
-      final block = BlockNode._parse(scanner, cluster);
-      children.addAll(block.node);
-      if (block.terminator == null) break;
+      children.addAll(BlockNode._parse(scanner, cluster));
       if (scanner.isEnd) break;
-      cluster = BlockNode._readCluster(scanner);
-      if (scanner.isEnd && !cluster.togglesTable) break;
+      cluster = BlockNode._openNext(scanner);
     }
 
     return DocumentNode(children: children);

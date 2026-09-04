@@ -10,21 +10,19 @@ final class TableNode extends BlockNode {
   ///
   /// Nothing above knows a table is open: the `~` that closes one is read
   /// here, and the first thing that cannot join is handed back as a sibling
-  /// rather than pushed back onto the cursor.
-  static _Parsed<List<BlockNode>> _parse(Scanner scanner, BlockAlign align) {
+  /// rather than pushed onto the cursor.
+  static List<BlockNode> _parse(Scanner scanner, BlockAlign align) {
     final rows = <RowNode>[];
     final after = <BlockNode>[];
     List<BlockAlign>? columnAligns;
     var cluster = const MarkerCluster(align: null, togglesTable: false, end: 0);
-    String? terminator;
 
     while (true) {
-      final row = RowNode._parseCells(scanner, cluster.align);
-      final cells = row.node.cells;
-      terminator = row.terminator;
+      final run = RowNode._parseCells(scanner, cluster.align);
+      final cells = run.cells;
 
       final fits =
-          row.node.isRow &&
+          run.isRow &&
           (columnAligns == null || cells.length == columnAligns.length);
 
       if (fits) {
@@ -40,7 +38,7 @@ final class TableNode extends BlockNode {
           ),
         );
       } else {
-        final blocks = BlockNode._blocksFrom(row.node, cluster.align);
+        final blocks = BlockNode._blocksFrom(run, cluster.align);
         // An empty block contributes nothing, so it cannot end a table --
         // otherwise `||` would be an invisible separator splitting one in
         // two on something the AST does not record.
@@ -50,24 +48,26 @@ final class TableNode extends BlockNode {
         }
       }
 
-      if (terminator == null) break;
-      cluster = BlockNode._readCluster(scanner);
+      if (scanner.isEnd) break;
+      cluster = BlockNode._openNext(scanner);
       if (cluster.togglesTable) {
         // Closing. The alignment in this cluster belongs to the block being
-        // opened after the table, not to the table that just ended, so the
-        // block is read here rather than handed back unmarked.
+        // opened after the table, not to the table that just ended.
         if (scanner.isEnd) break;
-        final next = RowNode._parseCells(scanner, cluster.align);
-        after.addAll(BlockNode._blocksFrom(next.node, cluster.align));
-        terminator = next.terminator;
+        after.addAll(
+          BlockNode._blocksFrom(
+            RowNode._parseCells(scanner, cluster.align),
+            cluster.align,
+          ),
+        );
         break;
       }
     }
 
-    return _Parsed([
+    return [
       if (rows.isNotEmpty) TableNode(children: rows, align: align),
       ...after,
-    ], terminator);
+    ];
   }
 
   @override
