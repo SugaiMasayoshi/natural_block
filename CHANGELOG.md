@@ -123,13 +123,21 @@ Initial release.
 ### AST
 
 - `DocumentNode` (the root) holds `BlockNode`s: `RowNode`, `TableNode`,
-  `ColumnNode`, and the two `LineNode`s -- `TextNode` and `VerbatimNode`.
-  A `ColumnNode` holds only `LineNode`s, so a cell cannot contain a row or
+  `ColumnNode`, and the two `ContentNode`s -- `TextNode` and `VerbatimNode`.
+  A `ColumnNode` holds only `ContentNode`s, so a cell cannot contain a row or
   a table; stating that in the type keeps a later decision to allow it a
   visible change rather than something that silently always worked.
 - A `TextNode` holds `InlineNode`s: `TextSpanNode` and `VerbatimSpanNode`.
   Neither is a `BlockNode` -- a styled run only exists inside a line -- so
   misplacing one is a compile error.
+- **Nothing in the tree corresponds to a line.** A newline is a character, so
+  a `TextNode` runs across as many of them as the author wrote -- a block of
+  three lines is one node holding two `\n`s. What divides a column's children
+  is a verbatim region written on a line of its own, and nothing else. The
+  type was called `LineNode` and is now `ContentNode`, because the old name
+  suggested a per-line structure that has never existed and quietly shaped
+  design discussions about headings and list items, both of which would need
+  exactly that.
 - Every node declares the exact child type it can hold.
 - All nodes implement `==` / `hashCode` structurally.
 

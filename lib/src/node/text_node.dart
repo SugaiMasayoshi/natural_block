@@ -1,6 +1,6 @@
 part of '../node.dart';
 
-final class TextNode extends LineNode {
+final class TextNode extends ContentNode {
   final List<InlineNode> children;
 
   TextNode({this.children = const []});

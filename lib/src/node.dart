@@ -30,8 +30,11 @@
 ///
 /// **Where to start reading.** [NaturalBlockParser.parse] is the way in and
 /// [DocumentNode] is where the work starts. The parts below are listed in
-/// the order they are reached from there: the spans a line is made of, then
-/// the lines, then the blocks, then the document.
+/// the order they are reached from there: the spans a run of text is made
+/// of, then that content, then the blocks, then the document.
+///
+/// Note there is no line in that list. A newline is a character, so nothing
+/// in the tree corresponds to one -- see [ContentNode].
 library;
 
 import 'package:collection/collection.dart';
@@ -51,7 +54,7 @@ part 'node/text_span_node.dart';
 part 'node/verbatim_span_node.dart';
 
 part 'node/block_node.dart';
-part 'node/line_node.dart';
+part 'node/content_node.dart';
 part 'node/verbatim_node.dart';
 part 'node/text_node.dart';
 part 'node/column_node.dart';

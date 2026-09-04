@@ -148,8 +148,8 @@ import 'package:natural_block/natural_block.dart';
 void main() {
 
   // Example 1: Layout with semantic color clusters.
-  // Layout symbols (| and =) reset styles at each boundary they create.
-  const input1 = "|:!Danger Zone=:?Safe Zone|";
+  // Layout symbols (| and ^) reset styles at each boundary they create.
+  const input1 = "|:!Danger Zone^:?Safe Zone|";
   final nodes1 = NaturalBlockParser.parse(input1);
   print(nodes1);
 

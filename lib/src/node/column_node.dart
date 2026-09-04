@@ -1,7 +1,7 @@
 part of '../node.dart';
 
 final class ColumnNode extends BlockNode {
-  final List<LineNode> children;
+  final List<ContentNode> children;
 
   /// The alignment written for this block, or null when none was.
   ///
@@ -26,19 +26,19 @@ final class ColumnNode extends BlockNode {
     // end is dropped by the run that holds it, where the text is.)
     if (scanner.peek == '\n') scanner.take();
 
-    final lines = <LineNode>[];
+    final content = <ContentNode>[];
 
     while (!scanner.isEnd && !LayoutSymbol.byChar.containsKey(scanner.peek)) {
       final before = scanner.position;
-      final line = LineNode._parse(scanner);
-      if (line != null) lines.add(line);
+      final piece = ContentNode._parse(scanner);
+      if (piece != null) content.add(piece);
       assert(
         scanner.position > before,
-        'line parse made no progress at ${scanner.position}',
+        'content parse made no progress at ${scanner.position}',
       );
     }
 
-    return ColumnNode(children: lines, align: align);
+    return ColumnNode(children: content, align: align);
   }
 
   @override

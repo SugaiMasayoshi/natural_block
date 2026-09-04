@@ -24,6 +24,8 @@
 // The file follows README.md top to bottom so the two can be read side by
 // side.
 
+import 'dart:io';
+
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
@@ -52,6 +54,25 @@ List<TextSpanNode> runs(String source) =>
 /// as much as about it arriving undecorated.
 void survivesUntouched(String source) {
   expect(runs(source), [TextSpanNode(text: source)], reason: source);
+}
+
+final _readme = File('README.md').readAsStringSync();
+
+/// [source], having first checked that the README really contains it.
+///
+/// Quoting the README in a comment is not enough: the two drift. A symbol
+/// swap once updated every test in this file and left one README example
+/// behind, and nothing failed -- the test proved that its own string parsed
+/// correctly, which had stopped being a statement about the README at all.
+String fromReadme(String source) {
+  expect(
+    _readme,
+    contains(source),
+    reason:
+        'README.md no longer contains this example, so the test below has '
+        'stopped checking the README. Fix whichever one is wrong.',
+  );
+  return source;
 }
 
 void main() {
@@ -100,7 +121,7 @@ void main() {
   group('Actionable text', () {
     test('the run between `:@` and `:@` is actionable, and only it', () {
       // README: NaturalBlockParser.parse(':@https://example.com:@ を参照');
-      final spans = runs(':@https://example.com:@ を参照');
+      final spans = runs(fromReadme(':@https://example.com:@ を参照'));
       expect(spans[0].text, 'https://example.com');
       expect(spans[0].isAction, isTrue);
       expect(spans[1].text, ' を参照');
@@ -111,7 +132,8 @@ void main() {
   group('Block alignment', () {
     test('`|<品名^=数量^>価格|` sets start, center and end', () {
       final row =
-          NaturalBlockParser.parse('|<品名^=数量^>価格|').children.single as RowNode;
+          NaturalBlockParser.parse(fromReadme('|<品名^=数量^>価格|')).children.single
+              as RowNode;
       expect(
         [for (final c in row.children) c.align],
         [BlockAlign.start, BlockAlign.center, BlockAlign.end],
@@ -161,7 +183,7 @@ void main() {
     });
 
     test('the README usage example 3 is one plain run', () {
-      survivesUntouched('It costs -100 and has 100% success rate.');
+      survivesUntouched(fromReadme('It costs -100 and has 100% success rate.'));
     });
   });
 
@@ -571,7 +593,7 @@ void main() {
     test('example 1: layout symbols reset styles at each boundary', () {
       // const input1 = "|:!Danger Zone^:?Safe Zone|";
       final row =
-          NaturalBlockParser.parse('|:!Danger Zone^:?Safe Zone|')
+          NaturalBlockParser.parse(fromReadme('|:!Danger Zone^:?Safe Zone|'))
                   .children
                   .single
               as RowNode;
@@ -586,7 +608,7 @@ void main() {
 
     test('example 2: ":++" is +2, ":--" right after nets back to base', () {
       // const input2 = ":++Huge Text:--Normal Text";
-      final spans = runs(':++Huge Text:--Normal Text');
+      final spans = runs(fromReadme(':++Huge Text:--Normal Text'));
       expect(spans[0].sizeOffset, 2);
       expect(spans[0].text, 'Huge Text');
       expect(spans[1].sizeOffset, 0);
