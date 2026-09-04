@@ -15,14 +15,12 @@ final class RowNode extends BlockNode {
 
     final cells = [first];
     while (LayoutSymbol.byChar[scanner.peek] == LayoutSymbol.row) {
-      scanner.take();
-      // The cell after this `=` is opened whatever follows, the end of the
+      // The cell this `=` opens is read whatever follows, the end of the
       // source included. An empty cell is a position the layout keeps, and
       // the row must not mean one thing at the end of a document and
       // another with a character after it -- which is what a reader would
       // watch happen as they typed past it.
-      final align = scanner.takeMarkers();
-
+      final align = scanner.takeSeparator();
       cells.add(ColumnNode._parse(scanner, align));
     }
     return RowNode(children: cells);

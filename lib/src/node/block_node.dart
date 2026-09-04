@@ -18,11 +18,4 @@ sealed class BlockNode extends NaturalBlockNode {
     // no node -- `左||右` is two blocks, not three.
     return first.children.isEmpty ? const [] : [first];
   }
-
-  /// Consumes the layout symbol the cursor is on and the markers written
-  /// after it -- they belong to the block that symbol opens.
-  static BlockAlign? _openNext(Scanner scanner) {
-    scanner.take();
-    return scanner.takeMarkers();
-  }
 }

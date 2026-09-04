@@ -36,7 +36,7 @@ final class DocumentNode extends NaturalBlockNode {
       if (LayoutSymbol.byChar[scanner.peek] == LayoutSymbol.table) {
         inTable = !inTable;
       }
-      align = BlockNode._openNext(scanner);
+      align = scanner.takeSeparator();
     }
 
     return DocumentNode(children: children);

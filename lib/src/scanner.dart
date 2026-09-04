@@ -66,6 +66,20 @@ class Scanner {
   bool get atBlockRegion =>
       atVerbatimFence && (_position == 0 || at(_position - 1) == '\n');
 
+  /// Consumes the layout symbol at the cursor together with the markers
+  /// written after it, and returns what they said.
+  ///
+  /// The two are read as one because that is the only place markers mean
+  /// anything: `<`, `^` and `>` are ordinary text everywhere except directly
+  /// after an unescaped separator. What they describe is whatever that
+  /// separator opens -- a block at the document's level, a row inside a
+  /// table, a cell inside a row -- which is the caller's business, not this
+  /// one's.
+  BlockAlign? takeSeparator() {
+    take();
+    return takeMarkers();
+  }
+
   /// Consumes the markers written at the cursor and returns what they said.
   ///
   /// Null when none were written, which is not [BlockAlign.start]: markers
