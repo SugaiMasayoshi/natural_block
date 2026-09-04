@@ -132,6 +132,11 @@ Initial release.
   `RowNode` consumes the `=` between cells but not the `|` that ends the
   row; `TableNode` consumes the `|` between rows but not the `~` that ends
   the table. There is no assembly pass and no shared mutable state.
+- One consequence of that protocol, worth naming: several levels ask about
+  the same position before anyone consumes it. Five callers ask whether a
+  verbatim region opens at a given fence. The `Scanner` remembers the answer
+  for the position it was read at, which is what makes asking repeatedly
+  free -- roughly 2.5x on a document that is mostly code blocks.
 - What that cost and what it bought, measured rather than claimed: the
   median function got much smaller, and the longest one got *bigger*. Of the
   nine functions that do the parsing, seven are 22 lines or fewer; the two

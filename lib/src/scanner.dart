@@ -5,14 +5,13 @@ import 'parser/verbatim_region.dart';
 class Scanned {
   final String text;
 
-  /// The symbol the scan stopped at, or null at the end of the source.
+  /// The symbol the scan stopped at, or null when nothing was left to take:
+  /// the end of the source, or a verbatim region the caller must decide
+  /// about. Which of those two it was is a question for the cursor, which
+  /// has not moved.
   final String? symbol;
 
-  /// Whether the scan stopped in front of a verbatim region. The cursor is
-  /// left on the fence, so the caller decides whether the region is its own.
-  final bool atVerbatim;
-
-  const Scanned({required this.text, this.symbol, this.atVerbatim = false});
+  const Scanned({required this.text, this.symbol});
 }
 
 class Scanner {
@@ -33,10 +32,30 @@ class Scanner {
   String at(int index) =>
       index >= 0 && index < source.length ? source[index] : '';
 
+  int _regionAt = -1;
+  VerbatimRegion? _region;
+
+  /// The region opening at the cursor, or null if none does.
+  ///
+  /// Remembered for the position it was read at. Five callers ask about the
+  /// same fence before anyone consumes it -- the scan itself, the run's
+  /// boundary check, the line's loop, the inline dispatch, and finally
+  /// [takeVerbatim] -- because a child stops in front of what is not its own
+  /// and its owner then asks. That protocol is right; answering it five
+  /// times over an unchanging source is not.
+  VerbatimRegion? get _regionHere {
+    if (_regionAt != _position) {
+      _regionAt = _position;
+      _region = peek == verbatimFenceChar
+          ? verbatimRegionAt(source, _position)
+          : null;
+    }
+    return _region;
+  }
+
   /// Whether a verbatim region opens here. Asks without consuming, so a node
   /// can decide whether the region belongs to it before touching it.
-  bool get atVerbatimFence =>
-      peek == verbatimFenceChar && verbatimRegionAt(source, _position) != null;
+  bool get atVerbatimFence => _regionHere != null;
 
   /// Whether the region opening here was written on a line of its own, and
   /// so is a block rather than a run inside a line.
@@ -71,7 +90,7 @@ class Scanner {
 
   /// Consumes the region opening at the cursor and returns its content.
   String takeVerbatim() {
-    final region = verbatimRegionAt(source, _position)!;
+    final region = _regionHere!;
     _position = region.end;
     return region.text;
   }
@@ -113,10 +132,8 @@ class Scanner {
         continue;
       }
 
-      if (char == verbatimFenceChar) {
-        if (verbatimRegionAt(source, _position) != null) {
-          return Scanned(text: literal(), atVerbatim: true);
-        }
+      if (char == verbatimFenceChar && _regionHere != null) {
+        return Scanned(text: literal());
       }
 
       if (symbols.contains(char)) {

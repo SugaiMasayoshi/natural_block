@@ -51,7 +51,7 @@ final class TextSpanNode extends InlineNode {
       final scanned = scanner.read(_runEndsAt);
       pending.write(scanned.text);
 
-      if (scanned.atVerbatim || scanned.symbol == null) break;
+      if (scanned.symbol == null) break;
 
       if (LayoutSymbol.byChar.containsKey(scanned.symbol)) {
         scanner.skipTo(scanner.position - 1);
