@@ -10,7 +10,10 @@ Initial release.
 - A run of `=`-joined cells becomes one `RowNode`, so `a=b|c=d` is two rows
   rather than one four-cell row.
 - An empty Column block contributes no node; an empty Row cell keeps its
-  position, which is what makes `左==右` push `右` to the far edge.
+  position, which is what makes `左==右` push `右` to the far edge. A `=` at
+  the very end of the source opens a cell like any other, so `左=右=` is
+  three cells wherever the row ends and appending a character never changes
+  the width of the row before it.
 - A `|` ends the block before it. Reading it as "a new block starts here"
   agrees everywhere but one place: a row is properly written wrapped in
   `|`, and the leading one is not part of the row -- it is the full stop on

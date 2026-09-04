@@ -7,7 +7,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 ## Features
 
 * **Vertical Layout (Column)**
-  Use the `|` (pipe) symbol to create column blocks. Trims trailing spaces and newlines automatically.
+  Use the `|` (pipe) symbol to create column blocks. Spaces are content and are never trimmed; the one thing that disappears is a single blank line at each end of a block, so a block's symbol can sit on a line of its own.
 * **Horizontal Layout (Row)**
   Use the `=` (equal) symbol to split text into horizontal row nodes.
   Layout symbols reset all decoration (size, color, emphasis, actionability) at the block boundary they create -- each block starts from a clean style.
@@ -42,7 +42,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 * **A newline is a character, not a boundary**
   A block is one `TextNode` however many lines it has, and the newlines sit inside it as ordinary characters. A newline still does one thing: it resets decoration, so a cluster applies until the end of its line and cannot leak into the rest of the block. That is a rule the parser applies while reading, not a division the tree records. A single blank line at the start or end of a block is dropped, so a block's opening or closing symbol can sit on a line of its own. CRLF input is normalized first, so a document written on Windows parses identically.
 * **An empty cell holds its place; an empty block does not**
-  The two are treated differently on purpose. A Column block is *content*, so an empty one contributes no node at all -- `左||右` is two text nodes, not three, and an alignment marker does not change that. A Row cell is a *position*, so it survives even when blank: `左==右` is three cells with an empty middle, which is what pushes `右` to the far edge.
+  The two are treated differently on purpose. A Column block is *content*, so an empty one contributes no node at all -- `左||右` is two text nodes, not three, and an alignment marker does not change that. A Row cell is a *position*, so it survives even when blank: `左==右` is three cells with an empty middle, which is what pushes `右` to the far edge. A `=` at the very end opens a cell too -- `左=右=` is three cells wherever the row ends, so appending a character never changes the width of the row before it.
 * **A `|` ends the block before it**
   Reading `|` as "a new block starts here" gives the right answer everywhere but one place, and this is that place.
 

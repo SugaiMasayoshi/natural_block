@@ -156,14 +156,30 @@ void main() {
     });
   });
 
-  group("Trailing separator edge cases (pinned current behavior)", () {
-    // A trailing Row separator leaves the scan positioned exactly at the
-    // end of the source, so the loop that drives the scan exits before a
-    // final (empty) block would be emitted for it -- the trailing "=" adds
-    // no extra cell. The row started by the two cells that do exist is
-    // still open when the loop ends, so a flush after the loop is what
-    // emits it.
-    test("a trailing Row separator does not add a final empty cell", () {
+  group("A trailing separator opens a cell, wherever the row ends", () {
+    // This used to be an exception: a `=` at the very end of the source
+    // opened nothing, so `左=右=` was two cells while the identical row in
+    // `左=右=|c` was three. The row meant one thing at the end of a document
+    // and another with a character after it -- which a reader watched happen
+    // live as they typed past it, the layout jumping on the next keystroke.
+    //
+    // The general rules already covered this without a special case: an
+    // empty Row cell is a position the layout keeps (`左==右`), and a `=`
+    // before a `|` or `~` opens a cell the same way. `isEnd` was the only
+    // place in the parser that read the end of the source as anything other
+    // than one more boundary.
+
+    /// The number of cells in each row a source parses to, inside a table
+    /// or out.
+    List<int> widths(String source) => [
+      for (final block in NaturalBlockParser.parse(source).children)
+        if (block is RowNode)
+          block.children.length
+        else if (block is TableNode)
+          for (final row in block.children) row.children.length,
+    ];
+
+    test("a trailing Row separator adds a final empty cell", () {
       const input = "左=右=";
       final expected = DocumentNode(
         children: [
@@ -179,6 +195,7 @@ void main() {
                   TextNode(children: [TextSpanNode(text: "右")]),
                 ],
               ),
+              ColumnNode(children: []),
             ],
           ),
         ],
@@ -188,9 +205,30 @@ void main() {
       expect(nodes, expected);
     });
 
-    test("a leading Row separator still produces an empty cell, but a "
-        "trailing one does not -- and since nothing but '=' separates them, "
-        "all three cells land in a single row", () {
+    test("the same row is the same width whatever follows it", () {
+      // The regression this group exists for. Appending one character must
+      // not change how many cells the row before it has.
+      expect(widths("左=右="), [3]);
+      expect(widths("左=右=|c"), [3]);
+      expect(widths("左=右=~c").first, 3);
+      expect(widths("~左=右=~"), [3]);
+    });
+
+    test("a trailing `=` does not change a table's declared width", () {
+      // It reaches further inside a table: the width comes from the widest
+      // row, so a row that changed width with the document's end would
+      // change how every other row is squared off for drawing.
+      final open =
+          NaturalBlockParser.parse("~左=右=").children.single as TableNode;
+      final closed =
+          NaturalBlockParser.parse("~左=右=~").children.single as TableNode;
+
+      expect(open.columns.length, 3);
+      expect(closed.columns.length, 3);
+    });
+
+    test("both ends behave alike, and since nothing but '=' separates them, "
+        "all four cells land in a single row", () {
       const input = "=左=右=";
       final expected = DocumentNode(
         children: [
@@ -207,6 +245,7 @@ void main() {
                   TextNode(children: [TextSpanNode(text: "右")]),
                 ],
               ),
+              ColumnNode(children: []),
             ],
           ),
         ],

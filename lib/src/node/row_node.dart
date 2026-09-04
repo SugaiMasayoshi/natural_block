@@ -16,11 +16,11 @@ final class RowNode extends BlockNode {
     final cells = [first];
     while (LayoutSymbol.byChar[scanner.peek] == LayoutSymbol.row) {
       scanner.take();
-      // A separator at the very end of the source opens nothing: without
-      // this, `a=b=` would gain a third cell the author never wrote, and an
-      // empty cell is a position the layout keeps.
-      if (scanner.isEnd) break;
-
+      // The cell after this `=` is opened whatever follows, the end of the
+      // source included. An empty cell is a position the layout keeps, and
+      // the row must not mean one thing at the end of a document and
+      // another with a character after it -- which is what a reader would
+      // watch happen as they typed past it.
       final cluster = readMarkerCluster(scanner.source, scanner.position);
       scanner.skipTo(cluster.end);
       cells.add(ColumnNode._parse(scanner, cluster.align));
