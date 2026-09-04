@@ -1,3 +1,37 @@
+/// The syntax tree, and the parser -- they are the same thing here.
+///
+/// Every node reads itself. There is no separate pass that walks the source
+/// and assembles nodes afterwards; a node's `_parse` takes the one [Scanner]
+/// and returns that node. Which is why this is one library made of parts:
+/// `_parse` is private, so "who may call this" and "who owns this" are the
+/// same question, and a concern that has drifted into the wrong file shows
+/// up as a node type named where it does not belong.
+///
+/// **The one contract.** A node consumes only what is its own and stops in
+/// front of the symbol that ends it. The owner of that symbol eats it. The
+/// three layout symbols form one hierarchy, each ending everything below it:
+///
+/// | node | consumes | stops before |
+/// |---|---|---|
+/// | `TextSpanNode`, `VerbatimSpanNode` | — | `=` `\|` `~` |
+/// | `ColumnNode` | — | `=` `\|` `~` |
+/// | `RowNode` | `=` | `\|` `~` |
+/// | `TableNode` | `\|` | `~` |
+/// | `DocumentNode` | `\|` `~` | — |
+///
+/// So `|` is not "a new block starts here" -- it is the full stop on what
+/// came before, and it means "next sibling" at whichever level is reading.
+///
+/// **What the tree records.** What the source said, never what a renderer
+/// needs. `align == null` means "nothing was written", which is not
+/// [BlockAlign.start]; a table keeps its columns rather than stamping them
+/// onto every cell; short rows are not padded. Resolving those for drawing
+/// is the consumer's step.
+///
+/// **Where to start reading.** [NaturalBlockParser.parse] is the way in and
+/// [DocumentNode] is where the work starts. The parts below are listed in
+/// the order they are reached from there: the spans a line is made of, then
+/// the lines, then the blocks, then the document.
 library;
 
 import 'package:collection/collection.dart';
