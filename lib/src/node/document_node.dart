@@ -23,13 +23,12 @@ final class DocumentNode extends NaturalBlockNode {
     // block it opens is empty, and an empty Column block contributes no
     // node.
     while (true) {
-      if (inTable) {
-        final table = TableNode._parse(cursor, align);
-        if (table != null) children.add(table);
-      } else {
-        final block = BlockNode._parse(cursor, align);
-        if (block != null) children.add(block);
-      }
+      // A table is a block, so the two readings differ only in which one is
+      // asked -- not in what is done with the answer.
+      final block = inTable
+          ? TableNode._parse(cursor, align)
+          : BlockNode._parse(cursor, align);
+      if (block != null) children.add(block);
 
       if (cursor.isEnd) break;
       if (cursor.peek == tableSymbol) {
