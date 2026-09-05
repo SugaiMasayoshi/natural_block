@@ -13,8 +13,7 @@ sealed class InlineNode extends NaturalBlockNode {
   /// after it changes the style and contributes no node.
   static (InlineNode?, _Decoration) _parse(Scanner scanner, _Decoration style) {
     if (scanner.atVerbatimFence) {
-      final text = scanner.takeVerbatim();
-      return (text.isEmpty ? null : VerbatimSpanNode(text: text), style);
+      return (VerbatimSpanNode._parse(scanner), style);
     }
     return TextSpanNode._parse(scanner, style);
   }

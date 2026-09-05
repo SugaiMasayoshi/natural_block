@@ -40,10 +40,10 @@ library;
 import 'package:collection/collection.dart';
 
 import 'block_align.dart';
-import 'parser/decoration_action.dart';
-import 'parser/layout_symbol.dart';
 import 'scanner.dart';
 import 'semantic_color.dart';
+import 'syntax/decoration_action.dart';
+import 'syntax/layout_symbol.dart';
 
 part 'node/natural_block_node.dart';
 part 'node/children_equality.dart';

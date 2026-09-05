@@ -1,5 +1,5 @@
-import 'parser/layout_symbol.dart';
-import 'parser/verbatim_region.dart';
+import 'syntax/layout_symbol.dart';
+import 'syntax/verbatim_region.dart';
 
 /// The cursor over the source, and the two things that must be resolved
 /// before any node can read a character: escapes, and verbatim regions.
@@ -20,7 +20,15 @@ class Scanner {
 
   int _position = 0;
 
-  Scanner(this.source);
+  /// Every line break arrives as `\n`, whatever the author's editor wrote.
+  ///
+  /// Done here rather than by the caller because a newline is a character
+  /// in this language -- it sits inside a run of text and is compared like
+  /// any other -- so a stray `\r` would reach the tree and make a Windows
+  /// document unequal to the same document written on a Mac. Nothing above
+  /// this line ever sees the original bytes.
+  Scanner(String source)
+    : source = source.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
 
   int get position => _position;
 
