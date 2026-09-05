@@ -5,6 +5,20 @@ final class TextNode extends ContentNode {
 
   TextNode({this.children = const []});
 
+  /// Whether a run of inline content ends at the cursor: the block's own
+  /// separator, a verbatim region written on a line of its own, or the end
+  /// of the source.
+  ///
+  /// One answer to one question, asked from two places for the same
+  /// position: this node's loop stops here, and the last run it read has to
+  /// know that the newline it just took sits against a boundary rather than
+  /// inside its text. Assembled separately in both, the two could disagree
+  /// and a newline would be kept in one place and dropped in the other.
+  static bool _endsHere(SourceCursor cursor) =>
+      cursor.isEnd ||
+      layoutSymbols.contains(cursor.peek) ||
+      VerbatimNode._opensAt(cursor);
+
   /// Reads one run of inline content, stopping in front of anything that is
   /// not its own: a separator that belongs to the block, or a verbatim
   /// region written on a line of its own.
@@ -15,9 +29,7 @@ final class TextNode extends ContentNode {
     final children = <InlineNode>[];
     var style = const SpanDecoration();
 
-    while (!cursor.isEnd &&
-        !VerbatimNode._opensAt(cursor) &&
-        !layoutSymbols.contains(cursor.peek)) {
+    while (!_endsHere(cursor)) {
       final before = cursor.position;
       final (node, next) = InlineNode._parse(cursor, style);
       style = next;

@@ -53,7 +53,6 @@ import 'source_cursor.dart';
 import 'verbatim_region.dart';
 
 part 'node/natural_block_node.dart';
-part 'node/children_equality.dart';
 
 part 'node/inline_node.dart';
 part 'node/span_decoration.dart';
