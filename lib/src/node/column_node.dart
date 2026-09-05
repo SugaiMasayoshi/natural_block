@@ -28,7 +28,7 @@ final class ColumnNode extends BlockNode {
 
     final content = <ContentNode>[];
 
-    while (!scanner.isEnd && !LayoutSymbol.byChar.containsKey(scanner.peek)) {
+    while (!scanner.isEnd && scanner.layoutSymbol == null) {
       final before = scanner.position;
       final piece = ContentNode._parse(scanner);
       if (piece != null) content.add(piece);

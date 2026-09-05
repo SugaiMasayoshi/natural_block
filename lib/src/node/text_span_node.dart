@@ -63,9 +63,7 @@ final class TextSpanNode extends InlineNode {
 
     // The newline written against a boundary belongs to that boundary.
     final atBoundary =
-        scanner.isEnd ||
-        LayoutSymbol.byChar.containsKey(scanner.peek) ||
-        scanner.atBlockRegion;
+        scanner.isEnd || scanner.layoutSymbol != null || scanner.atBlockRegion;
 
     var run = pending.toString();
     if (atBoundary && run.endsWith('\n')) {
@@ -94,7 +92,7 @@ final class TextSpanNode extends InlineNode {
 
   static bool _opensCluster(Scanner scanner) =>
       scanner.peek == ':' &&
-      DecorationAction.byChar.containsKey(scanner.at(scanner.position + 1));
+      DecorationAction.byChar.containsKey(scanner.peekAt(1));
 
   int get sizeOffset => _style.sizeOffset;
 

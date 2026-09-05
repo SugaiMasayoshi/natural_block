@@ -17,7 +17,7 @@ final class TextNode extends ContentNode {
 
     while (!scanner.isEnd &&
         !scanner.atBlockRegion &&
-        !LayoutSymbol.byChar.containsKey(scanner.peek)) {
+        scanner.layoutSymbol == null) {
       final before = scanner.position;
       final (node, next) = InlineNode._parse(scanner, style);
       style = next;

@@ -29,18 +29,11 @@ class _Decoration {
     while (!scanner.isEnd) {
       final char = scanner.peek;
 
+      // A backslash that cancels nothing is an ordinary character, and the
+      // scanner leaves the cursor on it -- the cluster ends either way, and
+      // what the escape rescued (if anything) opens the run that follows.
       if (char == r'\') {
-        final mark = scanner.position;
-        scanner.take();
-        final next = scanner.peek;
-        if (!scanner.isEnd &&
-            (Scanner.escapesAlwaysActive(next) ||
-                DecorationAction.byChar.containsKey(next))) {
-          scanner.take();
-          return (result, next);
-        }
-        scanner.skipTo(mark);
-        return (result, '');
+        return (result, scanner.takeEscape(DecorationAction.chars) ?? '');
       }
 
       final action = DecorationAction.byChar[char];
