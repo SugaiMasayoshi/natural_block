@@ -158,9 +158,10 @@ this repository, which is why the entries below describe changes freely.
 
 ### Internals
 
-- Each node reads itself. A `Scanner` holds the one cursor and the escape
-  and verbatim rules; every node's parse consumes only what belongs to it
-  and stops in front of the symbol that ends it, which its owner then eats.
+- Each node reads itself. A `Scanner` holds the one cursor and everything
+  that must be resolved before a node can read a character -- line endings,
+  escapes, verbatim regions; every node's parse consumes only what belongs
+  to it and stops in front of the symbol that ends it, which its owner eats.
   `RowNode` consumes the `^` between cells but not the `|` that ends the
   row; `TableNode` consumes the `|` between rows but not the `~` that ends
   the table. There is no assembly pass and no shared mutable state.
@@ -170,11 +171,17 @@ this repository, which is why the entries below describe changes freely.
   for the position it was read at, which is what makes asking repeatedly
   free -- roughly 2.5x on a document that is mostly code blocks.
 - What that cost and what it bought, measured rather than claimed. Counting
-  code lines only, blanks and comments excluded: of the fifteen functions
-  that do the parsing, twelve are 23 lines or fewer, and the three longest --
-  `TextSpanNode._parse` (29), `Scanner.read` (24) and
-  `_Decoration.readCluster` (24) -- all read a run of styled text. The
-  separated parser it replaced did that same reading in one function of 90
-  lines, and its entry point was 36. `lib` went from 581 code lines to 557.
+  code lines only, blanks and comments excluded: of the sixteen functions
+  that do the parsing, fifteen are 22 lines or fewer, and the one outlier is
+  `TextSpanNode._parse` at 27 -- the run of styled text, which is where
+  decoration, newlines and every layout symbol meet. The separated parser it
+  replaced did that same reading in one function of 90 lines, and its entry
+  point was 36. `lib` went from 581 code lines to 558.
+- The scanner knows this language's layout alphabet, which is not a leak:
+  what a backslash cancels is whatever is markup at that point, and a run of
+  text ends where markup begins -- the same list twice. It does *not* know
+  alignment. `<`, `=` and `>` are neither escapable nor terminators, and
+  mean anything only directly after a separator, so that rule lives with the
+  enum instead.
 - `README.md`'s claims are executed as tests (`test/readme_test.dart`), so a
   statement in it that stops being true fails the suite.
