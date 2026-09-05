@@ -49,14 +49,7 @@ final class TextSpanNode extends InlineNode {
     // exit was taken need not be tracked either.
     final outgoing = cursor.peek == '\n' ? const SpanDecoration() : style;
 
-    // The newline written against a boundary belongs to that boundary.
-    // Asked of the node this run sits in rather than worked out here: what
-    // ends a run of content is its business, and a span that assembled the
-    // answer itself would be reasoning about blocks it never sees.
-    var run = pending.toString();
-    if (TextNode._endsHere(cursor) && run.endsWith('\n')) {
-      run = run.substring(0, run.length - 1);
-    }
+    final run = pending.toString();
     return (
       run.isEmpty ? null : TextSpanNode(text: run, decoration: style),
       outgoing,

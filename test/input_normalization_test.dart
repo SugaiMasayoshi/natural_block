@@ -101,6 +101,23 @@ void main() {
       );
     });
 
+    test("the blank line goes even when the run that read it is not last", () {
+      // The rule is about the run, not about whichever span happened to be
+      // holding the newline. A cluster with no text after it contributes no
+      // span, so it used to be the thing sitting against the boundary --
+      // and the newline before it survived, while the same document without
+      // the cluster lost it.
+      expect(
+        NaturalBlockParser.parse('text\n:*'),
+        NaturalBlockParser.parse('text\n'),
+        reason: 'an empty cluster at the end changes nothing',
+      );
+      expect(
+        NaturalBlockParser.parse('text\n:*'),
+        DocumentNode(children: [block('text')]),
+      );
+    });
+
     test('a leading ideographic space is kept', () {
       // U+3000 is how Japanese prose indents. `String.trim` would eat it,
       // which is why trimming was never done with `trim` even back when the

@@ -8,16 +8,41 @@ final class TextNode extends ContentNode {
   /// Whether a run of inline content ends at the cursor: the block's own
   /// separator, a verbatim region written on a line of its own, or the end
   /// of the source.
-  ///
-  /// One answer to one question, asked from two places for the same
-  /// position: this node's loop stops here, and the last run it read has to
-  /// know that the newline it just took sits against a boundary rather than
-  /// inside its text. Assembled separately in both, the two could disagree
-  /// and a newline would be kept in one place and dropped in the other.
   static bool _endsHere(SourceCursor cursor) =>
       cursor.isEnd ||
       layoutSymbols.contains(cursor.peek) ||
       VerbatimNode._opensAt(cursor);
+
+  /// Drops the newline written against the end of this run.
+  ///
+  /// A line break is an ordinary character in the middle of content, but
+  /// one written against a boundary is how the author put the boundary on
+  /// its own line -- `a\n|b` is two blocks, not a block ending in a blank
+  /// line.
+  ///
+  /// Here rather than in the span that read it, for two reasons. A span
+  /// cannot know: whether the thing it stopped at ends this whole run is
+  /// settled one level up, after it has returned. And it is not its rule to
+  /// apply -- "content does not end with a newline" is about the run, which
+  /// is this node. Left to the span it also came out wrong, because the run
+  /// might end with a span that read no text at all: `a\n:*` kept the
+  /// newline that `a\n` dropped, since the empty cluster after it was what
+  /// sat against the boundary.
+  static void _dropNewlineAtBoundary(List<InlineNode> children) {
+    if (children.isEmpty) return;
+    final last = children.last;
+    if (last is! TextSpanNode || !last.text.endsWith('\n')) return;
+
+    final text = last.text.substring(0, last.text.length - 1);
+    if (text.isEmpty) {
+      children.removeLast();
+    } else {
+      children[children.length - 1] = TextSpanNode(
+        text: text,
+        decoration: last.decoration,
+      );
+    }
+  }
 
   /// Reads one run of inline content, stopping in front of anything that is
   /// not its own: a separator that belongs to the block, or a verbatim
@@ -43,6 +68,7 @@ final class TextNode extends ContentNode {
       );
     }
 
+    _dropNewlineAtBoundary(children);
     return TextNode(children: children);
   }
 
