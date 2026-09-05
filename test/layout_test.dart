@@ -406,7 +406,10 @@ void main() {
             children: [
               TextNode(
                 children: [
-                  TextSpanNode(text: "赤い数字", color: SemanticColor.danger),
+                  TextSpanNode(
+                    text: "赤い数字",
+                    decoration: SpanDecoration(color: SemanticColor.danger),
+                  ),
                 ],
               ),
             ],

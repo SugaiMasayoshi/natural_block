@@ -11,9 +11,9 @@ sealed class InlineNode extends NaturalBlockNode {
   ///
   /// Null when the run turned out to be empty -- a cluster with no text
   /// after it changes the style and contributes no node.
-  static (InlineNode?, _Decoration) _parse(
+  static (InlineNode?, SpanDecoration) _parse(
     SourceCursor cursor,
-    _Decoration style,
+    SpanDecoration style,
   ) {
     if (cursor.atVerbatimFence) {
       return (VerbatimSpanNode._parse(cursor), style);

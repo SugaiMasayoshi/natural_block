@@ -301,7 +301,7 @@ void main() {
               as TextSpanNode;
 
       expect(span.text, 'bold');
-      expect(span.emphasis, isTrue);
+      expect(span.decoration.emphasis, isTrue);
     });
   });
 }

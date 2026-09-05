@@ -4,13 +4,13 @@ part of '../node.dart';
 ///
 /// Immutable: [apply] returns the next state rather than mutating, so the
 /// style of a finished run cannot change under it.
-class _Decoration {
+class SpanDecoration {
   final int sizeOffset;
   final SemanticColor color;
   final bool emphasis;
   final bool isAction;
 
-  const _Decoration({
+  const SpanDecoration({
     this.sizeOffset = 0,
     this.color = SemanticColor.none,
     this.emphasis = false,
@@ -24,7 +24,7 @@ class _Decoration {
   /// handing it back is what lets one backslash cover a whole run: past it
   /// every decoration character is literal again, so `:---\%%%` needs one
   /// backslash rather than one per character.
-  (_Decoration, String) readCluster(SourceCursor cursor) {
+  (SpanDecoration, String) readCluster(SourceCursor cursor) {
     var result = this;
     while (!cursor.isEnd) {
       final char = cursor.peek;
@@ -44,7 +44,7 @@ class _Decoration {
     return (result, '');
   }
 
-  _Decoration apply(DecorationAction action) => switch (action) {
+  SpanDecoration apply(DecorationAction action) => switch (action) {
     DecorationAction.larger => _copy(sizeOffset: sizeOffset + 1),
     DecorationAction.smaller => _copy(sizeOffset: sizeOffset - 1),
     DecorationAction.danger => _copy(color: _toggle(SemanticColor.danger)),
@@ -59,8 +59,13 @@ class _Decoration {
   };
 
   @override
+  String toString() =>
+      'SpanDecoration(sizeOffset: $sizeOffset, color: $color, '
+      'emphasis: $emphasis, isAction: $isAction)';
+
+  @override
   bool operator ==(Object other) =>
-      other is _Decoration &&
+      other is SpanDecoration &&
       sizeOffset == other.sizeOffset &&
       color == other.color &&
       emphasis == other.emphasis &&
@@ -72,12 +77,12 @@ class _Decoration {
   SemanticColor _toggle(SemanticColor next) =>
       color == next ? SemanticColor.none : next;
 
-  _Decoration _copy({
+  SpanDecoration _copy({
     int? sizeOffset,
     SemanticColor? color,
     bool? emphasis,
     bool? isAction,
-  }) => _Decoration(
+  }) => SpanDecoration(
     sizeOffset: sizeOffset ?? this.sizeOffset,
     color: color ?? this.color,
     emphasis: emphasis ?? this.emphasis,

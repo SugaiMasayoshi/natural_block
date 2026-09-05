@@ -98,8 +98,20 @@ void main() {
         'the order of the runs is part of the node',
       ),
       'TextSpanNode': (
-        TextSpanNode(text: '重要', sizeOffset: 1, color: SemanticColor.danger),
-        TextSpanNode(text: '重要', sizeOffset: 1, color: SemanticColor.success),
+        TextSpanNode(
+          text: '重要',
+          decoration: SpanDecoration(
+            sizeOffset: 1,
+            color: SemanticColor.danger,
+          ),
+        ),
+        TextSpanNode(
+          text: '重要',
+          decoration: SpanDecoration(
+            sizeOffset: 1,
+            color: SemanticColor.success,
+          ),
+        ),
         'the colour is part of the span',
       ),
       'VerbatimNode': (
@@ -148,9 +160,11 @@ void main() {
     test("differing in just one TextSpanNode field breaks equality", () {
       final base = TextSpanNode(
         text: "本文",
-        sizeOffset: 1,
-        color: SemanticColor.danger,
-        emphasis: true,
+        decoration: SpanDecoration(
+          sizeOffset: 1,
+          color: SemanticColor.danger,
+          emphasis: true,
+        ),
       );
 
       expect(base == base.copyWith(text: "別文"), isFalse);
@@ -194,9 +208,11 @@ extension on TextSpanNode {
   }) {
     return TextSpanNode(
       text: text ?? this.text,
-      sizeOffset: sizeOffset ?? this.sizeOffset,
-      color: color ?? this.color,
-      emphasis: emphasis ?? this.emphasis,
+      decoration: SpanDecoration(
+        sizeOffset: sizeOffset ?? decoration.sizeOffset,
+        color: color ?? decoration.color,
+        emphasis: emphasis ?? decoration.emphasis,
+      ),
     );
   }
 }

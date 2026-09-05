@@ -21,11 +21,17 @@ void main() {
       // they don't interfere with each other across the whole sequence.
       const input = ":!赤:!通常:%緑:%通常:*太字:*";
       final expected = [
-        TextSpanNode(text: "赤", color: SemanticColor.danger),
+        TextSpanNode(
+          text: "赤",
+          decoration: SpanDecoration(color: SemanticColor.danger),
+        ),
         TextSpanNode(text: "通常"),
-        TextSpanNode(text: "緑", color: SemanticColor.success),
+        TextSpanNode(
+          text: "緑",
+          decoration: SpanDecoration(color: SemanticColor.success),
+        ),
         TextSpanNode(text: "通常"),
-        TextSpanNode(text: "太字", emphasis: true),
+        TextSpanNode(text: "太字", decoration: SpanDecoration(emphasis: true)),
       ];
 
       expect(runs(input), expected);
@@ -37,8 +43,14 @@ void main() {
       // must not require closing the previous one first.
       const input = ":!危険から:%成功へ切り替え:%最後は通常";
       final expected = [
-        TextSpanNode(text: "危険から", color: SemanticColor.danger),
-        TextSpanNode(text: "成功へ切り替え", color: SemanticColor.success),
+        TextSpanNode(
+          text: "危険から",
+          decoration: SpanDecoration(color: SemanticColor.danger),
+        ),
+        TextSpanNode(
+          text: "成功へ切り替え",
+          decoration: SpanDecoration(color: SemanticColor.success),
+        ),
         TextSpanNode(text: "最後は通常"),
       ];
 
@@ -52,7 +64,10 @@ void main() {
       const input = "通常テキスト:!ここから文末までずっと危険状態";
       final expected = [
         TextSpanNode(text: "通常テキスト"),
-        TextSpanNode(text: "ここから文末までずっと危険状態", color: SemanticColor.danger),
+        TextSpanNode(
+          text: "ここから文末までずっと危険状態",
+          decoration: SpanDecoration(color: SemanticColor.danger),
+        ),
       ];
 
       expect(runs(input), expected);
@@ -64,7 +79,10 @@ void main() {
       // node is created and that it correctly falls back to plain.
       const input = ":!危険:!普通:!!普通";
       final expected = [
-        TextSpanNode(text: "危険", color: SemanticColor.danger),
+        TextSpanNode(
+          text: "危険",
+          decoration: SpanDecoration(color: SemanticColor.danger),
+        ),
         TextSpanNode(text: "普通"),
         TextSpanNode(text: "普通"),
       ];
@@ -84,7 +102,10 @@ void main() {
                 children: [
                   TextNode(
                     children: [
-                      TextSpanNode(text: "左は危険", color: SemanticColor.danger),
+                      TextSpanNode(
+                        text: "左は危険",
+                        decoration: SpanDecoration(color: SemanticColor.danger),
+                      ),
                     ],
                   ),
                 ],
@@ -116,10 +137,13 @@ void main() {
                 children: [
                   TextSpanNode(
                     text: "警告: システムエラー",
-                    color: SemanticColor.danger,
+                    decoration: SpanDecoration(color: SemanticColor.danger),
                   ),
                   TextSpanNode(text: "\n"),
-                  TextSpanNode(text: "補足事項", emphasis: true),
+                  TextSpanNode(
+                    text: "補足事項",
+                    decoration: SpanDecoration(emphasis: true),
+                  ),
                 ],
               ),
             ],
@@ -134,7 +158,9 @@ void main() {
                       TextSpanNode(text: "解決策: "),
                       TextSpanNode(
                         text: "管理者へ連絡",
-                        color: SemanticColor.success,
+                        decoration: SpanDecoration(
+                          color: SemanticColor.success,
+                        ),
                       ),
                     ],
                   ),
@@ -155,7 +181,13 @@ void main() {
       // shared reset closes them both together at the end
       const input = ":!*緊急対応::";
       final expected = [
-        TextSpanNode(text: "緊急対応", color: SemanticColor.danger, emphasis: true),
+        TextSpanNode(
+          text: "緊急対応",
+          decoration: SpanDecoration(
+            color: SemanticColor.danger,
+            emphasis: true,
+          ),
+        ),
       ];
 
       expect(runs(input), expected);
@@ -175,7 +207,13 @@ void main() {
       test("the shared :: reset closes color and emphasis together", () {
         const input = ":!*緊急::普通";
         final expected = [
-          TextSpanNode(text: "緊急", color: SemanticColor.danger, emphasis: true),
+          TextSpanNode(
+            text: "緊急",
+            decoration: SpanDecoration(
+              color: SemanticColor.danger,
+              emphasis: true,
+            ),
+          ),
           TextSpanNode(text: "普通"),
         ];
 
@@ -185,7 +223,10 @@ void main() {
       test(":: resets even when only one of color/emphasis is active", () {
         const input = ":*太字だけ::普通";
         final expected = [
-          TextSpanNode(text: "太字だけ", emphasis: true),
+          TextSpanNode(
+            text: "太字だけ",
+            decoration: SpanDecoration(emphasis: true),
+          ),
           TextSpanNode(text: "普通"),
         ];
 
@@ -204,8 +245,10 @@ void main() {
         final expected = [
           TextSpanNode(
             text: "緊急対応",
-            color: SemanticColor.danger,
-            emphasis: true,
+            decoration: SpanDecoration(
+              color: SemanticColor.danger,
+              emphasis: true,
+            ),
           ),
         ];
 
@@ -217,9 +260,11 @@ void main() {
         final expected = [
           TextSpanNode(
             text: "重要",
-            sizeOffset: 1,
-            color: SemanticColor.danger,
-            emphasis: true,
+            decoration: SpanDecoration(
+              sizeOffset: 1,
+              color: SemanticColor.danger,
+              emphasis: true,
+            ),
           ),
         ];
 
@@ -245,8 +290,10 @@ void main() {
                   children: [
                     TextSpanNode(
                       text: "結果",
-                      color: SemanticColor.danger,
-                      emphasis: true,
+                      decoration: SpanDecoration(
+                        color: SemanticColor.danger,
+                        emphasis: true,
+                      ),
                     ),
                   ],
                 ),
@@ -258,7 +305,14 @@ void main() {
           children: [
             ColumnNode(
               children: [
-                TextNode(children: [TextSpanNode(text: "結果", emphasis: true)]),
+                TextNode(
+                  children: [
+                    TextSpanNode(
+                      text: "結果",
+                      decoration: SpanDecoration(emphasis: true),
+                    ),
+                  ],
+                ),
               ],
             ),
           ],
@@ -273,7 +327,10 @@ void main() {
         // reset must not be absorbed into the first cluster's payload.
         const input = ":!危険::普通";
         final expected = [
-          TextSpanNode(text: "危険", color: SemanticColor.danger),
+          TextSpanNode(
+            text: "危険",
+            decoration: SpanDecoration(color: SemanticColor.danger),
+          ),
           TextSpanNode(text: "普通"),
         ];
 

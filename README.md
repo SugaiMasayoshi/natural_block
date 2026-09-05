@@ -20,7 +20,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   * `::` resets color, emphasis, and actionability together (a cluster whose only character is `:`). It does **not** reset the size offset.
   * Multiple characters can share one cluster to apply together, e.g. `:!*` applies Danger color and Emphasis at the same time. Two clusters typed back-to-back are *not* the same as one combined cluster -- see [Combining decorations](#combining-decorations) below.
 * **Actionable text (`:@`)**
-  Text between `:@` and `:@` is marked actionable -- `TextSpanNode.isAction` is true for it. The parser records only *that* a run is actionable, never what acting on it should do; the run's own text is the entire payload, and interpreting it (a URL to open, a section to jump to, a mention to resolve, an image to draw) belongs to the consuming app.
+  Text between `:@` and `:@` is marked actionable -- `TextSpanNode.decoration.isAction` is true for it. The parser records only *that* a run is actionable, never what acting on it should do; the run's own text is the entire payload, and interpreting it (a URL to open, a section to jump to, a mention to resolve, an image to draw) belongs to the consuming app.
 
   ```dart
   NaturalBlockParser.parse(':@https://example.com:@ を参照');

@@ -19,7 +19,10 @@ void main() {
     test("toggles on and off", () {
       const input = ":@https://example.com:@ を参照してください";
       final expected = [
-        TextSpanNode(text: "https://example.com", isAction: true),
+        TextSpanNode(
+          text: "https://example.com",
+          decoration: SpanDecoration(isAction: true),
+        ),
         TextSpanNode(text: " を参照してください"),
       ];
 
@@ -30,7 +33,10 @@ void main() {
       const input = "詳細は:@#売上データ に記載";
       final expected = [
         TextSpanNode(text: "詳細は"),
-        TextSpanNode(text: "#売上データ に記載", isAction: true),
+        TextSpanNode(
+          text: "#売上データ に記載",
+          decoration: SpanDecoration(isAction: true),
+        ),
       ];
 
       expect(runs(input), expected);
@@ -44,9 +50,11 @@ void main() {
       final expected = [
         TextSpanNode(
           text: "赤太字押せる",
-          color: SemanticColor.danger,
-          emphasis: true,
-          isAction: true,
+          decoration: SpanDecoration(
+            color: SemanticColor.danger,
+            emphasis: true,
+            isAction: true,
+          ),
         ),
         TextSpanNode(text: "通常"),
       ];
@@ -57,7 +65,10 @@ void main() {
     test("combined cluster: :@* is both actionable and bold", () {
       const input = ":@*重要:@*";
       final expected = [
-        TextSpanNode(text: "重要", emphasis: true, isAction: true),
+        TextSpanNode(
+          text: "重要",
+          decoration: SpanDecoration(emphasis: true, isAction: true),
+        ),
       ];
 
       expect(runs(input), expected);
@@ -85,7 +96,9 @@ void main() {
 
     test(r"\@ inside a cluster is literal", () {
       const input = r":---\@abc";
-      final expected = [TextSpanNode(text: "@abc", sizeOffset: -3)];
+      final expected = [
+        TextSpanNode(text: "@abc", decoration: SpanDecoration(sizeOffset: -3)),
+      ];
 
       expect(runs(input), expected);
     });
@@ -93,9 +106,12 @@ void main() {
     test("size is not cleared by :: while action is -- pins the asymmetry", () {
       const input = ":+++大:@押せる::普通";
       final expected = [
-        TextSpanNode(text: "大", sizeOffset: 3),
-        TextSpanNode(text: "押せる", sizeOffset: 3, isAction: true),
-        TextSpanNode(text: "普通", sizeOffset: 3),
+        TextSpanNode(text: "大", decoration: SpanDecoration(sizeOffset: 3)),
+        TextSpanNode(
+          text: "押せる",
+          decoration: SpanDecoration(sizeOffset: 3, isAction: true),
+        ),
+        TextSpanNode(text: "普通", decoration: SpanDecoration(sizeOffset: 3)),
       ];
 
       expect(runs(input), expected);

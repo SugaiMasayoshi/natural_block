@@ -13,7 +13,7 @@ final class TextNode extends ContentNode {
   /// so the caller can look at the cursor and decide what comes next.
   static TextNode _parse(SourceCursor cursor) {
     final children = <InlineNode>[];
-    var style = const _Decoration();
+    var style = const SpanDecoration();
 
     while (!cursor.isEnd &&
         !cursor.atBlockRegion &&

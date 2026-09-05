@@ -95,7 +95,10 @@ void main() {
       test("an escaped :! is parsed as two literal characters, not danger coloring", () {
         const input = r"こんにちは\:!世界";
         final expected = [
-          TextSpanNode(text: "こんにちは:!世界", color: SemanticColor.none),
+          TextSpanNode(
+            text: "こんにちは:!世界",
+            decoration: SpanDecoration(color: SemanticColor.none),
+          ),
         ];
 
         expect(runs(input), expected);
@@ -106,7 +109,10 @@ void main() {
         () {
           const input = r":!危険\::普通:!";
           final expected = [
-            TextSpanNode(text: "危険::普通", color: SemanticColor.danger),
+            TextSpanNode(
+              text: "危険::普通",
+              decoration: SpanDecoration(color: SemanticColor.danger),
+            ),
           ];
 
           expect(runs(input), expected);
@@ -136,7 +142,10 @@ void main() {
         () {
           const input = r":+++100:---\%off";
           final expected = [
-            TextSpanNode(text: "100", sizeOffset: 3),
+            TextSpanNode(
+              text: "100",
+              decoration: SpanDecoration(sizeOffset: 3),
+            ),
             TextSpanNode(text: "%off"),
           ];
 
@@ -146,7 +155,12 @@ void main() {
 
       test("one backslash is enough, since the cluster is over after it", () {
         const input = r":---\%%%off";
-        final expected = [TextSpanNode(text: "%%%off", sizeOffset: -3)];
+        final expected = [
+          TextSpanNode(
+            text: "%%%off",
+            decoration: SpanDecoration(sizeOffset: -3),
+          ),
+        ];
 
         expect(runs(input), expected);
       });
@@ -155,7 +169,12 @@ void main() {
         // Nothing needed escaping, so the backslash is ordinary text -- the
         // same reason a Windows path survives untouched.
         const input = r":---\abc";
-        final expected = [TextSpanNode(text: r"\abc", sizeOffset: -3)];
+        final expected = [
+          TextSpanNode(
+            text: r"\abc",
+            decoration: SpanDecoration(sizeOffset: -3),
+          ),
+        ];
 
         expect(runs(input), expected);
       });
@@ -186,7 +205,10 @@ void main() {
         () {
           const input = r":!重要\:!警告:!";
           final expected = [
-            TextSpanNode(text: "重要:!警告", color: SemanticColor.danger),
+            TextSpanNode(
+              text: "重要:!警告",
+              decoration: SpanDecoration(color: SemanticColor.danger),
+            ),
           ];
 
           expect(runs(input), expected);
@@ -196,7 +218,12 @@ void main() {
       test("an escaped colon right where the backslash itself ends the cluster "
           "still counts as escaped", () {
         const input = r":!\:";
-        final expected = [TextSpanNode(text: ":", color: SemanticColor.danger)];
+        final expected = [
+          TextSpanNode(
+            text: ":",
+            decoration: SpanDecoration(color: SemanticColor.danger),
+          ),
+        ];
 
         expect(runs(input), expected);
       });
@@ -264,9 +291,9 @@ void main() {
                 .cast<TextSpanNode>();
 
         expect(spans.first.text, bs);
-        expect(spans.first.emphasis, isFalse);
+        expect(spans.first.decoration.emphasis, isFalse);
         expect(spans.last.text, 'x');
-        expect(spans.last.emphasis, isTrue);
+        expect(spans.last.decoration.emphasis, isTrue);
       });
 
       test("a backslash before an ordinary character is still kept", () {

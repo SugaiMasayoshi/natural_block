@@ -19,8 +19,8 @@ void main() {
       // No closing symbol needed: :++ gives +2, :-- gives -2, netting back to 0
       const input = ":++大きい:--標準サイズ";
       final expected = [
-        TextSpanNode(text: "大きい", sizeOffset: 2),
-        TextSpanNode(text: "標準サイズ", sizeOffset: 0),
+        TextSpanNode(text: "大きい", decoration: SpanDecoration(sizeOffset: 2)),
+        TextSpanNode(text: "標準サイズ", decoration: SpanDecoration(sizeOffset: 0)),
       ];
 
       expect(runs(input), expected);
@@ -30,8 +30,11 @@ void main() {
       // ":-少し小さい" gives -1, then ":---" gives -3 more, for a total of -4
       const input = ":-少し小さい:---もっと小さい";
       final expected = [
-        TextSpanNode(text: "少し小さい", sizeOffset: -1),
-        TextSpanNode(text: "もっと小さい", sizeOffset: -4),
+        TextSpanNode(text: "少し小さい", decoration: SpanDecoration(sizeOffset: -1)),
+        TextSpanNode(
+          text: "もっと小さい",
+          decoration: SpanDecoration(sizeOffset: -4),
+        ),
       ];
 
       expect(runs(input), expected);
@@ -45,7 +48,9 @@ void main() {
       // ranges like "10-20" and English compounds like "well-known").
       test("a single : followed by a run of the same character stacks", () {
         const input = ":+++大きい";
-        final expected = [TextSpanNode(text: "大きい", sizeOffset: 3)];
+        final expected = [
+          TextSpanNode(text: "大きい", decoration: SpanDecoration(sizeOffset: 3)),
+        ];
 
         expect(runs(input), expected);
       });
@@ -69,8 +74,14 @@ void main() {
       test("size is preserved when a color symbol appears", () {
         const input = ":++大きく:!危険";
         final expected = [
-          TextSpanNode(text: "大きく", sizeOffset: 2),
-          TextSpanNode(text: "危険", color: SemanticColor.danger, sizeOffset: 2),
+          TextSpanNode(text: "大きく", decoration: SpanDecoration(sizeOffset: 2)),
+          TextSpanNode(
+            text: "危険",
+            decoration: SpanDecoration(
+              color: SemanticColor.danger,
+              sizeOffset: 2,
+            ),
+          ),
         ];
 
         expect(runs(input), expected);
@@ -83,13 +94,17 @@ void main() {
           final expected = [
             TextSpanNode(
               text: "危険状態",
-              color: SemanticColor.danger,
-              sizeOffset: 0,
+              decoration: SpanDecoration(
+                color: SemanticColor.danger,
+                sizeOffset: 0,
+              ),
             ),
             TextSpanNode(
               text: "大きく",
-              color: SemanticColor.danger,
-              sizeOffset: 2,
+              decoration: SpanDecoration(
+                color: SemanticColor.danger,
+                sizeOffset: 2,
+              ),
             ),
           ];
 
@@ -102,15 +117,22 @@ void main() {
         final expected = [
           TextSpanNode(
             text: "重要な警告",
-            color: SemanticColor.danger,
-            emphasis: true,
+            decoration: SpanDecoration(
+              color: SemanticColor.danger,
+              emphasis: true,
+            ),
           ),
           TextSpanNode(
             text: "危険は継続",
-            color: SemanticColor.danger,
-            emphasis: false,
+            decoration: SpanDecoration(
+              color: SemanticColor.danger,
+              emphasis: false,
+            ),
           ),
-          TextSpanNode(text: "普通", color: SemanticColor.none),
+          TextSpanNode(
+            text: "普通",
+            decoration: SpanDecoration(color: SemanticColor.none),
+          ),
         ];
 
         expect(runs(input), expected);
@@ -121,9 +143,11 @@ void main() {
         final expected = [
           TextSpanNode(
             text: "重要",
-            sizeOffset: 2,
-            color: SemanticColor.danger,
-            emphasis: true,
+            decoration: SpanDecoration(
+              sizeOffset: 2,
+              color: SemanticColor.danger,
+              emphasis: true,
+            ),
           ),
         ];
 
@@ -141,14 +165,24 @@ void main() {
                 ColumnNode(
                   children: [
                     TextNode(
-                      children: [TextSpanNode(text: "大きい", sizeOffset: 2)],
+                      children: [
+                        TextSpanNode(
+                          text: "大きい",
+                          decoration: SpanDecoration(sizeOffset: 2),
+                        ),
+                      ],
                     ),
                   ],
                 ),
                 ColumnNode(
                   children: [
                     TextNode(
-                      children: [TextSpanNode(text: "右は標準", sizeOffset: 0)],
+                      children: [
+                        TextSpanNode(
+                          text: "右は標準",
+                          decoration: SpanDecoration(sizeOffset: 0),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -168,13 +202,25 @@ void main() {
             ColumnNode(
               children: [
                 TextNode(
-                  children: [TextSpanNode(text: "上は大きい", sizeOffset: 2)],
+                  children: [
+                    TextSpanNode(
+                      text: "上は大きい",
+                      decoration: SpanDecoration(sizeOffset: 2),
+                    ),
+                  ],
                 ),
               ],
             ),
             ColumnNode(
               children: [
-                TextNode(children: [TextSpanNode(text: "下は標準", sizeOffset: 0)]),
+                TextNode(
+                  children: [
+                    TextSpanNode(
+                      text: "下は標準",
+                      decoration: SpanDecoration(sizeOffset: 0),
+                    ),
+                  ],
+                ),
               ],
             ),
           ],

@@ -128,7 +128,10 @@ void main() {
     test('a region sits alongside decoration on the same line', () {
       final children = onlyLine(':*bold:*and`code`and plain').children;
 
-      expect(children[0], TextSpanNode(text: 'bold', emphasis: true));
+      expect(
+        children[0],
+        TextSpanNode(text: 'bold', decoration: SpanDecoration(emphasis: true)),
+      );
       expect(children[1], TextSpanNode(text: 'and'));
       expect(children[2], VerbatimSpanNode(text: 'code'));
     });

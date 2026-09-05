@@ -51,7 +51,7 @@ part 'node/natural_block_node.dart';
 part 'node/children_equality.dart';
 
 part 'node/inline_node.dart';
-part 'node/decoration.dart';
+part 'node/span_decoration.dart';
 part 'node/text_span_node.dart';
 part 'node/verbatim_span_node.dart';
 

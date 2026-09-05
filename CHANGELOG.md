@@ -139,6 +139,13 @@ this repository, which is why the entries below describe changes freely.
   a table; stating that in the type keeps a later decision to allow it a
   visible change rather than something that silently always worked.
 - A `TextNode` holds `InlineNode`s: `TextSpanNode` and `VerbatimSpanNode`.
+- A `TextSpanNode` holds its text and one `SpanDecoration` -- the size
+  offset, the semantic color, and the two flags -- rather than four separate
+  fields. It is one thing: the very object the parser carries while reading,
+  so a run's decoration and the reader's current decoration are not two ideas
+  that happen to match. The type is public because the rest of the tree's
+  vocabulary (`BlockAlign`, `SemanticColor`) is, and a consumer writing its
+  own builder should be able to name what it is handed.
   Neither is a `BlockNode` -- a styled run only exists inside a line -- so
   misplacing one is a compile error.
 - **Nothing in the tree corresponds to a line.** A newline is a character, so

@@ -5,24 +5,12 @@ final class TextSpanNode extends InlineNode {
 
   /// Everything the decoration syntax said about this run, as one value.
   ///
-  /// The same object the parser carries while reading: a run's style and
-  /// the reader's current style are the same thing, so they are one type.
-  final _Decoration _style;
+  /// One field rather than four, because it is one thing: the same object
+  /// the parser carries while reading. A run's decoration and the reader's
+  /// current decoration are not two ideas that happen to match.
+  final SpanDecoration decoration;
 
-  TextSpanNode({
-    required this.text,
-    int sizeOffset = 0,
-    SemanticColor color = SemanticColor.none,
-    bool emphasis = false,
-    bool isAction = false,
-  }) : _style = _Decoration(
-         sizeOffset: sizeOffset,
-         color: color,
-         emphasis: emphasis,
-         isAction: isAction,
-       );
-
-  TextSpanNode._of(this.text, this._style);
+  TextSpanNode({required this.text, this.decoration = const SpanDecoration()});
 
   /// Reads one run of styled text, and the decoration state it leaves.
   ///
@@ -31,9 +19,9 @@ final class TextSpanNode extends InlineNode {
   /// next thing that is not part of it -- a following cluster, a verbatim
   /// region, a newline that resets an open decoration, or the block's own
   /// separator -- none of which it consumes.
-  static (TextSpanNode?, _Decoration) _parse(
+  static (TextSpanNode?, SpanDecoration) _parse(
     SourceCursor cursor,
-    _Decoration incoming,
+    SpanDecoration incoming,
   ) {
     final pending = StringBuffer();
     var style = incoming;
@@ -59,7 +47,7 @@ final class TextSpanNode extends InlineNode {
     // Only the newline-reset exit leaves the cursor on a `'\n'`; every other
     // one leaves it on a layout symbol, a fence, a `:` or the end. So which
     // exit was taken need not be tracked either.
-    final outgoing = cursor.peek == '\n' ? const _Decoration() : style;
+    final outgoing = cursor.peek == '\n' ? const SpanDecoration() : style;
 
     // The newline written against a boundary belongs to that boundary.
     final atBoundary =
@@ -69,16 +57,19 @@ final class TextSpanNode extends InlineNode {
     if (atBoundary && run.endsWith('\n')) {
       run = run.substring(0, run.length - 1);
     }
-    return (run.isEmpty ? null : TextSpanNode._of(run, style), outgoing);
+    return (
+      run.isEmpty ? null : TextSpanNode(text: run, decoration: style),
+      outgoing,
+    );
   }
 
   /// Whether the character the cursor stopped in front of really ends the
   /// run. Peeks only -- it never moves the cursor.
-  static bool _endsRun(SourceCursor cursor, _Decoration style) =>
+  static bool _endsRun(SourceCursor cursor, SpanDecoration style) =>
       switch (cursor.peek) {
         // A newline resets decoration, so it ends a run that has some. With
         // nothing to reset it is an ordinary character in the middle of one.
-        '\n' => style != const _Decoration(),
+        '\n' => style != const SpanDecoration(),
         // A `:` with no decoration character after it is ordinary text; one
         // with is the next run's cluster, and not this run's to consume.
         ':' => _opensCluster(cursor),
@@ -92,27 +83,17 @@ final class TextSpanNode extends InlineNode {
       cursor.peek == ':' &&
       DecorationAction.byChar.containsKey(cursor.peekAt(1));
 
-  int get sizeOffset => _style.sizeOffset;
-
-  SemanticColor get color => _style.color;
-
-  bool get emphasis => _style.emphasis;
-
-  bool get isAction => _style.isAction;
-
   @override
-  String toString() =>
-      'TextSpanNode(text: $text, sizeOffset: $sizeOffset, color: $color, '
-      'emphasis: $emphasis, isAction: $isAction)';
+  String toString() => 'TextSpanNode(text: $text, decoration: $decoration)';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is TextSpanNode &&
         text == other.text &&
-        _style == other._style;
+        decoration == other.decoration;
   }
 
   @override
-  int get hashCode => Object.hash(text, _style);
+  int get hashCode => Object.hash(text, decoration);
 }
