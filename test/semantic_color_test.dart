@@ -11,6 +11,8 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
+import 'nodes.dart';
+
 void main() {
   group("SemanticColor & toggle parsing edge cases", () {
     test("switching between multiple styles in sequence", () {
@@ -18,26 +20,15 @@ void main() {
       // toggles on then off in turn, with plain text in between -- verifies
       // they don't interfere with each other across the whole sequence.
       const input = ":!赤:!通常:%緑:%通常:*太字:*";
-      final expected = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(
-                children: [
-                  TextSpanNode(text: "赤", color: SemanticColor.danger),
-                  TextSpanNode(text: "通常"),
-                  TextSpanNode(text: "緑", color: SemanticColor.success),
-                  TextSpanNode(text: "通常"),
-                  TextSpanNode(text: "太字", emphasis: true),
-                ],
-              ),
-            ],
-          ),
-        ],
-      );
+      final expected = [
+        TextSpanNode(text: "赤", color: SemanticColor.danger),
+        TextSpanNode(text: "通常"),
+        TextSpanNode(text: "緑", color: SemanticColor.success),
+        TextSpanNode(text: "通常"),
+        TextSpanNode(text: "太字", emphasis: true),
+      ];
 
-      final nodes = NaturalBlockParser.parse(input);
-      expect(nodes, expected);
+      expect(runs(input), expected);
     });
 
     test("overwriting a style directly with a different one", () {
@@ -45,24 +36,13 @@ void main() {
       // `::` reset is written in between -- so switching colors mid-stream
       // must not require closing the previous one first.
       const input = ":!危険から:%成功へ切り替え:%最後は通常";
-      final expected = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(
-                children: [
-                  TextSpanNode(text: "危険から", color: SemanticColor.danger),
-                  TextSpanNode(text: "成功へ切り替え", color: SemanticColor.success),
-                  TextSpanNode(text: "最後は通常"),
-                ],
-              ),
-            ],
-          ),
-        ],
-      );
+      final expected = [
+        TextSpanNode(text: "危険から", color: SemanticColor.danger),
+        TextSpanNode(text: "成功へ切り替え", color: SemanticColor.success),
+        TextSpanNode(text: "最後は通常"),
+      ];
 
-      final nodes = NaturalBlockParser.parse(input);
-      expect(nodes, expected);
+      expect(runs(input), expected);
     });
 
     test("an unclosed symbol runs to the end of the text", () {
@@ -70,26 +50,12 @@ void main() {
       // all the way to the end of the input rather than being dropped or
       // silently reverting to plain.
       const input = "通常テキスト:!ここから文末までずっと危険状態";
-      final expected = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(
-                children: [
-                  TextSpanNode(text: "通常テキスト"),
-                  TextSpanNode(
-                    text: "ここから文末までずっと危険状態",
-                    color: SemanticColor.danger,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      );
+      final expected = [
+        TextSpanNode(text: "通常テキスト"),
+        TextSpanNode(text: "ここから文末までずっと危険状態", color: SemanticColor.danger),
+      ];
 
-      final nodes = NaturalBlockParser.parse(input);
-      expect(nodes, expected);
+      expect(runs(input), expected);
     });
 
     test("the same symbol repeated in a row", () {
@@ -97,24 +63,13 @@ void main() {
       // immediately off within the same cluster; verifies no empty-text
       // node is created and that it correctly falls back to plain.
       const input = ":!危険:!普通:!!普通";
-      final expected = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(
-                children: [
-                  TextSpanNode(text: "危険", color: SemanticColor.danger),
-                  TextSpanNode(text: "普通"),
-                  TextSpanNode(text: "普通"),
-                ],
-              ),
-            ],
-          ),
-        ],
-      );
+      final expected = [
+        TextSpanNode(text: "危険", color: SemanticColor.danger),
+        TextSpanNode(text: "普通"),
+        TextSpanNode(text: "普通"),
+      ];
 
-      final nodes = NaturalBlockParser.parse(input);
-      expect(nodes, expected);
+      expect(runs(input), expected);
     });
 
     test("style independence between cells inside a Row block", () {
@@ -134,11 +89,7 @@ void main() {
                   ),
                 ],
               ),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "右は通常")]),
-                ],
-              ),
+              block("右は通常"),
             ],
           ),
         ],
@@ -175,28 +126,23 @@ void main() {
           ),
           RowNode(
             children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "エラーコード: 500")]),
-                ],
-              ),
+              block("エラーコード: 500"),
               ColumnNode(
                 children: [
                   TextNode(
                     children: [
                       TextSpanNode(text: "解決策: "),
-                      TextSpanNode(text: "管理者へ連絡", color: SemanticColor.success),
+                      TextSpanNode(
+                        text: "管理者へ連絡",
+                        color: SemanticColor.success,
+                      ),
                     ],
                   ),
                 ],
               ),
             ],
           ),
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "処理完了")]),
-            ],
-          ),
+          block("処理完了"),
         ],
       );
 
@@ -208,26 +154,11 @@ void main() {
       // :!*緊急対応:: -- a combined cluster sets both at once, and the
       // shared reset closes them both together at the end
       const input = ":!*緊急対応::";
-      final expected = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(
-                children: [
-                  TextSpanNode(
-                    text: "緊急対応",
-                    color: SemanticColor.danger,
-                    emphasis: true,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      );
+      final expected = [
+        TextSpanNode(text: "緊急対応", color: SemanticColor.danger, emphasis: true),
+      ];
 
-      final nodes = NaturalBlockParser.parse(input);
-      expect(nodes, expected);
+      expect(runs(input), expected);
     });
 
     group("Collision safety with ordinary punctuation", () {
@@ -236,64 +167,29 @@ void main() {
       // and English -- never triggers decoration on its own.
       test("ordinary sentences full of !, ?, %, and * stay entirely plain", () {
         const input = "Really?! It's on sale for 50% off, and it's *great*!";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: input)]),
-              ],
-            ),
-          ],
-        );
+        final expected = [TextSpanNode(text: input)];
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
+        expect(runs(input), expected);
       });
 
       test("the shared :: reset closes color and emphasis together", () {
         const input = ":!*緊急::普通";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(
-                  children: [
-                    TextSpanNode(
-                      text: "緊急",
-                      color: SemanticColor.danger,
-                      emphasis: true,
-                    ),
-                    TextSpanNode(text: "普通"),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        final expected = [
+          TextSpanNode(text: "緊急", color: SemanticColor.danger, emphasis: true),
+          TextSpanNode(text: "普通"),
+        ];
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
+        expect(runs(input), expected);
       });
 
       test(":: resets even when only one of color/emphasis is active", () {
         const input = ":*太字だけ::普通";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(
-                  children: [
-                    TextSpanNode(text: "太字だけ", emphasis: true),
-                    TextSpanNode(text: "普通"),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        final expected = [
+          TextSpanNode(text: "太字だけ", emphasis: true),
+          TextSpanNode(text: "普通"),
+        ];
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
+        expect(runs(input), expected);
       });
     });
 
@@ -305,51 +201,29 @@ void main() {
       // "a combined cluster differs from adjacent separate clusters" below).
       test("a combined :!* cluster applies danger and emphasis together", () {
         const input = ":!*緊急対応";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(
-                  children: [
-                    TextSpanNode(
-                      text: "緊急対応",
-                      color: SemanticColor.danger,
-                      emphasis: true,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        final expected = [
+          TextSpanNode(
+            text: "緊急対応",
+            color: SemanticColor.danger,
+            emphasis: true,
+          ),
+        ];
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
+        expect(runs(input), expected);
       });
 
       test("a combined cluster can mix size with color and emphasis", () {
         const input = ":+!*重要";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(
-                  children: [
-                    TextSpanNode(
-                      text: "重要",
-                      sizeOffset: 1,
-                      color: SemanticColor.danger,
-                      emphasis: true,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        final expected = [
+          TextSpanNode(
+            text: "重要",
+            sizeOffset: 1,
+            color: SemanticColor.danger,
+            emphasis: true,
+          ),
+        ];
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
+        expect(runs(input), expected);
       });
 
       test("a combined cluster differs from adjacent separate clusters", () {
@@ -398,23 +272,12 @@ void main() {
         // ":!" (danger) then "::" (reset) are two separate clusters -- the
         // reset must not be absorbed into the first cluster's payload.
         const input = ":!危険::普通";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(
-                  children: [
-                    TextSpanNode(text: "危険", color: SemanticColor.danger),
-                    TextSpanNode(text: "普通"),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        final expected = [
+          TextSpanNode(text: "危険", color: SemanticColor.danger),
+          TextSpanNode(text: "普通"),
+        ];
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
+        expect(runs(input), expected);
       });
     });
   });

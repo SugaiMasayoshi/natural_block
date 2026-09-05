@@ -12,20 +12,14 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
+import 'nodes.dart';
+
 void main() {
   group("Escape handling", () {
     group("Layout symbol escaping", () {
       test("an escaped pipe is parsed as a literal character, not a Column separator", () {
         const input = r"|A\|B|";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "A|B")]),
-              ],
-            ),
-          ],
-        );
+        final expected = DocumentNode(children: [block("A|B")]);
 
         final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
@@ -33,15 +27,7 @@ void main() {
 
       test("an escaped caret is parsed as a single literal text, not a Row separator", () {
         const input = r"左\^右";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "左^右")]),
-              ],
-            ),
-          ],
-        );
+        final expected = DocumentNode(children: [block("左^右")]);
 
         final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
@@ -57,20 +43,7 @@ void main() {
         const input = "C++言語、1+1^2";
         final expected = DocumentNode(
           children: [
-            RowNode(
-              children: [
-                ColumnNode(
-                  children: [
-                    TextNode(children: [TextSpanNode(text: "C++言語、1+1")]),
-                  ],
-                ),
-                ColumnNode(
-                  children: [
-                    TextNode(children: [TextSpanNode(text: "2")]),
-                  ],
-                ),
-              ],
-            ),
+            RowNode(children: [block("C++言語、1+1"), block("2")]),
           ],
         );
 
@@ -80,30 +53,14 @@ void main() {
 
       test("a bare minus sign is literal, no escaping needed", () {
         const input = "-100点、10-20人";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "-100点、10-20人")]),
-              ],
-            ),
-          ],
-        );
+        final expected = DocumentNode(children: [block("-100点、10-20人")]);
 
         final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
       });
       test("a bare exclamation mark is literal, no escaping needed", () {
         const input = "こんにちは!世界";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "こんにちは!世界")]),
-              ],
-            ),
-          ],
-        );
+        final expected = DocumentNode(children: [block("こんにちは!世界")]);
 
         final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
@@ -111,15 +68,7 @@ void main() {
 
       test("a bare question mark is literal, no escaping needed", () {
         const input = "本当ですか?はい";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "本当ですか?はい")]),
-              ],
-            ),
-          ],
-        );
+        final expected = DocumentNode(children: [block("本当ですか?はい")]);
 
         final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
@@ -127,15 +76,7 @@ void main() {
 
       test("a bare percent sign is literal, no escaping needed", () {
         const input = "進捗100%完了";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "進捗100%完了")]),
-              ],
-            ),
-          ],
-        );
+        final expected = DocumentNode(children: [block("進捗100%完了")]);
 
         final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
@@ -143,15 +84,7 @@ void main() {
 
       test("a bare asterisk is literal, no escaping needed", () {
         const input = "*太字にしない*";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "*太字にしない*")]),
-              ],
-            ),
-          ],
-        );
+        final expected = DocumentNode(children: [block("*太字にしない*")]);
 
         final nodes = NaturalBlockParser.parse(input);
         expect(nodes, expected);
@@ -161,44 +94,22 @@ void main() {
     group("Escaping the `:`-prefixed decoration tokens", () {
       test("an escaped :! is parsed as two literal characters, not danger coloring", () {
         const input = r"こんにちは\:!世界";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(
-                  children: [
-                    TextSpanNode(text: "こんにちは:!世界", color: SemanticColor.none),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        final expected = [
+          TextSpanNode(text: "こんにちは:!世界", color: SemanticColor.none),
+        ];
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
+        expect(runs(input), expected);
       });
 
       test(
         "an escaped :: is parsed as two literal characters, not a reset",
         () {
           const input = r":!危険\::普通:!";
-          final expected = DocumentNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(
-                    children: [
-                      TextSpanNode(text: "危険::普通", color: SemanticColor.danger),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          );
+          final expected = [
+            TextSpanNode(text: "危険::普通", color: SemanticColor.danger),
+          ];
 
-          final nodes = NaturalBlockParser.parse(input);
-          expect(nodes, expected);
+          expect(runs(input), expected);
         },
       );
 
@@ -206,15 +117,7 @@ void main() {
         "an escaped :+ is parsed as two literal characters, not a size change",
         () {
           const input = r"サイズ\:+固定";
-          final expected = DocumentNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "サイズ:+固定")]),
-                ],
-              ),
-            ],
-          );
+          final expected = DocumentNode(children: [block("サイズ:+固定")]);
 
           final nodes = NaturalBlockParser.parse(input);
           expect(nodes, expected);
@@ -232,59 +135,29 @@ void main() {
         "an escaped decoration character ends the cluster and stays literal",
         () {
           const input = r":+++100:---\%off";
-          final expected = DocumentNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(
-                    children: [
-                      TextSpanNode(text: "100", sizeOffset: 3),
-                      TextSpanNode(text: "%off"),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          );
+          final expected = [
+            TextSpanNode(text: "100", sizeOffset: 3),
+            TextSpanNode(text: "%off"),
+          ];
 
-          expect(NaturalBlockParser.parse(input), expected);
+          expect(runs(input), expected);
         },
       );
 
       test("one backslash is enough, since the cluster is over after it", () {
         const input = r":---\%%%off";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(
-                  children: [TextSpanNode(text: "%%%off", sizeOffset: -3)],
-                ),
-              ],
-            ),
-          ],
-        );
+        final expected = [TextSpanNode(text: "%%%off", sizeOffset: -3)];
 
-        expect(NaturalBlockParser.parse(input), expected);
+        expect(runs(input), expected);
       });
 
       test("a backslash before a non-decoration character is left alone", () {
         // Nothing needed escaping, so the backslash is ordinary text -- the
         // same reason a Windows path survives untouched.
         const input = r":---\abc";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(
-                  children: [TextSpanNode(text: r"\abc", sizeOffset: -3)],
-                ),
-              ],
-            ),
-          ],
-        );
+        final expected = [TextSpanNode(text: r"\abc", sizeOffset: -3)];
 
-        expect(NaturalBlockParser.parse(input), expected);
+        expect(runs(input), expected);
       });
 
       test(
@@ -293,15 +166,7 @@ void main() {
           // Escaping only engages where the character is actually markup, so
           // this is unchanged: the backslash stays in the output.
           const input = r"100\%off";
-          final expected = DocumentNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: r"100\%off")]),
-                ],
-              ),
-            ],
-          );
+          final expected = DocumentNode(children: [block(r"100\%off")]);
 
           expect(NaturalBlockParser.parse(input), expected);
         },
@@ -309,15 +174,7 @@ void main() {
 
       test("a Windows path keeps every backslash", () {
         const input = r"C:\Users\sugai";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: r"C:\Users\sugai")]),
-              ],
-            ),
-          ],
-        );
+        final expected = DocumentNode(children: [block(r"C:\Users\sugai")]);
 
         expect(NaturalBlockParser.parse(input), expected);
       });
@@ -328,44 +185,20 @@ void main() {
         "an escaped :! symbol inside a decoration block does not close it",
         () {
           const input = r":!重要\:!警告:!";
-          final expected = DocumentNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(
-                    children: [
-                      TextSpanNode(text: "重要:!警告", color: SemanticColor.danger),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          );
+          final expected = [
+            TextSpanNode(text: "重要:!警告", color: SemanticColor.danger),
+          ];
 
-          final nodes = NaturalBlockParser.parse(input);
-          expect(nodes, expected);
+          expect(runs(input), expected);
         },
       );
 
       test("an escaped colon right where the backslash itself ends the cluster "
           "still counts as escaped", () {
         const input = r":!\:";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(
-                  children: [
-                    TextSpanNode(text: ":", color: SemanticColor.danger),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        final expected = [TextSpanNode(text: ":", color: SemanticColor.danger)];
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
+        expect(runs(input), expected);
       });
     });
 
@@ -374,10 +207,6 @@ void main() {
       // these tests are entirely about *how many* backslashes there are,
       // and a string literal full of them is exactly where a miscount hides.
       const bs = r'\';
-
-      TextNode line(String text) =>
-          TextNode(children: [TextSpanNode(text: text)]);
-      ColumnNode cell(String text) => ColumnNode(children: [line(text)]);
 
       test("`\\\\` before a separator is a literal backslash, and the "
           "separator still separates", () {
@@ -400,7 +229,7 @@ void main() {
           DocumentNode(
             children: [
               ColumnNode(children: [line(bs)]),
-              ColumnNode(children: [line('B')]),
+              block('B'),
             ],
           ),
         );
@@ -409,22 +238,14 @@ void main() {
       test("a single `\\` before a separator still escapes it", () {
         expect(
           NaturalBlockParser.parse('$bs^B'),
-          DocumentNode(
-            children: [
-              ColumnNode(children: [line('^B')]),
-            ],
-          ),
+          DocumentNode(children: [block('^B')]),
         );
       });
 
       test("three backslashes are a literal one plus an escaped separator", () {
         expect(
           NaturalBlockParser.parse('$bs$bs$bs^B'),
-          DocumentNode(
-            children: [
-              ColumnNode(children: [line('$bs^B')]),
-            ],
-          ),
+          DocumentNode(children: [block('$bs^B')]),
         );
       });
 
@@ -452,19 +273,11 @@ void main() {
         // Unchanged, and the reason Windows paths need no escaping at all.
         expect(
           NaturalBlockParser.parse('C:${bs}Users${bs}sugai'),
-          DocumentNode(
-            children: [
-              ColumnNode(children: [line('C:${bs}Users${bs}sugai')]),
-            ],
-          ),
+          DocumentNode(children: [block('C:${bs}Users${bs}sugai')]),
         );
         expect(
           NaturalBlockParser.parse('$bs!'),
-          DocumentNode(
-            children: [
-              ColumnNode(children: [line('$bs!')]),
-            ],
-          ),
+          DocumentNode(children: [block('$bs!')]),
         );
       });
 
@@ -485,11 +298,7 @@ void main() {
         // being able to write one before a separator at all.
         expect(
           NaturalBlockParser.parse('A$bs${bs}B'),
-          DocumentNode(
-            children: [
-              ColumnNode(children: [line('A${bs}B')]),
-            ],
-          ),
+          DocumentNode(children: [block('A${bs}B')]),
         );
       });
 

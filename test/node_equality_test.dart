@@ -12,21 +12,15 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
+import 'nodes.dart';
+
 void main() {
   group("Node equality and hashCode contract", () {
     test("equal TableNodes have equal hashCode, and align is part of it", () {
       TableNode table({BlockAlign align = BlockAlign.start}) => TableNode(
         align: align,
         children: [
-          RowNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "セル")]),
-                ],
-              ),
-            ],
-          ),
+          RowNode(children: [block("セル")]),
         ],
       );
 
@@ -143,11 +137,7 @@ void main() {
       // -- ColumnNode holds TextNode and RowNode holds ColumnNode, so the
       // confusion it guarded against is now a compile error rather than
       // something equality has to rule out.
-      final child = ColumnNode(
-        children: [
-          TextNode(children: [TextSpanNode(text: "本文")]),
-        ],
-      );
+      final child = block("本文");
       final document = DocumentNode(children: [child]);
       final row = RowNode(children: [child]);
 
@@ -170,8 +160,8 @@ void main() {
     });
 
     test("differing children make list-based nodes unequal", () {
-      final a = TextNode(children: [TextSpanNode(text: "A")]);
-      final b = TextNode(children: [TextSpanNode(text: "B")]);
+      final a = line("A");
+      final b = line("B");
 
       expect(a == b, isFalse);
     });

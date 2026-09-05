@@ -17,11 +17,9 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
+import 'nodes.dart';
+
 void main() {
-  TextNode line(String text) => TextNode(children: [TextSpanNode(text: text)]);
-
-  ColumnNode block(String text) => ColumnNode(children: [line(text)]);
-
   group('line endings', () {
     test('a CRLF document parses exactly like the LF one', () {
       // Not cosmetic. `ColumnNode._parse` drops a newline written directly
@@ -76,11 +74,7 @@ void main() {
     test('a space at each end of the document survives', () {
       expect(
         NaturalBlockParser.parse('  text  '),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line('  text  ')]),
-          ],
-        ),
+        DocumentNode(children: [block('  text  ')]),
       );
     });
 
@@ -91,11 +85,7 @@ void main() {
       // both indents sit in one node.
       expect(
         NaturalBlockParser.parse('    A\n    B'),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line('    A\n    B')]),
-          ],
-        ),
+        DocumentNode(children: [block('    A\n    B')]),
       );
     });
 
@@ -107,11 +97,7 @@ void main() {
       // a line of its own.
       expect(
         NaturalBlockParser.parse('|\ntext\n|'),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line('text')]),
-          ],
-        ),
+        DocumentNode(children: [block('text')]),
       );
     });
 
@@ -121,22 +107,14 @@ void main() {
       // parser trimmed at all.
       expect(
         NaturalBlockParser.parse('　indented'),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line('　indented')]),
-          ],
-        ),
+        DocumentNode(children: [block('　indented')]),
       );
     });
 
     test('a non-breaking space is kept too', () {
       expect(
         NaturalBlockParser.parse(' text '),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line(' text ')]),
-          ],
-        ),
+        DocumentNode(children: [block(' text ')]),
       );
     });
   });
@@ -184,22 +162,14 @@ void main() {
     test('an emoji outside the BMP survives intact', () {
       expect(
         NaturalBlockParser.parse('a\u{1F600}b'),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line('a\u{1F600}b')]),
-          ],
-        ),
+        DocumentNode(children: [block('a\u{1F600}b')]),
       );
     });
 
     test('a combining mark stays attached', () {
       expect(
         NaturalBlockParser.parse('é'),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line('é')]),
-          ],
-        ),
+        DocumentNode(children: [block('é')]),
       );
     });
 

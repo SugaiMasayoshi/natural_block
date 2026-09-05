@@ -11,50 +11,30 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
+import 'nodes.dart';
+
 void main() {
   group("Font size change and reset behavior", () {
     test("inline size change is held without a closing symbol", () {
       // No closing symbol needed: :++ gives +2, :-- gives -2, netting back to 0
       const input = ":++大きい:--標準サイズ";
-      final expected = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(
-                children: [
-                  TextSpanNode(text: "大きい", sizeOffset: 2),
-                  TextSpanNode(text: "標準サイズ", sizeOffset: 0),
-                ],
-              ),
-            ],
-          ),
-        ],
-      );
+      final expected = [
+        TextSpanNode(text: "大きい", sizeOffset: 2),
+        TextSpanNode(text: "標準サイズ", sizeOffset: 0),
+      ];
 
-      final nodes = NaturalBlockParser.parse(input);
-      expect(nodes, expected);
+      expect(runs(input), expected);
     });
 
     test("consecutive size-decreasing runs accumulate", () {
       // ":-少し小さい" gives -1, then ":---" gives -3 more, for a total of -4
       const input = ":-少し小さい:---もっと小さい";
-      final expected = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(
-                children: [
-                  TextSpanNode(text: "少し小さい", sizeOffset: -1),
-                  TextSpanNode(text: "もっと小さい", sizeOffset: -4),
-                ],
-              ),
-            ],
-          ),
-        ],
-      );
+      final expected = [
+        TextSpanNode(text: "少し小さい", sizeOffset: -1),
+        TextSpanNode(text: "もっと小さい", sizeOffset: -4),
+      ];
 
-      final nodes = NaturalBlockParser.parse(input);
-      expect(nodes, expected);
+      expect(runs(input), expected);
     });
 
     group("The `:` prefix and cheap repeat stacking", () {
@@ -65,40 +45,16 @@ void main() {
       // ranges like "10-20" and English compounds like "well-known").
       test("a single : followed by a run of the same character stacks", () {
         const input = ":+++大きい";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "大きい", sizeOffset: 3)]),
-              ],
-            ),
-          ],
-        );
+        final expected = [TextSpanNode(text: "大きい", sizeOffset: 3)];
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
+        expect(runs(input), expected);
       });
 
       test("bare + and - never trigger a size change on their own", () {
         const input = "10-20人がA+の評価、1+1^2も普通の文章";
         final expected = DocumentNode(
           children: [
-            RowNode(
-              children: [
-                ColumnNode(
-                  children: [
-                    TextNode(
-                      children: [TextSpanNode(text: "10-20人がA+の評価、1+1")],
-                    ),
-                  ],
-                ),
-                ColumnNode(
-                  children: [
-                    TextNode(children: [TextSpanNode(text: "2も普通の文章")]),
-                  ],
-                ),
-              ],
-            ),
+            RowNode(children: [block("10-20人がA+の評価、1+1"), block("2も普通の文章")]),
           ],
         );
 
@@ -112,114 +68,66 @@ void main() {
       // axes: a symbol from one axis never resets the state of another.
       test("size is preserved when a color symbol appears", () {
         const input = ":++大きく:!危険";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(
-                  children: [
-                    TextSpanNode(text: "大きく", sizeOffset: 2),
-                    TextSpanNode(
-                      text: "危険",
-                      color: SemanticColor.danger,
-                      sizeOffset: 2,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        final expected = [
+          TextSpanNode(text: "大きく", sizeOffset: 2),
+          TextSpanNode(text: "危険", color: SemanticColor.danger, sizeOffset: 2),
+        ];
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
+        expect(runs(input), expected);
       });
 
       test(
         "a preceding color decoration is preserved when a size symbol appears",
         () {
           const input = ":!危険状態:++大きく";
-          final expected = DocumentNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(
-                    children: [
-                      TextSpanNode(
-                        text: "危険状態",
-                        color: SemanticColor.danger,
-                        sizeOffset: 0,
-                      ),
-                      TextSpanNode(
-                        text: "大きく",
-                        color: SemanticColor.danger,
-                        sizeOffset: 2,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          );
+          final expected = [
+            TextSpanNode(
+              text: "危険状態",
+              color: SemanticColor.danger,
+              sizeOffset: 0,
+            ),
+            TextSpanNode(
+              text: "大きく",
+              color: SemanticColor.danger,
+              sizeOffset: 2,
+            ),
+          ];
 
-          final nodes = NaturalBlockParser.parse(input);
-          expect(nodes, expected);
+          expect(runs(input), expected);
         },
       );
 
       test("color and emphasis can be specified at the same time (not mutually exclusive)", () {
         const input = ":!*重要な警告:*危険は継続:!普通";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(
-                  children: [
-                    TextSpanNode(
-                      text: "重要な警告",
-                      color: SemanticColor.danger,
-                      emphasis: true,
-                    ),
-                    TextSpanNode(
-                      text: "危険は継続",
-                      color: SemanticColor.danger,
-                      emphasis: false,
-                    ),
-                    TextSpanNode(text: "普通", color: SemanticColor.none),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        final expected = [
+          TextSpanNode(
+            text: "重要な警告",
+            color: SemanticColor.danger,
+            emphasis: true,
+          ),
+          TextSpanNode(
+            text: "危険は継続",
+            color: SemanticColor.danger,
+            emphasis: false,
+          ),
+          TextSpanNode(text: "普通", color: SemanticColor.none),
+        ];
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
+        expect(runs(input), expected);
       });
 
       test("size, color, and emphasis can all be held at the same time", () {
         const input = ":++!*重要";
-        final expected = DocumentNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(
-                  children: [
-                    TextSpanNode(
-                      text: "重要",
-                      sizeOffset: 2,
-                      color: SemanticColor.danger,
-                      emphasis: true,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
-        );
+        final expected = [
+          TextSpanNode(
+            text: "重要",
+            sizeOffset: 2,
+            color: SemanticColor.danger,
+            emphasis: true,
+          ),
+        ];
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
+        expect(runs(input), expected);
       });
     });
 

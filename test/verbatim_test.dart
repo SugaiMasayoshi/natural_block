@@ -16,19 +16,10 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
+import 'nodes.dart';
+
 void main() {
   const bs = r'\';
-
-  TextNode line(String text) => TextNode(children: [TextSpanNode(text: text)]);
-
-  /// The one block a source parses to. A line always sits inside one, even
-  /// when the block carries no marker of its own.
-  ColumnNode onlyBlock(String source) =>
-      NaturalBlockParser.parse(source).children.single as ColumnNode;
-
-  /// The one line a source parses to.
-  TextNode onlyLine(String source) =>
-      onlyBlock(source).children.single as TextNode;
 
   /// The one verbatim region a source parses to.
   VerbatimNode onlyRegion(String source) =>
@@ -183,11 +174,7 @@ void main() {
     test('an empty region contributes no node', () {
       expect(
         NaturalBlockParser.parse('a``b'),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line('a``b')]),
-          ],
-        ),
+        DocumentNode(children: [block('a``b')]),
       );
     });
   });
@@ -199,23 +186,14 @@ void main() {
       // commits -- so every level that asks gets the same answer.
       expect(
         NaturalBlockParser.parse('a `b'),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line('a `b')]),
-          ],
-        ),
+        DocumentNode(children: [block('a `b')]),
       );
     });
 
     test('separators after it still work', () {
       expect(
         NaturalBlockParser.parse('a `b | c'),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line('a `b ')]),
-            ColumnNode(children: [line(' c')]),
-          ],
-        ),
+        DocumentNode(children: [block('a `b '), block(' c')]),
       );
     });
   });
@@ -224,11 +202,7 @@ void main() {
     test('an escaped fence is a literal backtick and opens nothing', () {
       expect(
         NaturalBlockParser.parse('a $bs` b'),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line('a ` b')]),
-          ],
-        ),
+        DocumentNode(children: [block('a ` b')]),
       );
     });
 
@@ -237,12 +211,7 @@ void main() {
       // fence were read as opening a region, this `|` would be swallowed.
       expect(
         NaturalBlockParser.parse('a $bs` b | c'),
-        DocumentNode(
-          children: [
-            ColumnNode(children: [line('a ` b ')]),
-            ColumnNode(children: [line(' c')]),
-          ],
-        ),
+        DocumentNode(children: [block('a ` b '), block(' c')]),
       );
     });
   });

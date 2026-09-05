@@ -16,18 +16,7 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
-/// One line of text, the shape most table cells take.
-TextNode line(String text) => TextNode(children: [TextSpanNode(text: text)]);
-
-/// A single-line block, which is what a bare paragraph parses to.
-ColumnNode block(String text) => ColumnNode(children: [line(text)]);
-
-/// An empty cell -- what a padded position, or an explicit `^``^`, holds.
-ColumnNode empty([BlockAlign? align]) => ColumnNode(align: align);
-
-/// A single-line cell.
-ColumnNode cell(String text, [BlockAlign? align]) =>
-    ColumnNode(children: [line(text)], align: align);
+import 'nodes.dart';
 
 void main() {
   /// What each cell *stated*, as a grid. Null where the source wrote no

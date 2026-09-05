@@ -29,14 +29,7 @@ import 'dart:io';
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
-/// The document's only block. A line always sits inside one, even when the
-/// block carries no marker of its own.
-ColumnNode onlyBlock(String source) =>
-    NaturalBlockParser.parse(source).children.single as ColumnNode;
-
-/// The document's only line, for the many claims about a single line.
-TextNode onlyLine(String source) =>
-    onlyBlock(source).children.single as TextNode;
+import 'nodes.dart';
 
 /// A single-line block, which is what a bare paragraph parses to.
 ColumnNode block(String text) => ColumnNode(
@@ -44,10 +37,6 @@ ColumnNode block(String text) => ColumnNode(
     TextNode(children: [TextSpanNode(text: text)]),
   ],
 );
-
-/// That line's runs, as the styled spans they are.
-List<TextSpanNode> runs(String source) =>
-    onlyLine(source).children.cast<TextSpanNode>();
 
 /// Asserts [source] parses to exactly one run of unstyled text equal to it
 /// -- the "needs no escaping" claim, which is about the text arriving whole
@@ -288,9 +277,7 @@ void main() {
         [1, 1, 1],
         reason: 'three cells, not a block and a row',
       );
-      expect(row.children.first.children, [
-        TextNode(children: [TextSpanNode(text: '前の行')]),
-      ]);
+      expect(row.children.first.children, [line('前の行')]);
     });
 
     test('a line before a row without a leading `|` is absorbed into the '
@@ -303,9 +290,7 @@ void main() {
                   .children
                   .single
               as RowNode;
-      expect(row.children.first.children, [
-        TextNode(children: [TextSpanNode(text: '前の行\nA')]),
-      ]);
+      expect(row.children.first.children, [line('前の行\nA')]);
     });
 
     test('the leading `|` keeps the preceding line its own block', () {

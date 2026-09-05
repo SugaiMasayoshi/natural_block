@@ -13,18 +13,12 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
+import 'nodes.dart';
+
 void main() {
   group("Column newline trimming", () {
     // Expected: root keeps its Column wrapper
-    final expected = DocumentNode(
-      children: [
-        ColumnNode(
-          children: [
-            TextNode(children: [TextSpanNode(text: "本文")]),
-          ],
-        ),
-      ],
-    );
+    final expected = DocumentNode(children: [block("本文")]);
 
     const cases = [
       "本文",
@@ -52,20 +46,7 @@ void main() {
     // ColumnNode wrapping one TextNode
     final expected = DocumentNode(
       children: [
-        RowNode(
-          children: [
-            ColumnNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "左")]),
-              ],
-            ),
-            ColumnNode(
-              children: [
-                TextNode(children: [TextSpanNode(text: "右")]),
-              ],
-            ),
-          ],
-        ),
+        RowNode(children: [block("左"), block("右")]),
       ],
     );
 
@@ -109,17 +90,9 @@ void main() {
         children: [
           RowNode(
             children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "左")]),
-                ],
-              ),
+              block("左"),
               ColumnNode(children: []),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "右")]),
-                ],
-              ),
+              block("右"),
             ],
           ),
         ],
@@ -137,20 +110,7 @@ void main() {
     // one contributes no node at all rather than a blank entry.
     test("an empty Column block contributes no node", () {
       const input = "左||右";
-      final expected = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "左")]),
-            ],
-          ),
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "右")]),
-            ],
-          ),
-        ],
-      );
+      final expected = DocumentNode(children: [block("左"), block("右")]);
 
       expect(NaturalBlockParser.parse(input), expected);
     });
@@ -185,16 +145,8 @@ void main() {
         children: [
           RowNode(
             children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "左")]),
-                ],
-              ),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "右")]),
-                ],
-              ),
+              block("左"),
+              block("右"),
               ColumnNode(children: []),
             ],
           ),
@@ -235,16 +187,8 @@ void main() {
           RowNode(
             children: [
               ColumnNode(children: []),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "左")]),
-                ],
-              ),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "右")]),
-                ],
-              ),
+              block("左"),
+              block("右"),
               ColumnNode(children: []),
             ],
           ),
@@ -262,16 +206,8 @@ void main() {
         children: [
           RowNode(
             children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "左")]),
-                ],
-              ),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "右")]),
-                ],
-              ),
+              block("左"),
+              block("右"),
               ColumnNode(children: []),
             ],
           ),
@@ -306,20 +242,7 @@ void main() {
       const input = r"左^右\^";
       final expected = DocumentNode(
         children: [
-          RowNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "左")]),
-                ],
-              ),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "右^")]),
-                ],
-              ),
-            ],
-          ),
+          RowNode(children: [block("左"), block("右^")]),
         ],
       );
 
@@ -333,34 +256,8 @@ void main() {
       const input = "a^b|c^d";
       final expected = DocumentNode(
         children: [
-          RowNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "a")]),
-                ],
-              ),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "b")]),
-                ],
-              ),
-            ],
-          ),
-          RowNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "c")]),
-                ],
-              ),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "d")]),
-                ],
-              ),
-            ],
-          ),
+          RowNode(children: [block("a"), block("b")]),
+          RowNode(children: [block("c"), block("d")]),
         ],
       );
 
@@ -372,25 +269,8 @@ void main() {
       const input = "a^b|text";
       final expected = DocumentNode(
         children: [
-          RowNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "a")]),
-                ],
-              ),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "b")]),
-                ],
-              ),
-            ],
-          ),
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "text")]),
-            ],
-          ),
+          RowNode(children: [block("a"), block("b")]),
+          block("text"),
         ],
       );
 
@@ -402,25 +282,8 @@ void main() {
       const input = "text|a^b";
       final expected = DocumentNode(
         children: [
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "text")]),
-            ],
-          ),
-          RowNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "a")]),
-                ],
-              ),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "b")]),
-                ],
-              ),
-            ],
-          ),
+          block("text"),
+          RowNode(children: [block("a"), block("b")]),
         ],
       );
 
@@ -432,20 +295,7 @@ void main() {
       const input = "左1\n左2^右";
       final expected = DocumentNode(
         children: [
-          RowNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "左1\n左2")]),
-                ],
-              ),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "右")]),
-                ],
-              ),
-            ],
-          ),
+          RowNode(children: [block("左1\n左2"), block("右")]),
         ],
       );
 
@@ -460,20 +310,7 @@ void main() {
       final expected = DocumentNode(
         children: [
           RowNode(
-            children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "A")]),
-                ],
-                align: BlockAlign.start,
-              ),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "B")]),
-                ],
-                align: BlockAlign.end,
-              ),
-            ],
+            children: [cell("A", BlockAlign.start), cell("B", BlockAlign.end)],
           ),
         ],
       );
@@ -484,16 +321,7 @@ void main() {
 
     test("a marker on a plain block wraps it in a centered ColumnNode", () {
       const input = "|=見出し|";
-      final expected = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "見出し")]),
-            ],
-            align: BlockAlign.center,
-          ),
-        ],
-      );
+      final expected = DocumentNode(children: [cell("見出し", BlockAlign.center)]);
 
       final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
@@ -505,18 +333,8 @@ void main() {
         children: [
           RowNode(
             children: [
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "左")]),
-                ],
-                align: null,
-              ),
-              ColumnNode(
-                children: [
-                  TextNode(children: [TextSpanNode(text: "右")]),
-                ],
-                align: null,
-              ),
+              ColumnNode(children: [line("左")], align: null),
+              ColumnNode(children: [line("右")], align: null),
             ],
           ),
         ],
@@ -540,15 +358,7 @@ void main() {
 
     test("an unaligned plain block is still a bare TextNode", () {
       const input = "本文";
-      final expected = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "本文")]),
-            ],
-          ),
-        ],
-      );
+      final expected = DocumentNode(children: [block("本文")]);
 
       final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
@@ -556,15 +366,7 @@ void main() {
 
     test("an escaped separator leaves a following '>' as literal text", () {
       const input = r"x \^> y";
-      final expected = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "x ^> y")]),
-            ],
-          ),
-        ],
-      );
+      final expected = DocumentNode(children: [block("x ^> y")]);
 
       final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
@@ -590,16 +392,7 @@ void main() {
 
     test("the marker is consumed and never appears in the cell's text", () {
       const input = "|>右寄せ|";
-      final expected = DocumentNode(
-        children: [
-          ColumnNode(
-            children: [
-              TextNode(children: [TextSpanNode(text: "右寄せ")]),
-            ],
-            align: BlockAlign.end,
-          ),
-        ],
-      );
+      final expected = DocumentNode(children: [cell("右寄せ", BlockAlign.end)]);
 
       final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
