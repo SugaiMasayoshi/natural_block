@@ -28,7 +28,7 @@ final class ColumnNode extends BlockNode {
 
     final content = <ContentNode>[];
 
-    while (!cursor.isEnd && LayoutSymbol.byChar[cursor.peek] == null) {
+    while (!cursor.isEnd && !layoutSymbols.contains(cursor.peek)) {
       final before = cursor.position;
       final piece = ContentNode._parse(cursor);
       if (piece != null) content.add(piece);

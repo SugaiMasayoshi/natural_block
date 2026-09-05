@@ -17,7 +17,7 @@ final class TextNode extends ContentNode {
 
     while (!cursor.isEnd &&
         !VerbatimNode._opensAt(cursor) &&
-        LayoutSymbol.byChar[cursor.peek] == null) {
+        !layoutSymbols.contains(cursor.peek)) {
       final before = cursor.position;
       final (node, next) = InlineNode._parse(cursor, style);
       style = next;

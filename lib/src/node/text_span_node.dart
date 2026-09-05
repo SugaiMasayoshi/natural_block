@@ -52,7 +52,7 @@ final class TextSpanNode extends InlineNode {
     // The newline written against a boundary belongs to that boundary.
     final atBoundary =
         cursor.isEnd ||
-        LayoutSymbol.byChar[cursor.peek] != null ||
+        layoutSymbols.contains(cursor.peek) ||
         VerbatimNode._opensAt(cursor);
 
     var run = pending.toString();
@@ -75,7 +75,7 @@ final class TextSpanNode extends InlineNode {
   /// that `C++` and `100%` are prose and need no escaping. Inside a cluster
   /// the answer is different, and [SpanDecoration] states its own.
   static final Set<String> _markup = {
-    ...LayoutSymbol.chars,
+    ...layoutSymbols,
     verbatimFenceChar,
     DecorationAction.reset.char,
   };

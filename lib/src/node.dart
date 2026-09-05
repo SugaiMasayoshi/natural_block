@@ -41,7 +41,7 @@ import 'package:collection/collection.dart';
 
 import 'block_align.dart';
 import 'decoration_action.dart';
-import 'layout_symbol.dart';
+import 'layout_symbols.dart';
 import 'semantic_color.dart';
 import 'source_cursor.dart';
 import 'verbatim_region.dart';

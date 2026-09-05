@@ -11,10 +11,10 @@ final class RowNode extends BlockNode {
   /// Each `^` is consumed because it is the row's own; the `|` that ends the
   /// row is left for whoever arranges blocks.
   static RowNode? _parse(SourceCursor cursor, ColumnNode first) {
-    if (LayoutSymbol.byChar[cursor.peek] != LayoutSymbol.row) return null;
+    if (cursor.peek != cellSymbol) return null;
 
     final cells = [first];
-    while (LayoutSymbol.byChar[cursor.peek] == LayoutSymbol.row) {
+    while (cursor.peek == cellSymbol) {
       // The cell this `^` opens is read whatever follows, the end of the
       // source included. An empty cell is a position the layout keeps, and
       // the row must not mean one thing at the end of a document and

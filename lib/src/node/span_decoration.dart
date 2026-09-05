@@ -26,7 +26,7 @@ class SpanDecoration {
   /// `:---\%%%` needs one backslash, and a bare `%` in a sentence needs
   /// none.
   static final Set<String> _markup = {
-    ...LayoutSymbol.chars,
+    ...layoutSymbols,
     verbatimFenceChar,
     ...DecorationAction.chars,
   };

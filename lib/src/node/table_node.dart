@@ -57,7 +57,7 @@ final class TableNode extends BlockNode {
       }
 
       if (cursor.isEnd) break;
-      if (LayoutSymbol.byChar[cursor.peek] == LayoutSymbol.table) break;
+      if (cursor.peek == tableSymbol) break;
       firstCellAlign = BlockNode._takeSeparator(cursor);
     }
 
