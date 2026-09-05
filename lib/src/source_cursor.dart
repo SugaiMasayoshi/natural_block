@@ -1,8 +1,4 @@
-import 'syntax/verbatim_region.dart';
-
-/// One position in the source, and the two things that must be resolved
-/// before a node can read the character under it: escapes, and verbatim
-/// regions.
+/// One position in the source, and the reading of escapes.
 ///
 /// It holds no opinion about what any character means. Which ones are markup
 /// arrives as an argument, because that is a fact about the grammar and the
@@ -11,10 +7,14 @@ import 'syntax/verbatim_region.dart';
 /// no list built in here could be right in both places.
 ///
 /// What it does know is smaller and does not vary: a backslash cancels the
-/// character after it, a newline is never markup, and a run of backticks
-/// opens a region that is taken literally. The region is the one piece of
-/// syntax it cannot be handed, because finding the closing fence means
-/// scanning ahead, and the cursor is what scanning ahead is done with.
+/// character after it, and a newline is never markup. Escapes are here and
+/// not in the grammar because they are the one rule that changes what a
+/// character *is* -- past a backslash there is no symbol left for a node to
+/// see -- so nothing above this could read the source without them.
+///
+/// Verbatim regions used to be here too. They are grammar: they become
+/// nodes, and their rule is stated in `syntax/verbatim_region.dart`, which
+/// drives this cursor from the outside like any other node does.
 class SourceCursor {
   final String source;
 
@@ -45,49 +45,12 @@ class SourceCursor {
 
   String take() => source[_position++];
 
-  int _regionAt = -1;
-  VerbatimRegion? _region;
-
-  /// The region opening at the cursor, or null if none does.
+  /// Moves the cursor to [index] without reading anything on the way.
   ///
-  /// Remembered for the position it was read at. Four callers ask about the
-  /// same fence before anyone consumes it -- the run's boundary check, the
-  /// line's loop, the inline dispatch, and finally [takeVerbatim] -- because
-  /// a child stops in front of what is not its own and its owner then asks.
-  /// That protocol is right; answering it four times over an unchanging
-  /// source is not.
-  VerbatimRegion? get _regionHere {
-    if (_regionAt != _position) {
-      _regionAt = _position;
-      _region = peek == verbatimFenceChar
-          ? verbatimRegionAt(source, _position)
-          : null;
-    }
-    return _region;
-  }
-
-  /// Whether a verbatim region opens here. Asks without consuming, so a node
-  /// can decide whether the region belongs to it before touching it.
-  ///
-  /// Not the same as "the cursor is on a backtick": an opening fence with no
-  /// closing one opens nothing, and is ordinary text.
-  bool get atVerbatimFence => _regionHere != null;
-
-  /// Whether the region opening here was written on a line of its own, and
-  /// so is a block rather than a run inside a line.
-  ///
-  /// Stated once, and asked by both sides: the line that must not take it
-  /// and the block that must. If the two disagreed, neither would consume
-  /// the fence and the caller's loop would never advance.
-  bool get atBlockRegion =>
-      atVerbatimFence && (_position == 0 || peekAt(-1) == '\n');
-
-  /// Consumes the region opening at the cursor and returns its content.
-  String takeVerbatim() {
-    final region = _regionHere!;
-    _position = region.end;
-    return region.text;
-  }
+  /// The one operation a node cannot express with [take]: a verbatim region
+  /// is found by searching ahead for its closing fence, so its owner knows
+  /// where it ends before it has read a character of it.
+  void jumpTo(int index) => _position = index;
 
   /// Consumes the escape at the cursor and returns the character it cancels,
   /// or null -- **with the cursor unmoved** -- when the backslash cancels

@@ -173,10 +173,15 @@ this repository, which is why the entries below describe changes freely.
   row; `TableNode` consumes the `|` between rows but not the `~` that ends
   the table. There is no assembly pass and no shared mutable state.
 - One consequence of that protocol, worth naming: several levels ask about
-  the same position before anyone consumes it. Five callers ask whether a
-  verbatim region opens at a given fence. The `Scanner` remembers the answer
-  for the position it was read at, which is what makes asking repeatedly
-  free -- roughly 2.5x on a document that is mostly code blocks.
+  the same position before anyone consumes it. Four levels ask whether a
+  verbatim region opens at a given fence, because a child stops in front of
+  what is not its own and its owner then asks again. Asking is made cheap
+  rather than remembered: finding the closing fence builds no string, and
+  only the level that consumes the region cuts the text out. An earlier
+  version cached the answer inside the cursor instead, which bought about
+  1.15x on a document that is mostly code blocks and cost the cursor the one
+  piece of this language's grammar it had no other reason to know.
+  `benchmark/verbatim_cost.dart` is the measurement.
 - What that cost and what it bought, measured rather than claimed. Counting
   code lines only, blanks and comments excluded: of the sixteen functions
   that do the parsing, fifteen are 22 lines or fewer, and the one outlier is
@@ -184,11 +189,18 @@ this repository, which is why the entries below describe changes freely.
   decoration, newlines and every layout symbol meet. The separated parser it
   replaced did that same reading in one function of 90 lines, and its entry
   point was 36. `lib` went from 581 code lines to 558.
-- The scanner knows this language's layout alphabet, which is not a leak:
-  what a backslash cancels is whatever is markup at that point, and a run of
-  text ends where markup begins -- the same list twice. It does *not* know
-  alignment. `<`, `=` and `>` are neither escapable nor terminators, and
-  mean anything only directly after a separator, so that rule lives with the
-  enum instead.
+- `SourceCursor` is one position in the source and the reading of escapes,
+  and nothing else -- 43 lines, importing none of the syntax. Which
+  characters are markup is passed in, because it is a fact about the grammar
+  and because it is not even constant: `%` is prose in a sentence and a
+  symbol inside a decoration cluster. Escapes are the exception that stays,
+  being the one rule that changes what a character *is*: past a backslash
+  there is no symbol left for a node to see.
+- The rest of the syntax drives that cursor from outside, through its public
+  operations. Alignment markers live with `BlockAlign` (`<`, `=` and `>`
+  mean something only directly after a separator); verbatim regions live
+  with the fence (`syntax/verbatim_region.dart`), since a region becomes a
+  node and its extent is the only thing here that cannot be settled by
+  looking at the character under the cursor.
 - `README.md`'s claims are executed as tests (`test/readme_test.dart`), so a
   statement in it that stops being true fails the suite.
