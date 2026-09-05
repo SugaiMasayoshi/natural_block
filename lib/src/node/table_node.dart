@@ -42,17 +42,18 @@ final class TableNode extends BlockNode {
     BlockAlign? firstCellAlign;
 
     while (true) {
-      // The same two steps a block outside a table takes, and the same rule
-      // about an empty one: it contributes nothing, which is what lets every
-      // row be written with a leading `|`. What differs is the one thing
-      // that makes a table row a table row -- a block that read no `=` is
-      // still a row here, of a single cell.
-      final first = ColumnNode._parse(scanner, firstCellAlign);
-      final row = RowNode._parse(scanner, first);
-      if (row != null) {
-        rows.add(row);
-      } else if (first.children.isNotEmpty) {
-        rows.add(RowNode(children: [first]));
+      // A table reads a block exactly as the document does, including the
+      // rule that an empty one contributes nothing -- which is what lets
+      // every row be written with a leading `|`. The one difference is what
+      // a block that read no `^` becomes: outside a table it stays a column,
+      // here it is still a row, of a single cell.
+      switch (BlockNode._parse(scanner, firstCellAlign)) {
+        case final RowNode row:
+          rows.add(row);
+        case final ColumnNode cell:
+          rows.add(RowNode(children: [cell]));
+        case _:
+          break;
       }
 
       if (scanner.isEnd) break;

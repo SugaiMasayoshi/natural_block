@@ -63,19 +63,14 @@ class Scanner {
   /// separator opens -- a block at the document's level, a row inside a
   /// table, a cell inside a row -- which is the caller's business, not this
   /// one's.
+  ///
+  /// Null when no marker was written, which is not [BlockAlign.start]: a
+  /// block that stated nothing is a different thing from one that asked for
+  /// the start. A later marker overrides an earlier one, so `|<^>` ends up
+  /// end-aligned.
   BlockAlign? takeSeparator() {
     take();
-    return takeMarkers();
-  }
 
-  /// Consumes the markers written at the cursor and returns what they said.
-  ///
-  /// Null when none were written, which is not [BlockAlign.start]: markers
-  /// describe the block a layout symbol opens, and a block that stated
-  /// nothing is a different thing from one that asked for the start.
-  ///
-  /// A later marker overrides an earlier one, so `|<^>` is end-aligned.
-  BlockAlign? takeMarkers() {
     BlockAlign? align;
     while (!isEnd) {
       final marker = BlockAlign.byChar[peek];

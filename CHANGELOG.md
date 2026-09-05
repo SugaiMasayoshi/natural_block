@@ -1,6 +1,8 @@
 ## 1.0.0
 
-Initial release.
+Initial release -- the version number and the `homepage` say publishable, but
+this package has not been published to pub.dev. Nothing depends on it outside
+this repository, which is why the entries below describe changes freely.
 
 ### Layout
 
@@ -167,12 +169,12 @@ Initial release.
   verbatim region opens at a given fence. The `Scanner` remembers the answer
   for the position it was read at, which is what makes asking repeatedly
   free -- roughly 2.5x on a document that is mostly code blocks.
-- What that cost and what it bought, measured rather than claimed: the
-  median function got much smaller, and the longest one got *bigger*. Of the
-  nine functions that do the parsing, seven are 22 lines or fewer; the two
-  that read a run of styled text -- `TextSpanNode._parse` (47) and
-  `Scanner.read` (36) -- are the outliers. The separated parser it replaced
-  had four functions over 20 lines, all of them part of one reading, and its
-  longest was 36.
+- What that cost and what it bought, measured rather than claimed. Counting
+  code lines only, blanks and comments excluded: of the fifteen functions
+  that do the parsing, twelve are 23 lines or fewer, and the three longest --
+  `TextSpanNode._parse` (29), `Scanner.read` (24) and
+  `_Decoration.readCluster` (24) -- all read a run of styled text. The
+  separated parser it replaced did that same reading in one function of 90
+  lines, and its entry point was 36. `lib` went from 581 code lines to 557.
 - `README.md`'s claims are executed as tests (`test/readme_test.dart`), so a
   statement in it that stops being true fails the suite.
