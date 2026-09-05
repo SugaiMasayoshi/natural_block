@@ -33,27 +33,17 @@ sealed class BlockNode extends NaturalBlockNode {
   ///
   /// The sealed supertype decides which of its subtypes the source becomes,
   /// the same shape [ContentNode] and [InlineNode] have. A `~` opens a
-  /// table and the table reads its own delimiters; anything else is read by
-  /// [_parseColumnOrRow].
+  /// table, and the table reads its own delimiters.
+  ///
+  /// Otherwise the first cell is read before anything is known about what
+  /// the block is, because the same text serves either reading. What the
+  /// separator after it turns out to be decides who finishes the job, and
+  /// the cell already read is handed on rather than re-read or re-labelled.
   ///
   /// Null when the block turned out to have nothing in it.
-  static BlockNode? _parse(SourceCursor cursor, BlockAlign? align) =>
-      cursor.peek == tableSymbol
-      ? TableNode._parse(cursor)
-      : _parseColumnOrRow(cursor, align);
+  static BlockNode? _parse(SourceCursor cursor, BlockAlign? align) {
+    if (cursor.peek == tableSymbol) return TableNode._parse(cursor);
 
-  /// Reads a block that is not a table.
-  ///
-  /// The first cell is read before anything is known about what the block
-  /// is, because the same text serves either reading. What the separator
-  /// after it turns out to be decides who finishes the job, and the cell
-  /// already read is handed on rather than re-read or re-labelled.
-  ///
-  /// Separate from [_parse] because a table's own rows go through here: a
-  /// `~` met while reading them is the one that ends the table, not one
-  /// that opens another. Sending them through [_parse] would nest a table
-  /// inside itself at `|~a^b|~e`, where a row does start with `~`.
-  static BlockNode? _parseColumnOrRow(SourceCursor cursor, BlockAlign? align) {
     final first = ColumnNode._parse(cursor, align);
     final row = RowNode._parse(cursor, first);
     if (row != null) return row;

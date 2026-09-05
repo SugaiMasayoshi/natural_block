@@ -5,6 +5,26 @@ final class RowNode extends BlockNode {
 
   RowNode({this.children = const []});
 
+  /// Reads one row of a table.
+  ///
+  /// The same reading a block outside a table gets, differing in one thing:
+  /// what a block that read no `^` becomes. Out there it stays a column;
+  /// here every `|` opens a row, so a lone cell is a row of one.
+  ///
+  /// It goes through here rather than through [BlockNode._parse] because a
+  /// `~` met while reading a table is the one that ends it, never one that
+  /// opens another -- and a row really can start with `~`, as in
+  /// `|~a^b|~e`.
+  ///
+  /// Null when the row had nothing in it.
+  static RowNode? _parseInTable(SourceCursor cursor, BlockAlign? align) {
+    final first = ColumnNode._parse(cursor, align);
+    final row = _parse(cursor, first);
+    if (row != null) return row;
+
+    return first.children.isEmpty ? null : RowNode(children: [first]);
+  }
+
   /// Continues a block that turned out to be a row, given the cell already
   /// read. Null when it was not one: a row is a block that read a `^`.
   ///

@@ -50,26 +50,10 @@ final class TableNode extends BlockNode {
     BlockAlign? firstCellAlign;
 
     while (true) {
-      // A table reads a block exactly as the document does, including the
-      // rule that an empty one contributes nothing -- which is what lets
-      // every row be written with a leading `|`. The one difference is what
-      // a block that read no `^` becomes: outside a table it stays a column,
-      // here it is still a row, of a single cell.
-      switch (BlockNode._parseColumnOrRow(cursor, firstCellAlign)) {
-        case final RowNode row:
-          rows.add(row);
-        case final ColumnNode cell:
-          rows.add(RowNode(children: [cell]));
-        case TableNode():
-          // Cannot happen -- the function called above reads everything
-          // except a table. Written out anyway rather than caught by a `_`,
-          // so that adding a fourth kind of block fails to compile here
-          // instead of quietly dropping it. That check is the whole reason
-          // `BlockNode` is sealed, and a `_` gives it up.
-          break;
-        case null:
-          break;
-      }
+      // An empty row contributes nothing, which is what lets every row be
+      // written with a leading `|`.
+      final row = RowNode._parseInTable(cursor, firstCellAlign);
+      if (row != null) rows.add(row);
 
       if (cursor.isEnd) break;
       if (cursor.peek == tableSymbol) {
