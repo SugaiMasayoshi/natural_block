@@ -1,15 +1,6 @@
 part of '../node.dart';
 
 sealed class BlockNode extends NaturalBlockNode {
-  /// Reads whichever block starts here, given the alignment the separator
-  /// that opened it stated. Stops in front of the `|` or `~` that ends it,
-  /// which belongs to whatever arranges the blocks.
-  ///
-  /// The first cell is read before anything is known about what the block
-  /// is, because the same text serves either reading. What the separator
-  /// after it turns out to be decides who finishes the job, and the cell
-  /// already read is handed on rather than re-read or re-labelled.
-  /// Null when the block turned out to have nothing in it.
   /// Consumes the layout symbol that opens the coming block, together with
   /// the markers written after it, and returns what they said.
   ///
@@ -37,6 +28,18 @@ sealed class BlockNode extends NaturalBlockNode {
     return align;
   }
 
+  /// Reads whichever block starts here, given the alignment the separator
+  /// that opened it stated. Stops in front of the `|` or `~` that ends it,
+  /// which belongs to whatever arranges the blocks.
+  ///
+  /// The first cell is read before anything is known about what the block
+  /// is, because the same text serves either reading. What the separator
+  /// after it turns out to be decides who finishes the job, and the cell
+  /// already read is handed on rather than re-read or re-labelled.
+  ///
+  /// Only ever a [ColumnNode] or a [RowNode], never a [TableNode]: a table
+  /// is opened by `~`, which every caller of this stops in front of. Null
+  /// when the block turned out to have nothing in it.
   static BlockNode? _parse(SourceCursor cursor, BlockAlign? align) {
     final first = ColumnNode._parse(cursor, align);
     final row = RowNode._parse(cursor, first);

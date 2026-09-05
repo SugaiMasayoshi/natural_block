@@ -52,7 +52,15 @@ final class TableNode extends BlockNode {
           rows.add(row);
         case final ColumnNode cell:
           rows.add(RowNode(children: [cell]));
-        case _:
+        case TableNode():
+          // Cannot happen -- reading a block never produces a table, since
+          // a table is opened by `~` and this loop stops in front of that.
+          // Written out anyway rather than caught by a `_`, so that adding
+          // a fourth kind of block fails to compile here instead of
+          // quietly dropping it. That check is the whole reason `BlockNode`
+          // is sealed, and a `_` gives it up.
+          break;
+        case null:
           break;
       }
 
