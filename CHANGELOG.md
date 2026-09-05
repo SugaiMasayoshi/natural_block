@@ -62,9 +62,12 @@ this repository, which is why the entries below describe changes freely.
 ### Tables
 
 - `~` is the third layout symbol, one level above `|`: `^` separates the
-  cells of a row, `|` separates rows and blocks, and `~` separates table
-  regions from ordinary ones. Each ends everything below it, so a `~` ends
-  whatever preceded it and starts the table in one stroke.
+  cells of a row and `|` separates rows and blocks, while `~` *delimits* --
+  it wraps a table, and both of its `~` belong to that table, the way both
+  fences belong to a verbatim region. Each symbol still ends everything
+  below it, so a `~` ends whatever preceded it; it just opens no block of
+  its own, which is why a marker after the closing one is ordinary text and
+  aligning what follows a table takes a `|`.
 - **A table ends at `~` or at the end of the document, and nowhere else.**
   Everything between belongs to it: a short row does not end it, and a line
   with no `^` becomes a one-cell row. The table is as wide as its widest row.

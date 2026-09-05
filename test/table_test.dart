@@ -270,12 +270,23 @@ void main() {
       ]);
     });
 
-    test('closing a table aligns the block that follows, not the table', () {
-      final document = NaturalBlockParser.parse('~A^B~=after');
+    test(
+      'the `~` that closes a table opens nothing, so it takes no marker',
+      () {
+        // Both `~` belong to the table, the way both fences belong to a
+        // verbatim region. A marker describes the block its separator opens,
+        // and a closing delimiter opens none -- so `=` here is just text.
+        // Aligning what follows a table takes a `|`, the same as aligning the
+        // first block of a document does.
+        final document = NaturalBlockParser.parse('~A^B~=after');
 
-      expect((document.children[0] as TableNode).align, isNull);
-      expect((document.children[1] as ColumnNode).align, BlockAlign.center);
-    });
+        expect((document.children[0] as TableNode).align, isNull);
+        expect(document.children[1], block('=after'));
+
+        final aligned = NaturalBlockParser.parse('~A^B~|=after');
+        expect((aligned.children[1] as ColumnNode).align, BlockAlign.center);
+      },
+    );
   });
 
   group('cells keep their existing behaviour inside a table', () {

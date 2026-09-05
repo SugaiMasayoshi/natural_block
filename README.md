@@ -28,7 +28,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   Keeping the payload human-readable is the point: an implementation that does not recognise a payload still renders it as ordinary text, so nothing is lost that a person cannot read.
 * **Block alignment (`<`, `=`, `>`)**
-  An alignment marker written *immediately* after an unescaped `|`, `^`, or `~` sets how the block starting there is positioned: `<` start, `=` center, `>` end. `ColumnNode.align` carries it.
+  An alignment marker written *immediately* after an unescaped `|`, `^`, or the `~` that opens a table sets how the block starting there is positioned: `<` start, `=` center, `>` end. `ColumnNode.align` carries it. The `~` that *closes* a table opens nothing, so a marker after it is ordinary text -- align what follows a table by writing `|` first, the same way the first block of a document needs one.
 
   ```dart
   NaturalBlockParser.parse('|<品名^=数量^>価格|');
@@ -61,7 +61,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   Nothing throws and nothing is lost, so the difference only shows once it is rendered. When in doubt, write the leading `|`.
 * **Tables (`~`)**
-  `~` is the third layout symbol, one level above `|`. Where `^` separates the cells of a row and `|` separates rows and blocks, `~` separates table regions from ordinary ones -- so a `~` both ends whatever preceded it and starts the table, exactly as `|` does one level down.
+  `~` is the third layout symbol, one level above `|`. Where `^` and `|` *separate* -- dividing siblings, and belonging to whatever arranges them -- `~` *delimits*: it wraps a table, and both `~` belong to that table the way both fences belong to a verbatim region. A `~` still ends whatever preceded it, being above `|` in the hierarchy, but it opens no block of its own.
 
   ```
   ~

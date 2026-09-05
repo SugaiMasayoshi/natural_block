@@ -16,8 +16,14 @@
 /// | `TextSpanNode`, `VerbatimSpanNode` | — | `^` `\|` `~` |
 /// | `ColumnNode` | — | `^` `\|` `~` |
 /// | `RowNode` | `^` | `\|` `~` |
-/// | `TableNode` | `\|` | `~` |
-/// | `DocumentNode` | `\|` `~` | — |
+/// | `TableNode` | its own `~` at each end, and the `\|` between rows | — |
+/// | `DocumentNode` | `\|` | — |
+///
+/// A separator belongs to whoever arranges the siblings it divides; a
+/// delimiter belongs to what it wraps. `|` and `^` are separators, so the
+/// level above eats them. `~` and the verbatim fence wrap, so the table and
+/// the region eat their own -- which is what lets the document read blocks
+/// without remembering whether it is inside a table.
 ///
 /// So `|` is not "a new block starts here" -- it is the full stop on what
 /// came before, and it means "next sibling" at whichever level is reading.

@@ -28,12 +28,20 @@ final class TableNode extends BlockNode {
 
   TableNode({this.children = const [], this.align});
 
-  /// Reads the run of rows between the `~` that opened the table and the one
-  /// that ends it, which it stops in front of rather than consuming.
+  /// Reads the table that opens at the cursor, both `~` included.
+  ///
+  /// Each delimiter is the table's own -- the one that opens it and the one
+  /// that ends it -- exactly as a verbatim region owns both of its fences. A
+  /// `~` wraps rather than separates, and what wraps belongs to what it
+  /// wraps. That is what lets the document read blocks without remembering
+  /// whether it is inside a table.
   ///
   /// Everything in between is the table's, so there is nothing to hand back.
   /// Null when no row had any content.
-  static TableNode? _parse(SourceCursor cursor, BlockAlign? align) {
+  static TableNode? _parse(SourceCursor cursor) {
+    // The markers on the opening `~` describe the table itself.
+    final align = BlockNode._takeSeparator(cursor);
+
     final rows = <RowNode>[];
 
     // What the `|` that opened the coming row said about its first cell.
@@ -47,25 +55,27 @@ final class TableNode extends BlockNode {
       // every row be written with a leading `|`. The one difference is what
       // a block that read no `^` becomes: outside a table it stays a column,
       // here it is still a row, of a single cell.
-      switch (BlockNode._parse(cursor, firstCellAlign)) {
+      switch (BlockNode._parseColumnOrRow(cursor, firstCellAlign)) {
         case final RowNode row:
           rows.add(row);
         case final ColumnNode cell:
           rows.add(RowNode(children: [cell]));
         case TableNode():
-          // Cannot happen -- reading a block never produces a table, since
-          // a table is opened by `~` and this loop stops in front of that.
-          // Written out anyway rather than caught by a `_`, so that adding
-          // a fourth kind of block fails to compile here instead of
-          // quietly dropping it. That check is the whole reason `BlockNode`
-          // is sealed, and a `_` gives it up.
+          // Cannot happen -- the function called above reads everything
+          // except a table. Written out anyway rather than caught by a `_`,
+          // so that adding a fourth kind of block fails to compile here
+          // instead of quietly dropping it. That check is the whole reason
+          // `BlockNode` is sealed, and a `_` gives it up.
           break;
         case null:
           break;
       }
 
       if (cursor.isEnd) break;
-      if (cursor.peek == tableSymbol) break;
+      if (cursor.peek == tableSymbol) {
+        cursor.take();
+        break;
+      }
       firstCellAlign = BlockNode._takeSeparator(cursor);
     }
 

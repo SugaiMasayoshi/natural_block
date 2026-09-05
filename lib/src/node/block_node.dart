@@ -7,9 +7,9 @@ sealed class BlockNode extends NaturalBlockNode {
   /// The two are read as one because that is the only place markers mean
   /// anything: `<`, `=` and `>` are ordinary text everywhere except directly
   /// after an unescaped separator. It lives here because every separator in
-  /// the language opens one of these -- the document's `|` and `~` open a
-  /// block, a table's `|` opens a row, a row's `^` opens a cell -- and the
-  /// three are all `BlockNode`s.
+  /// the language opens one of these -- the document's `|` opens a block, a
+  /// table's `|` opens a row, a row's `^` opens a cell, and the `~` that
+  /// opens a table -- and all of those are `BlockNode`s.
   ///
   /// Null when no marker was written, which is not [BlockAlign.start]: a
   /// block that stated nothing is a different thing from one that asked for
@@ -29,18 +29,31 @@ sealed class BlockNode extends NaturalBlockNode {
   }
 
   /// Reads whichever block starts here, given the alignment the separator
-  /// that opened it stated. Stops in front of the `|` or `~` that ends it,
-  /// which belongs to whatever arranges the blocks.
+  /// that opened it stated.
+  ///
+  /// The sealed supertype decides which of its subtypes the source becomes,
+  /// the same shape [ContentNode] and [InlineNode] have. A `~` opens a
+  /// table and the table reads its own delimiters; anything else is read by
+  /// [_parseColumnOrRow].
+  ///
+  /// Null when the block turned out to have nothing in it.
+  static BlockNode? _parse(SourceCursor cursor, BlockAlign? align) =>
+      cursor.peek == tableSymbol
+      ? TableNode._parse(cursor)
+      : _parseColumnOrRow(cursor, align);
+
+  /// Reads a block that is not a table.
   ///
   /// The first cell is read before anything is known about what the block
   /// is, because the same text serves either reading. What the separator
   /// after it turns out to be decides who finishes the job, and the cell
   /// already read is handed on rather than re-read or re-labelled.
   ///
-  /// Only ever a [ColumnNode] or a [RowNode], never a [TableNode]: a table
-  /// is opened by `~`, which every caller of this stops in front of. Null
-  /// when the block turned out to have nothing in it.
-  static BlockNode? _parse(SourceCursor cursor, BlockAlign? align) {
+  /// Separate from [_parse] because a table's own rows go through here: a
+  /// `~` met while reading them is the one that ends the table, not one
+  /// that opens another. Sending them through [_parse] would nest a table
+  /// inside itself at `|~a^b|~e`, where a row does start with `~`.
+  static BlockNode? _parseColumnOrRow(SourceCursor cursor, BlockAlign? align) {
     final first = ColumnNode._parse(cursor, align);
     final row = RowNode._parse(cursor, first);
     if (row != null) return row;
