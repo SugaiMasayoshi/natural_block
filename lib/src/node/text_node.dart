@@ -17,7 +17,7 @@ final class TextNode extends ContentNode {
 
     while (!cursor.isEnd &&
         !cursor.atBlockRegion &&
-        cursor.layoutSymbol == null) {
+        LayoutSymbol.byChar[cursor.peek] == null) {
       final before = cursor.position;
       final (node, next) = InlineNode._parse(cursor, style);
       style = next;

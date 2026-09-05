@@ -51,7 +51,9 @@ final class TextSpanNode extends InlineNode {
 
     // The newline written against a boundary belongs to that boundary.
     final atBoundary =
-        cursor.isEnd || cursor.layoutSymbol != null || cursor.atBlockRegion;
+        cursor.isEnd ||
+        LayoutSymbol.byChar[cursor.peek] != null ||
+        cursor.atBlockRegion;
 
     var run = pending.toString();
     if (atBoundary && run.endsWith('\n')) {

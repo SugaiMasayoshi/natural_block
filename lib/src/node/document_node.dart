@@ -32,7 +32,7 @@ final class DocumentNode extends NaturalBlockNode {
       }
 
       if (cursor.isEnd) break;
-      if (cursor.layoutSymbol == LayoutSymbol.table) {
+      if (LayoutSymbol.byChar[cursor.peek] == LayoutSymbol.table) {
         inTable = !inTable;
       }
       align = cursor.takeSeparator();
