@@ -15,7 +15,7 @@ sealed class InlineNode extends NaturalBlockNode {
     SourceCursor cursor,
     SpanDecoration style,
   ) {
-    if (cursor.atVerbatimFence) {
+    if (VerbatimSpanNode._opensAt(cursor)) {
       return (VerbatimSpanNode._parse(cursor), style);
     }
     return TextSpanNode._parse(cursor, style);

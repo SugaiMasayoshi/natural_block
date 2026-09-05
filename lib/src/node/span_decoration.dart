@@ -17,6 +17,20 @@ class SpanDecoration {
     this.isAction = false,
   });
 
+  /// What a backslash can cancel inside a cluster: every decoration
+  /// character is live here, including the `:` that closes the cluster
+  /// again, on top of the symbols that are markup everywhere.
+  ///
+  /// Stated here because this is the level that decides it. The difference
+  /// from what [TextSpanNode] reads outside a cluster is the whole rule:
+  /// `:---\%%%` needs one backslash, and a bare `%` in a sentence needs
+  /// none.
+  static final Set<String> _markup = {
+    ...LayoutSymbol.chars,
+    verbatimFenceChar,
+    ...DecorationAction.chars,
+  };
+
   /// Reads the cluster the cursor has just entered and returns the state it
   /// leaves behind, together with any character a backslash rescued from it.
   ///
@@ -33,7 +47,7 @@ class SpanDecoration {
       // cursor leaves the cursor on it -- the cluster ends either way, and
       // what the escape rescued (if anything) opens the run that follows.
       if (char == r'\') {
-        return (result, cursor.takeEscape(clusterMarkup) ?? '');
+        return (result, cursor.takeEscape(_markup) ?? '');
       }
 
       final action = DecorationAction.byChar[char];

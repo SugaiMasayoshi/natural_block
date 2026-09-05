@@ -16,7 +16,7 @@ final class TextNode extends ContentNode {
     var style = const SpanDecoration();
 
     while (!cursor.isEnd &&
-        !cursor.atBlockRegion &&
+        !VerbatimNode._opensAt(cursor) &&
         LayoutSymbol.byChar[cursor.peek] == null) {
       final before = cursor.position;
       final (node, next) = InlineNode._parse(cursor, style);

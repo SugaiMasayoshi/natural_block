@@ -44,7 +44,6 @@ import 'semantic_color.dart';
 import 'source_cursor.dart';
 import 'syntax/decoration_action.dart';
 import 'syntax/layout_symbol.dart';
-import 'syntax/markup.dart';
 import 'syntax/verbatim_region.dart';
 
 part 'node/natural_block_node.dart';

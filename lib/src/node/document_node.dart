@@ -35,7 +35,7 @@ final class DocumentNode extends NaturalBlockNode {
       if (LayoutSymbol.byChar[cursor.peek] == LayoutSymbol.table) {
         inTable = !inTable;
       }
-      align = cursor.takeSeparator();
+      align = BlockNode._takeSeparator(cursor);
     }
 
     return DocumentNode(children: children);

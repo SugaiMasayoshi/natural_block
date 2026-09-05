@@ -196,11 +196,18 @@ this repository, which is why the entries below describe changes freely.
   symbol inside a decoration cluster. Escapes are the exception that stays,
   being the one rule that changes what a character *is*: past a backslash
   there is no symbol left for a node to see.
-- The rest of the syntax drives that cursor from outside, through its public
-  operations. Alignment markers live with `BlockAlign` (`<`, `=` and `>`
-  mean something only directly after a separator); verbatim regions live
-  with the fence (`syntax/verbatim_region.dart`), since a region becomes a
-  node and its extent is the only thing here that cannot be settled by
-  looking at the character under the cursor.
+- Everything else that reads the source is a node saying what it is. Only
+  the node library imports `SourceCursor` at all, and nothing extends it:
+  `VerbatimNode._opensAt` and `VerbatimSpanNode._opensAt` answer whether one
+  of those starts here (the same fence, told apart by whether it was written
+  on a line of its own), and `BlockNode._takeSeparator` eats the layout
+  symbol that opens a block along with the markers describing it -- every
+  separator in the language opens a `BlockNode`, whether that is a block, a
+  table row, or a cell.
+- What counts as markup is likewise stated by the level that decides it, not
+  centrally. `TextSpanNode` names the symbols that end a run of text and can
+  be escaped in one; `SpanDecoration` names the wider set that is live
+  inside a cluster. The difference between the two *is* the rule that `C++`
+  and `100%` are prose: `+` and `%` are absent from the first list.
 - `README.md`'s claims are executed as tests (`test/readme_test.dart`), so a
   statement in it that stops being true fails the suite.

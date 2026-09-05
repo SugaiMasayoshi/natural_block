@@ -39,7 +39,7 @@ final class TextSpanNode extends InlineNode {
     // nowhere, a newline with nothing to reset -- is taken as text and the
     // read resumes.
     while (true) {
-      pending.write(cursor.read(markup));
+      pending.write(cursor.read(_markup));
       if (cursor.isEnd || _endsRun(cursor, style)) break;
       pending.write(cursor.take());
     }
@@ -53,7 +53,7 @@ final class TextSpanNode extends InlineNode {
     final atBoundary =
         cursor.isEnd ||
         LayoutSymbol.byChar[cursor.peek] != null ||
-        cursor.atBlockRegion;
+        VerbatimNode._opensAt(cursor);
 
     var run = pending.toString();
     if (atBoundary && run.endsWith('\n')) {
@@ -64,6 +64,21 @@ final class TextSpanNode extends InlineNode {
       outgoing,
     );
   }
+
+  /// What counts as markup while a run of text is being read: the three
+  /// layout symbols, the verbatim fence, and the `:` that opens a decoration
+  /// cluster. The cursor stops in front of each of them, and a backslash
+  /// cancels each of them.
+  ///
+  /// Stated here because this is the level that decides it. `+`, `-`, `!`,
+  /// `%`, `*` and `@` are missing on purpose -- that absence is the rule
+  /// that `C++` and `100%` are prose and need no escaping. Inside a cluster
+  /// the answer is different, and [SpanDecoration] states its own.
+  static final Set<String> _markup = {
+    ...LayoutSymbol.chars,
+    verbatimFenceChar,
+    DecorationAction.reset.char,
+  };
 
   /// Whether the character the cursor stopped in front of really ends the
   /// run. Peeks only -- it never moves the cursor.
@@ -76,7 +91,7 @@ final class TextSpanNode extends InlineNode {
         // with is the next run's cluster, and not this run's to consume.
         ':' => _opensCluster(cursor),
         // A fence that never closes opens no region, so it is text too.
-        verbatimFenceChar => cursor.atVerbatimFence,
+        verbatimFenceChar => VerbatimSpanNode._opensAt(cursor),
         // A layout symbol. Nothing else gets here.
         _ => true,
       };

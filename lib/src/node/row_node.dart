@@ -20,7 +20,7 @@ final class RowNode extends BlockNode {
       // the row must not mean one thing at the end of a document and
       // another with a character after it -- which is what a reader would
       // watch happen as they typed past it.
-      final align = cursor.takeSeparator();
+      final align = BlockNode._takeSeparator(cursor);
       cells.add(ColumnNode._parse(cursor, align));
     }
     return RowNode(children: cells);
