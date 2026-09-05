@@ -12,9 +12,11 @@
 /// character *is* -- past a backslash there is no symbol left for a node to
 /// see -- so nothing above this could read the source without them.
 ///
-/// Verbatim regions used to be here too. They are grammar: they become
-/// nodes, and their rule is stated in `syntax/verbatim_region.dart`, which
-/// drives this cursor from the outside like any other node does.
+/// Verbatim regions used to be here too, cached against the position they
+/// were read at. They are grammar -- they become nodes -- so they left with
+/// the rest: `VerbatimSpanNode` says whether one opens at the cursor, and
+/// drives this class from outside through the operations below, exactly as
+/// every other node does.
 class SourceCursor {
   final String source;
 

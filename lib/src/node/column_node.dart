@@ -12,8 +12,8 @@ final class ColumnNode extends BlockNode {
 
   ColumnNode({this.children = const [], this.align});
 
-  /// Reads one cell or block: everything up to the next `|` or `=`, which it
-  /// leaves for whoever those belong to -- `=` divides cells and is the
+  /// Reads one cell or block: everything up to the next `|` or `^`, which it
+  /// leaves for whoever those belong to -- `^` divides cells and is the
   /// row's, `|` divides blocks and is the document's or the table's.
   ///
   /// Decides only what kind of child comes next, by looking at the cursor.

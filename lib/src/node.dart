@@ -13,9 +13,9 @@
 ///
 /// | node | consumes | stops before |
 /// |---|---|---|
-/// | `TextSpanNode`, `VerbatimSpanNode` | — | `=` `\|` `~` |
-/// | `ColumnNode` | — | `=` `\|` `~` |
-/// | `RowNode` | `=` | `\|` `~` |
+/// | `TextSpanNode`, `VerbatimSpanNode` | — | `^` `\|` `~` |
+/// | `ColumnNode` | — | `^` `\|` `~` |
+/// | `RowNode` | `^` | `\|` `~` |
 /// | `TableNode` | `\|` | `~` |
 /// | `DocumentNode` | `\|` `~` | — |
 ///
@@ -40,11 +40,11 @@ library;
 import 'package:collection/collection.dart';
 
 import 'block_align.dart';
+import 'decoration_action.dart';
+import 'layout_symbol.dart';
 import 'semantic_color.dart';
 import 'source_cursor.dart';
-import 'syntax/decoration_action.dart';
-import 'syntax/layout_symbol.dart';
-import 'syntax/verbatim_region.dart';
+import 'verbatim_region.dart';
 
 part 'node/natural_block_node.dart';
 part 'node/children_equality.dart';
