@@ -18,23 +18,23 @@ final class ColumnNode extends BlockNode {
   ///
   /// Decides only what kind of child comes next, by looking at the cursor.
   /// Each child reads itself and stops before anything that is not its own.
-  static ColumnNode _parse(Scanner scanner, BlockAlign? align) {
+  static ColumnNode _parse(SourceCursor cursor, BlockAlign? align) {
     // A block drops one blank line at its start, which is what lets the
     // separator that opened it sit on a line of its own. The block's rule,
     // not the separator's: a document beginning with a newline drops it too,
     // and there is no separator there at all. (The matching newline at the
     // end is dropped by the run that holds it, where the text is.)
-    if (scanner.peek == '\n') scanner.take();
+    if (cursor.peek == '\n') cursor.take();
 
     final content = <ContentNode>[];
 
-    while (!scanner.isEnd && scanner.layoutSymbol == null) {
-      final before = scanner.position;
-      final piece = ContentNode._parse(scanner);
+    while (!cursor.isEnd && cursor.layoutSymbol == null) {
+      final before = cursor.position;
+      final piece = ContentNode._parse(cursor);
       if (piece != null) content.add(piece);
       assert(
-        scanner.position > before,
-        'content parse made no progress at ${scanner.position}',
+        cursor.position > before,
+        'content parse made no progress at ${cursor.position}',
       );
     }
 

@@ -10,18 +10,18 @@ final class RowNode extends BlockNode {
   ///
   /// Each `=` is consumed because it is the row's own; the `|` that ends the
   /// row is left for whoever arranges blocks.
-  static RowNode? _parse(Scanner scanner, ColumnNode first) {
-    if (scanner.layoutSymbol != LayoutSymbol.row) return null;
+  static RowNode? _parse(SourceCursor cursor, ColumnNode first) {
+    if (cursor.layoutSymbol != LayoutSymbol.row) return null;
 
     final cells = [first];
-    while (scanner.layoutSymbol == LayoutSymbol.row) {
+    while (cursor.layoutSymbol == LayoutSymbol.row) {
       // The cell this `=` opens is read whatever follows, the end of the
       // source included. An empty cell is a position the layout keeps, and
       // the row must not mean one thing at the end of a document and
       // another with a character after it -- which is what a reader would
       // watch happen as they typed past it.
-      final align = scanner.takeSeparator();
-      cells.add(ColumnNode._parse(scanner, align));
+      final align = cursor.takeSeparator();
+      cells.add(ColumnNode._parse(cursor, align));
     }
     return RowNode(children: cells);
   }

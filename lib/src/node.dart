@@ -1,7 +1,7 @@
 /// The syntax tree, and the parser -- they are the same thing here.
 ///
 /// Every node reads itself. There is no separate pass that walks the source
-/// and assembles nodes afterwards; a node's `_parse` takes the one [Scanner]
+/// and assembles nodes afterwards; a node's `_parse` takes the one [SourceCursor]
 /// and returns that node. Which is why this is one library made of parts:
 /// `_parse` is private, so "who may call this" and "who owns this" are the
 /// same question, and a concern that has drifted into the wrong file shows
@@ -40,10 +40,12 @@ library;
 import 'package:collection/collection.dart';
 
 import 'block_align.dart';
-import 'scanner.dart';
 import 'semantic_color.dart';
+import 'source_cursor.dart';
 import 'syntax/decoration_action.dart';
 import 'syntax/layout_symbol.dart';
+import 'syntax/markup.dart';
+import 'syntax/verbatim_region.dart';
 
 part 'node/natural_block_node.dart';
 part 'node/children_equality.dart';

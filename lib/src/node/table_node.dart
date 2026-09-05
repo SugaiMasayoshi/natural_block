@@ -33,7 +33,7 @@ final class TableNode extends BlockNode {
   ///
   /// Everything in between is the table's, so there is nothing to hand back.
   /// Null when no row had any content.
-  static TableNode? _parse(Scanner scanner, BlockAlign? align) {
+  static TableNode? _parse(SourceCursor cursor, BlockAlign? align) {
     final rows = <RowNode>[];
 
     // What the `|` that opened the coming row said about its first cell.
@@ -47,7 +47,7 @@ final class TableNode extends BlockNode {
       // every row be written with a leading `|`. The one difference is what
       // a block that read no `^` becomes: outside a table it stays a column,
       // here it is still a row, of a single cell.
-      switch (BlockNode._parse(scanner, firstCellAlign)) {
+      switch (BlockNode._parse(cursor, firstCellAlign)) {
         case final RowNode row:
           rows.add(row);
         case final ColumnNode cell:
@@ -56,9 +56,9 @@ final class TableNode extends BlockNode {
           break;
       }
 
-      if (scanner.isEnd) break;
-      if (scanner.layoutSymbol == LayoutSymbol.table) break;
-      firstCellAlign = scanner.takeSeparator();
+      if (cursor.isEnd) break;
+      if (cursor.layoutSymbol == LayoutSymbol.table) break;
+      firstCellAlign = cursor.takeSeparator();
     }
 
     if (rows.isEmpty) return null;

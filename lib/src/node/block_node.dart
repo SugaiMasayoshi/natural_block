@@ -10,9 +10,9 @@ sealed class BlockNode extends NaturalBlockNode {
   /// after it turns out to be decides who finishes the job, and the cell
   /// already read is handed on rather than re-read or re-labelled.
   /// Null when the block turned out to have nothing in it.
-  static BlockNode? _parse(Scanner scanner, BlockAlign? align) {
-    final first = ColumnNode._parse(scanner, align);
-    final row = RowNode._parse(scanner, first);
+  static BlockNode? _parse(SourceCursor cursor, BlockAlign? align) {
+    final first = ColumnNode._parse(cursor, align);
+    final row = RowNode._parse(cursor, first);
     if (row != null) return row;
 
     // An empty Column block is content that is not there, so it contributes

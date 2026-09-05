@@ -22,9 +22,9 @@ sealed class ContentNode extends NaturalBlockNode {
   /// Reads whichever kind of content starts here.
   ///
   /// Null when it turned out to hold nothing.
-  static ContentNode? _parse(Scanner scanner) {
-    if (scanner.atBlockRegion) return VerbatimNode._parse(scanner);
-    final text = TextNode._parse(scanner);
+  static ContentNode? _parse(SourceCursor cursor) {
+    if (cursor.atBlockRegion) return VerbatimNode._parse(cursor);
+    final text = TextNode._parse(cursor);
     return text.children.isEmpty ? null : text;
   }
 }

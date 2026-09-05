@@ -32,38 +32,38 @@ final class TextSpanNode extends InlineNode {
   /// region, a newline that resets an open decoration, or the block's own
   /// separator -- none of which it consumes.
   static (TextSpanNode?, _Decoration) _parse(
-    Scanner scanner,
+    SourceCursor cursor,
     _Decoration incoming,
   ) {
     final pending = StringBuffer();
     var style = incoming;
 
-    while (_opensCluster(scanner)) {
-      scanner.take();
-      final (next, escaped) = style.readCluster(scanner);
+    while (_opensCluster(cursor)) {
+      cursor.take();
+      final (next, escaped) = style.readCluster(cursor);
       style = next;
       pending.write(escaped);
     }
 
-    // The scanner stops in front of everything that could end the run, so
-    // this loop only has to say which of those actually do. A candidate that
-    // does not -- a `:` that opens no cluster, a newline with nothing to
-    // reset -- is taken as text and the read resumes.
+    // The cursor stops in front of every character that could end the run,
+    // so this loop only has to say which of those actually do. A candidate
+    // that does not -- a `:` that opens no cluster, a backtick that closes
+    // nowhere, a newline with nothing to reset -- is taken as text and the
+    // read resumes.
     while (true) {
-      pending.write(scanner.read(_clusterOpener));
-      if (scanner.isEnd || scanner.atVerbatimFence) break;
-      if (_endsRun(scanner, style)) break;
-      pending.write(scanner.take());
+      pending.write(cursor.read(markup));
+      if (cursor.isEnd || _endsRun(cursor, style)) break;
+      pending.write(cursor.take());
     }
 
     // Only the newline-reset exit leaves the cursor on a `'\n'`; every other
     // one leaves it on a layout symbol, a fence, a `:` or the end. So which
     // exit was taken need not be tracked either.
-    final outgoing = scanner.peek == '\n' ? const _Decoration() : style;
+    final outgoing = cursor.peek == '\n' ? const _Decoration() : style;
 
     // The newline written against a boundary belongs to that boundary.
     final atBoundary =
-        scanner.isEnd || scanner.layoutSymbol != null || scanner.atBlockRegion;
+        cursor.isEnd || cursor.layoutSymbol != null || cursor.atBlockRegion;
 
     var run = pending.toString();
     if (atBoundary && run.endsWith('\n')) {
@@ -74,25 +74,23 @@ final class TextSpanNode extends InlineNode {
 
   /// Whether the character the cursor stopped in front of really ends the
   /// run. Peeks only -- it never moves the cursor.
-  static bool _endsRun(Scanner scanner, _Decoration style) =>
-      switch (scanner.peek) {
+  static bool _endsRun(SourceCursor cursor, _Decoration style) =>
+      switch (cursor.peek) {
         // A newline resets decoration, so it ends a run that has some. With
         // nothing to reset it is an ordinary character in the middle of one.
         '\n' => style != const _Decoration(),
         // A `:` with no decoration character after it is ordinary text; one
         // with is the next run's cluster, and not this run's to consume.
-        ':' => _opensCluster(scanner),
+        ':' => _opensCluster(cursor),
+        // A fence that never closes opens no region, so it is text too.
+        verbatimFenceChar => cursor.atVerbatimFence,
         // A layout symbol. Nothing else gets here.
         _ => true,
       };
 
-  /// The one terminator the scanner cannot know about: a decoration cluster
-  /// opens with `:`, which is this layer's syntax rather than the scanner's.
-  static const _clusterOpener = {':'};
-
-  static bool _opensCluster(Scanner scanner) =>
-      scanner.peek == ':' &&
-      DecorationAction.byChar.containsKey(scanner.peekAt(1));
+  static bool _opensCluster(SourceCursor cursor) =>
+      cursor.peek == ':' &&
+      DecorationAction.byChar.containsKey(cursor.peekAt(1));
 
   int get sizeOffset => _style.sizeOffset;
 

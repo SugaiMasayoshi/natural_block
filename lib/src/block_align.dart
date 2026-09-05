@@ -1,4 +1,4 @@
-import 'scanner.dart';
+import 'source_cursor.dart';
 
 enum BlockAlign {
   start('<'),
@@ -13,7 +13,7 @@ enum BlockAlign {
   });
 }
 
-extension AlignmentMarkers on Scanner {
+extension AlignmentMarkers on SourceCursor {
   /// Consumes the layout symbol at the cursor together with the markers
   /// written after it, and returns what they said.
   ///
@@ -24,10 +24,10 @@ extension AlignmentMarkers on Scanner {
   /// table, a cell inside a row -- which is the caller's business, not this
   /// one's.
   ///
-  /// It lives here rather than on the scanner because that guard is the
+  /// It lives here rather than on the cursor because that guard is the
   /// whole rule, and it is about the grammar rather than about reading
   /// characters: markers are neither escapable nor terminators, so nothing
-  /// else in the scanner has any reason to know them.
+  /// else in the cursor has any reason to know them.
   ///
   /// Null when no marker was written, which is not [BlockAlign.start]: a
   /// block that stated nothing is a different thing from one that asked for

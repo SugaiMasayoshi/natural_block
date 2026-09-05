@@ -9,8 +9,8 @@ final class VerbatimSpanNode extends InlineNode {
   ///
   /// Null when the region held nothing: an empty pair of fences styles no
   /// text, so there is nothing to draw monospaced.
-  static VerbatimSpanNode? _parse(Scanner scanner) {
-    final text = scanner.takeVerbatim();
+  static VerbatimSpanNode? _parse(SourceCursor cursor) {
+    final text = cursor.takeVerbatim();
     return text.isEmpty ? null : VerbatimSpanNode(text: text);
   }
 

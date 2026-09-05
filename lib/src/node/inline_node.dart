@@ -11,10 +11,13 @@ sealed class InlineNode extends NaturalBlockNode {
   ///
   /// Null when the run turned out to be empty -- a cluster with no text
   /// after it changes the style and contributes no node.
-  static (InlineNode?, _Decoration) _parse(Scanner scanner, _Decoration style) {
-    if (scanner.atVerbatimFence) {
-      return (VerbatimSpanNode._parse(scanner), style);
+  static (InlineNode?, _Decoration) _parse(
+    SourceCursor cursor,
+    _Decoration style,
+  ) {
+    if (cursor.atVerbatimFence) {
+      return (VerbatimSpanNode._parse(cursor), style);
     }
-    return TextSpanNode._parse(scanner, style);
+    return TextSpanNode._parse(cursor, style);
   }
 }

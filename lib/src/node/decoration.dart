@@ -24,21 +24,21 @@ class _Decoration {
   /// handing it back is what lets one backslash cover a whole run: past it
   /// every decoration character is literal again, so `:---\%%%` needs one
   /// backslash rather than one per character.
-  (_Decoration, String) readCluster(Scanner scanner) {
+  (_Decoration, String) readCluster(SourceCursor cursor) {
     var result = this;
-    while (!scanner.isEnd) {
-      final char = scanner.peek;
+    while (!cursor.isEnd) {
+      final char = cursor.peek;
 
       // A backslash that cancels nothing is an ordinary character, and the
-      // scanner leaves the cursor on it -- the cluster ends either way, and
+      // cursor leaves the cursor on it -- the cluster ends either way, and
       // what the escape rescued (if anything) opens the run that follows.
       if (char == r'\') {
-        return (result, scanner.takeEscape(DecorationAction.chars) ?? '');
+        return (result, cursor.takeEscape(clusterMarkup) ?? '');
       }
 
       final action = DecorationAction.byChar[char];
       if (action == null) return (result, '');
-      scanner.take();
+      cursor.take();
       result = result.apply(action);
     }
     return (result, '');

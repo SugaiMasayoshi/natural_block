@@ -1,21 +1,21 @@
-import 'syntax/layout_symbol.dart';
 import 'syntax/verbatim_region.dart';
 
-/// The cursor over the source, and the two things that must be resolved
-/// before any node can read a character: escapes, and verbatim regions.
+/// One position in the source, and the two things that must be resolved
+/// before a node can read the character under it: escapes, and verbatim
+/// regions.
 ///
-/// It knows this language's layout alphabet, and that is not a leak. What a
-/// backslash cancels is *whatever is markup at that point*, so the escape
-/// rule cannot be stated without naming the symbols -- and a run of text
-/// ends where markup begins, which is the same list again. A scanner that
-/// took the alphabet as an argument would be a general one, and there is
-/// exactly one language to instantiate it with.
+/// It holds no opinion about what any character means. Which ones are markup
+/// arrives as an argument, because that is a fact about the grammar and the
+/// grammar is in the nodes -- and because the answer is not even constant:
+/// `%` is prose in a sentence and a symbol inside a decoration cluster, so
+/// no list built in here could be right in both places.
 ///
-/// What it does *not* know is alignment. Its markers are neither
-/// escapable nor terminators; they mean something only directly after a
-/// separator, which is a rule about the grammar rather than about reading
-/// characters. It lives with the enum, in `block_align.dart`.
-class Scanner {
+/// What it does know is smaller and does not vary: a backslash cancels the
+/// character after it, a newline is never markup, and a run of backticks
+/// opens a region that is taken literally. The region is the one piece of
+/// syntax it cannot be handed, because finding the closing fence means
+/// scanning ahead, and the cursor is what scanning ahead is done with.
+class SourceCursor {
   final String source;
 
   int _position = 0;
@@ -27,7 +27,7 @@ class Scanner {
   /// any other -- so a stray `\r` would reach the tree and make a Windows
   /// document unequal to the same document written on a Mac. Nothing above
   /// this line ever sees the original bytes.
-  Scanner(String source)
+  SourceCursor(String source)
     : source = source.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
 
   int get position => _position;
@@ -36,20 +36,12 @@ class Scanner {
 
   String get peek => _position < source.length ? source[_position] : '';
 
-  /// The character [offset] ahead of the cursor, or `''` past the end.
+  /// The character [offset] ahead of the cursor, or `''` past either end.
   /// Asks what sits beyond the cursor without moving it.
   String peekAt(int offset) {
     final index = _position + offset;
     return index >= 0 && index < source.length ? source[index] : '';
   }
-
-  /// The layout symbol at the cursor, or null when the cursor is not on one.
-  ///
-  /// Every level asks this: a cell stops at any of them, a row asks whether
-  /// the next one is another cell, a table whether it is the `~` that ends
-  /// it. Asked through the symbol rather than its character so those
-  /// questions read as what they are.
-  LayoutSymbol? get layoutSymbol => LayoutSymbol.byChar[peek];
 
   String take() => source[_position++];
 
@@ -58,12 +50,12 @@ class Scanner {
 
   /// The region opening at the cursor, or null if none does.
   ///
-  /// Remembered for the position it was read at. Five callers ask about the
-  /// same fence before anyone consumes it -- the scan itself, the run's
-  /// boundary check, the line's loop, the inline dispatch, and finally
-  /// [takeVerbatim] -- because a child stops in front of what is not its own
-  /// and its owner then asks. That protocol is right; answering it five
-  /// times over an unchanging source is not.
+  /// Remembered for the position it was read at. Four callers ask about the
+  /// same fence before anyone consumes it -- the run's boundary check, the
+  /// line's loop, the inline dispatch, and finally [takeVerbatim] -- because
+  /// a child stops in front of what is not its own and its owner then asks.
+  /// That protocol is right; answering it four times over an unchanging
+  /// source is not.
   VerbatimRegion? get _regionHere {
     if (_regionAt != _position) {
       _regionAt = _position;
@@ -76,6 +68,9 @@ class Scanner {
 
   /// Whether a verbatim region opens here. Asks without consuming, so a node
   /// can decide whether the region belongs to it before touching it.
+  ///
+  /// Not the same as "the cursor is on a backtick": an opening fence with no
+  /// closing one opens nothing, and is ordinary text.
   bool get atVerbatimFence => _regionHere != null;
 
   /// Whether the region opening here was written on a line of its own, and
@@ -98,18 +93,15 @@ class Scanner {
   /// or null -- **with the cursor unmoved** -- when the backslash cancels
   /// nothing and is therefore an ordinary character.
   ///
-  /// [alsoEscapable] is what counts as markup at this point on top of what
-  /// always does: the caller's own syntax, which this layer does not know.
-  ///
   /// The one place both readers of escapes agree. A decoration cluster has
-  /// its own alphabet and its own idea of what to do afterwards, but "did
+  /// its own [markup] and its own idea of what to do afterwards, but "did
   /// this backslash cancel anything, and how far do I move if it did" is one
   /// question with one answer.
-  String? takeEscape(Set<String> alsoEscapable) {
+  String? takeEscape(Set<String> markup) {
     if (peek != r'\') return null;
 
     final next = peekAt(1);
-    if (!_escapes(next, alsoEscapable)) return null;
+    if (!_escapes(next, markup)) return null;
 
     _position += 2;
     return next;
@@ -118,31 +110,30 @@ class Scanner {
   /// Reads text up to the next thing that could end it, resolving escapes,
   /// and **stops in front of it** -- the same rule every node follows.
   ///
-  /// What could end it: a newline, a layout symbol, a verbatim region, one
-  /// of [alsoStopAt], or the end of the source. Which of those it turned out
-  /// to be is not returned, because the cursor has not moved past it and can
-  /// be asked. Consuming the terminator here would make the caller put it
-  /// back, which is what it used to do three times over.
-  String read(Set<String> alsoStopAt) {
+  /// What could end it: a newline, one of [markup], or the end of the
+  /// source. Which of those it turned out to be is not returned, because the
+  /// cursor has not moved past it and can be asked. Consuming the terminator
+  /// here would make the caller put it back.
+  ///
+  /// It stops in front of every character in [markup], not only the ones
+  /// that turn out to mean something. A `:` that opens no cluster and a
+  /// backtick that closes nowhere are ordinary text, and deciding that is
+  /// the caller's job -- it takes the character and reads on.
+  String read(Set<String> markup) {
     final buffer = StringBuffer();
     var literalStart = _position;
 
     while (_position < source.length) {
       final char = source[_position];
 
-      if (char == r'\' && _escapes(peekAt(1), alsoStopAt)) {
+      if (char == r'\' && _escapes(peekAt(1), markup)) {
         buffer.write(source.substring(literalStart, _position));
         literalStart = _position + 1;
         _position += 2;
         continue;
       }
 
-      if (char == '\n' ||
-          LayoutSymbol.byChar.containsKey(char) ||
-          alsoStopAt.contains(char) ||
-          (char == verbatimFenceChar && _regionHere != null)) {
-        break;
-      }
+      if (char == '\n' || markup.contains(char)) break;
 
       _position += 1;
     }
@@ -156,12 +147,10 @@ class Scanner {
   ///
   /// A newline is never escapable -- a line break is not markup, so there is
   /// nothing for a backslash to cancel -- and neither is the end of the
-  /// source, which [next] reports as `''`.
-  bool _escapes(String next, Set<String> alsoEscapable) =>
+  /// source, which [next] reports as `''`. A backslash always is, or a
+  /// literal one could never be written in front of a symbol.
+  bool _escapes(String next, Set<String> markup) =>
       next.isNotEmpty &&
       next != '\n' &&
-      (next == r'\' ||
-          next == verbatimFenceChar ||
-          LayoutSymbol.byChar.containsKey(next) ||
-          alsoEscapable.contains(next));
+      (next == r'\' || markup.contains(next));
 }

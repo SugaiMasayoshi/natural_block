@@ -11,23 +11,23 @@ final class TextNode extends ContentNode {
   ///
   /// Neither is consumed. A node never eats what belongs to something else,
   /// so the caller can look at the cursor and decide what comes next.
-  static TextNode _parse(Scanner scanner) {
+  static TextNode _parse(SourceCursor cursor) {
     final children = <InlineNode>[];
     var style = const _Decoration();
 
-    while (!scanner.isEnd &&
-        !scanner.atBlockRegion &&
-        scanner.layoutSymbol == null) {
-      final before = scanner.position;
-      final (node, next) = InlineNode._parse(scanner, style);
+    while (!cursor.isEnd &&
+        !cursor.atBlockRegion &&
+        cursor.layoutSymbol == null) {
+      final before = cursor.position;
+      final (node, next) = InlineNode._parse(cursor, style);
       style = next;
       if (node != null) children.add(node);
       // A child that reads nothing where the loop expects content would spin
       // here forever. The mistake is silent otherwise -- it hangs rather
       // than producing a wrong tree -- so it is worth saying out loud.
       assert(
-        scanner.position > before,
-        'inline parse made no progress at ${scanner.position}',
+        cursor.position > before,
+        'inline parse made no progress at ${cursor.position}',
       );
     }
 

@@ -7,9 +7,9 @@ final class VerbatimNode extends ContentNode {
 
   /// Consumes the region opening at the cursor, plus the newline written
   /// against its closing fence -- that newline belongs to the boundary.
-  static VerbatimNode _parse(Scanner scanner) {
-    final text = scanner.takeVerbatim();
-    if (scanner.peek == '\n') scanner.take();
+  static VerbatimNode _parse(SourceCursor cursor) {
+    final text = cursor.takeVerbatim();
+    if (cursor.peek == '\n') cursor.take();
     return VerbatimNode(text: text);
   }
 

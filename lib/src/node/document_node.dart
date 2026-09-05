@@ -6,7 +6,7 @@ final class DocumentNode extends NaturalBlockNode {
   DocumentNode({this.children = const []});
 
   static DocumentNode _parse(String source) {
-    final scanner = Scanner(source);
+    final cursor = SourceCursor(source);
     final children = <BlockNode>[];
 
     // The first block is opened by the start of the source, not by a
@@ -24,18 +24,18 @@ final class DocumentNode extends NaturalBlockNode {
     // node.
     while (true) {
       if (inTable) {
-        final table = TableNode._parse(scanner, align);
+        final table = TableNode._parse(cursor, align);
         if (table != null) children.add(table);
       } else {
-        final block = BlockNode._parse(scanner, align);
+        final block = BlockNode._parse(cursor, align);
         if (block != null) children.add(block);
       }
 
-      if (scanner.isEnd) break;
-      if (scanner.layoutSymbol == LayoutSymbol.table) {
+      if (cursor.isEnd) break;
+      if (cursor.layoutSymbol == LayoutSymbol.table) {
         inTable = !inTable;
       }
-      align = scanner.takeSeparator();
+      align = cursor.takeSeparator();
     }
 
     return DocumentNode(children: children);
