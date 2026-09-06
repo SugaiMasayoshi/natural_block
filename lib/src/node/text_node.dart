@@ -16,14 +16,13 @@ final class TextNode extends ContentNode {
   /// Drops the newline written against the end of this run; see the rule in
   /// `node.dart`.
   ///
-  /// Here rather than in the span that read it, for two reasons. A span
-  /// cannot know: whether the thing it stopped at ends this whole run is
-  /// settled one level up, after it has returned. And it is not its rule to
-  /// apply -- "content does not end with a newline" is about the run, which
-  /// is this node. Left to the span it also came out wrong, because the run
-  /// might end with a span that read no text at all: `a\n:*` kept the
-  /// newline that `a\n` dropped, since the empty cluster after it was what
-  /// sat against the boundary.
+  /// Here rather than in the span that read it, because a span cannot know:
+  /// whether the thing it stopped at ends this whole run is settled one
+  /// level up, after it has returned. And it is not its rule to apply --
+  /// "content does not end with a newline" is about the run, which is this
+  /// node.
+  ///
+  /// The caller checks that the text actually reaches the boundary first.
   static void _dropNewlineAtBoundary(List<InlineNode> children) {
     if (children.isEmpty) return;
     final last = children.last;
@@ -50,11 +49,18 @@ final class TextNode extends ContentNode {
     final children = <InlineNode>[];
     var style = const SpanDecoration();
 
+    // Where the text read so far ends, which is not always where the run
+    // does: markup that produces no node moves the cursor past it.
+    var textEnd = cursor.position;
+
     while (!_endsHere(cursor)) {
       final before = cursor.position;
       final (node, next) = InlineNode._parse(cursor, style);
       style = next;
-      if (node != null) children.add(node);
+      if (node != null) {
+        children.add(node);
+        textEnd = cursor.position;
+      }
       // A child that reads nothing where the loop expects content would spin
       // here forever. The mistake is silent otherwise -- it hangs rather
       // than producing a wrong tree -- so it is worth saying out loud.
@@ -64,7 +70,10 @@ final class TextNode extends ContentNode {
       );
     }
 
-    _dropNewlineAtBoundary(children);
+    // Only when the text reaches the boundary. `text\n:*` wrote a cluster
+    // between them, and a cluster is inline -- it does not put anything on
+    // a line of its own -- so that newline is ordinary content.
+    if (textEnd == cursor.position) _dropNewlineAtBoundary(children);
     return TextNode(children: children);
   }
 

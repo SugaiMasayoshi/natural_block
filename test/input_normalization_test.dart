@@ -101,20 +101,25 @@ void main() {
       );
     });
 
-    test("the blank line goes even when the run that read it is not last", () {
-      // The rule is about the run, not about whichever span happened to be
-      // holding the newline. A cluster with no text after it contributes no
-      // span, so it used to be the thing sitting against the boundary --
-      // and the newline before it survived, while the same document without
-      // the cluster lost it.
+    test('the newline has to touch the boundary to go', () {
+      // "Against a boundary" means nothing was written in between. A
+      // decoration cluster is inline -- it puts nothing on a line of its
+      // own -- so a newline followed by one is ordinary content, whatever
+      // comes after the cluster.
       expect(
-        NaturalBlockParser.parse('text\n:*'),
         NaturalBlockParser.parse('text\n'),
-        reason: 'an empty cluster at the end changes nothing',
+        DocumentNode(children: [block('text')]),
+        reason: 'the newline touches the end of the document',
       );
       expect(
         NaturalBlockParser.parse('text\n:*'),
-        DocumentNode(children: [block('text')]),
+        DocumentNode(children: [block('text\n')]),
+        reason: 'a cluster sits between the newline and the end',
+      );
+      expect(
+        NaturalBlockParser.parse('text\n:*|b'),
+        DocumentNode(children: [block('text\n'), block('b')]),
+        reason: 'a cluster sits between the newline and the `|`',
       );
     });
 
