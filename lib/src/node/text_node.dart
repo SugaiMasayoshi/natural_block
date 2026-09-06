@@ -13,12 +13,8 @@ final class TextNode extends ContentNode {
       layoutSymbols.contains(cursor.peek) ||
       VerbatimNode._opensAt(cursor);
 
-  /// Drops the newline written against the end of this run.
-  ///
-  /// A line break is an ordinary character in the middle of content, but
-  /// one written against a boundary is how the author put the boundary on
-  /// its own line -- `a\n|b` is two blocks, not a block ending in a blank
-  /// line.
+  /// Drops the newline written against the end of this run; see the rule in
+  /// `node.dart`.
   ///
   /// Here rather than in the span that read it, for two reasons. A span
   /// cannot know: whether the thing it stopped at ends this whole run is

@@ -21,7 +21,8 @@ final class VerbatimNode extends ContentNode {
       VerbatimSpanNode._opensAt(cursor);
 
   /// Consumes the region opening at the cursor, plus the newline written
-  /// against its closing fence -- that newline belongs to the boundary.
+  /// after its closing fence -- the third of the boundaries in the rule in
+  /// `node.dart`, and the only one this node can see.
   static VerbatimNode _parse(SourceCursor cursor) {
     final (text, end) = verbatimRegion(cursor.source, cursor.position);
     cursor.jumpTo(end);

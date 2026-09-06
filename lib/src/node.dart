@@ -28,6 +28,37 @@
 /// So `|` is not "a new block starts here" -- it is the full stop on what
 /// came before, and it means "next sibling" at whichever level is reading.
 ///
+/// **The newline against a boundary.** One newline touching a structural
+/// boundary belongs to the boundary rather than to the text. It is what
+/// makes `|Item|Price` and
+///
+/// ```
+/// |
+/// Item
+/// |
+/// Price
+/// ```
+///
+/// the same document: with no line-level structure in this language, the
+/// only way to put a separator on its own line is to write newlines around
+/// it, and those newlines must not become content. Two of them still do --
+/// `a\n\n|b` keeps one -- so a blank line is written by asking for it.
+///
+/// Three boundaries, and each is dropped by the only node that can see it:
+///
+/// | boundary | who drops it |
+/// |---|---|
+/// | the start of a block | [ColumnNode], before it reads anything |
+/// | the end of a run of content | [TextNode], from the last span it read |
+/// | after a region's closing fence | [VerbatimNode], having just eaten it |
+///
+/// It cannot be one place, and in particular it cannot be [SourceCursor].
+/// Whether the newline sits against a boundary is not a question about the
+/// next character: `` a\n`c` `` ends the text, `` a\n`b `` does not, and
+/// `a\n:b` does not -- same character after the newline, opposite answers,
+/// because a fence that never closes and a `:` that opens no cluster are
+/// text. Only the node that has resolved which candidates are real can say.
+///
 /// **What the tree records.** What the source said, never what a renderer
 /// needs. `align == null` means "nothing was written", which is not
 /// [BlockAlign.start]; a table keeps its columns rather than stamping them
