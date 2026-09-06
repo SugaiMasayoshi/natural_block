@@ -24,18 +24,25 @@ library;
 /// Separates blocks stacked one above another. Inside a table it separates
 /// rows, which stack the same way.
 ///
-/// Never tested for on its own, and that is the hierarchy showing: a level
-/// asks whether the symbol above it is here, or whether its own is, and
-/// this one is what is left over. It is named so that the set below reads
-/// as three things rather than two and a character.
+/// Read by the block it opens, which is why it is tested for by name: the
+/// level about to decide what that block turns out to be is the one that
+/// takes it.
 const String columnSymbol = '|';
 
 /// Separates the blocks laid out across one row -- its cells.
+///
+/// The one separator a block never reads for itself. A row's first cell has
+/// no `^` in front of it, so only the row can tell opening a cell apart
+/// from starting one.
 const String rowSymbol = '^';
 
-/// Wraps blocks into a grid. The only one that opens and closes rather than
-/// separating, which is why a document has to remember whether it is inside
-/// one.
+/// Wraps rows into a grid.
+///
+/// The only one that delimits rather than separates: it comes in a pair,
+/// and both belong to the table, the way both fences belong to a verbatim
+/// region. That is what a table needs, because it is the one block sized to
+/// its own content rather than to the width it is given -- it has to know
+/// where it stops.
 const String tableSymbol = '~';
 
 /// All three, for the levels that stop at any of them without caring which.
