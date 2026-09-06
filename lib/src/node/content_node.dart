@@ -19,11 +19,22 @@ part of '../node.dart';
 /// a block always wraps it. That wrapping is unconditional, so the depth of
 /// the tree does not change with whether a marker happened to be written.
 sealed class ContentNode extends NaturalBlockNode {
+  /// Whether content other than a run of text starts at the cursor.
+  ///
+  /// The dispatch below, asked as a question. A [TextNode] needs the same
+  /// answer to know where to stop, because it has to end wherever this
+  /// would pick something else -- and asking it here rather than naming
+  /// [VerbatimNode] keeps "what content can be" in one place. A run that
+  /// knew its siblings by name would have to be edited every time the set
+  /// of them changed.
+  static bool _othersStartHere(SourceCursor cursor) =>
+      VerbatimNode._opensAt(cursor);
+
   /// Reads whichever kind of content starts here.
   ///
   /// Null when it turned out to hold nothing.
   static ContentNode? _parse(SourceCursor cursor) {
-    if (VerbatimNode._opensAt(cursor)) return VerbatimNode._parse(cursor);
+    if (_othersStartHere(cursor)) return VerbatimNode._parse(cursor);
     final text = TextNode._parse(cursor);
     return text.children.isEmpty ? null : text;
   }

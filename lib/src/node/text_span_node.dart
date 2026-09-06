@@ -82,7 +82,7 @@ final class TextSpanNode extends InlineNode {
         // with is the next run's cluster, and not this run's to consume.
         ':' => _opensCluster(cursor),
         // A fence that never closes opens no region, so it is text too.
-        verbatimFenceChar => VerbatimSpanNode._opensAt(cursor),
+        verbatimFenceChar => InlineNode._othersStartHere(cursor),
         // A layout symbol. Nothing else gets here.
         _ => true,
       };

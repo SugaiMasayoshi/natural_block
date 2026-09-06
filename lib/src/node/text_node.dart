@@ -11,7 +11,7 @@ final class TextNode extends ContentNode {
   static bool _endsHere(SourceCursor cursor) =>
       cursor.isEnd ||
       layoutSymbols.contains(cursor.peek) ||
-      VerbatimNode._opensAt(cursor);
+      ContentNode._othersStartHere(cursor);
 
   /// Drops the newline written against the end of this run; see the rule in
   /// `node.dart`.
