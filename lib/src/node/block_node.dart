@@ -4,12 +4,24 @@ sealed class BlockNode extends NaturalBlockNode {
   /// Consumes the layout symbol that opens the coming block, together with
   /// the markers written after it, and returns what they said.
   ///
-  /// The two are read as one because that is the only place markers mean
-  /// anything: `<`, `=` and `>` are ordinary text everywhere except directly
-  /// after an unescaped separator. It lives here because every separator in
-  /// the language opens one of these -- the document's `|` opens a block, a
-  /// table's `|` opens a row, a row's `^` opens a cell, and the `~` that
-  /// opens a table -- and all of those are `BlockNode`s.
+  /// **Why the two are read as one.** That is the only place markers mean
+  /// anything: `<`, `=` and `>` are ordinary text everywhere else, so
+  /// `List<String>` and `=>` come through untouched. Fusing the symbol and
+  /// the markers *is* that rule; read apart, it would be stated nowhere.
+  ///
+  /// **Why the block cannot read them itself.** It does not know whether a
+  /// separator came before it. `=>` at the start of a document is text, not
+  /// a centre marker and an end marker, and a block reading its own markers
+  /// would take it for the latter. Only the level doing the arranging knows,
+  /// which is why the answer arrives at [_parse] as an argument.
+  ///
+  /// **Why it sits on `BlockNode` even so.** Eating the symbol belongs to
+  /// whoever is arranging -- the document between blocks, a table between
+  /// rows, a row between cells -- and those three share no supertype and no
+  /// common loop. What they produce does: an alignment describing the block
+  /// about to be read, which ends up in [ColumnNode.align] or
+  /// [TableNode.align]. The result is a fact about a block, so it is named
+  /// where blocks are.
   ///
   /// Null when no marker was written, which is not [BlockAlign.start]: a
   /// block that stated nothing is a different thing from one that asked for
