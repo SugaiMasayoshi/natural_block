@@ -23,20 +23,22 @@ final class RowNode extends BlockNode {
         : null;
 
     final first = ColumnNode._parse(cursor, align);
-    final row = _parse(cursor, first);
-    if (row != null) return row;
+    if (cursor.peek == rowSymbol) return _parse(cursor, first);
 
     return first.children.isEmpty ? null : RowNode(children: [first]);
   }
 
   /// Continues a block that turned out to be a row, given the cell already
-  /// read. Null when it was not one: a row is a block that read a `^`.
+  /// read.
+  ///
+  /// Called only with the cursor on a `^`, the way every other dispatch in
+  /// this library works: the level above tests, the node called assumes.
+  /// Returning null for "not a row" would have put that answer down the same
+  /// channel every other `_parse` uses for "it held nothing".
   ///
   /// Each `^` is consumed because it is the row's own; the `|` that ends the
   /// row is left for whoever arranges blocks.
-  static RowNode? _parse(SourceCursor cursor, ColumnNode first) {
-    if (cursor.peek != rowSymbol) return null;
-
+  static RowNode _parse(SourceCursor cursor, ColumnNode first) {
     final cells = [first];
     while (cursor.peek == rowSymbol) {
       // The cell this `^` opens is read whatever follows, the end of the

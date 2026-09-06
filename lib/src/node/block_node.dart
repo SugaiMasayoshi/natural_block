@@ -63,8 +63,7 @@ sealed class BlockNode extends NaturalBlockNode {
     final align = cursor.peek == columnSymbol ? _takeSeparator(cursor) : null;
 
     final first = ColumnNode._parse(cursor, align);
-    final row = RowNode._parse(cursor, first);
-    if (row != null) return row;
+    if (cursor.peek == rowSymbol) return RowNode._parse(cursor, first);
 
     // An empty Column block is content that is not there, so it contributes
     // no node -- `左||右` is two blocks, not three.
