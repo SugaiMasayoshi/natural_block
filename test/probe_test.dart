@@ -87,9 +87,18 @@ void main() {
           'test/probe.expected.txt is missing. Regenerate it with '
           'UPDATE_PROBE=1 dart test test/probe_test.dart',
     );
+    // Line endings are normalised before comparing. A checkout can hand this
+    // file back with CRLF -- git does that by default on Windows -- and then
+    // every line would differ by a trailing `\r`, which says nothing about
+    // any tree. `.gitattributes` keeps it from happening; this keeps it from
+    // mattering.
     expect(
       actual.split('\n'),
-      expected.readAsStringSync().trimRight().split('\n'),
+      expected
+          .readAsStringSync()
+          .replaceAll('\r\n', '\n')
+          .trimRight()
+          .split('\n'),
       reason:
           'a source parses differently than it used to. If the change was '
           'intended, check that only the cases you meant to change moved, '
