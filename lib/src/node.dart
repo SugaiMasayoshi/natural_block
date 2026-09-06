@@ -15,15 +15,25 @@
 /// |---|---|---|
 /// | `TextSpanNode`, `VerbatimSpanNode` | — | `^` `\|` `~` |
 /// | `ColumnNode` | — | `^` `\|` `~` |
-/// | `RowNode` | `^` | `\|` `~` |
-/// | `TableNode` | its own `~` at each end, and the `\|` between rows | — |
-/// | `DocumentNode` | `\|` | — |
+/// | `RowNode` | the `^` between its cells | `\|` `~` |
+/// | `TableNode` | its own `~` at each end | — |
+/// | `BlockNode` | the `\|` that opened it | — |
+/// | `DocumentNode` | — | — |
 ///
-/// A separator belongs to whoever arranges the siblings it divides; a
-/// delimiter belongs to what it wraps. `|` and `^` are separators, so the
-/// level above eats them. `~` and the verbatim fence wrap, so the table and
-/// the region eat their own -- which is what lets the document read blocks
-/// without remembering whether it is inside a table.
+/// **Each block eats the separator that opened it**, and a delimiter belongs
+/// to what it wraps. So a `|` is read by the block it opens, a `~` by the
+/// table, a fence by the region -- and `DocumentNode` consumes nothing at
+/// all: it has only to ask for blocks until the source runs out.
+///
+/// That is also why an alignment marker lands where it does. `|<a` opens a
+/// cell and describes it; if a `^` turns up afterwards the block becomes a
+/// row *around* that cell, and the marker is still the cell's. Read one
+/// level up instead, the same marker would look like it described the row
+/// and then quietly settle on its first cell.
+///
+/// The `^` is the exception, and it has to be: the first cell of a row has
+/// no `^` in front of it, so only the row can tell the difference between
+/// opening a cell and starting one.
 ///
 /// So `|` is not "a new block starts here" -- it is the full stop on what
 /// came before, and it means "next sibling" at whichever level is reading.

@@ -17,7 +17,11 @@ final class RowNode extends BlockNode {
   /// `|~a^b|~e`.
   ///
   /// Null when the row had nothing in it.
-  static RowNode? _parseInTable(SourceCursor cursor, BlockAlign? align) {
+  static RowNode? _parseInTable(SourceCursor cursor) {
+    final align = cursor.peek == columnSymbol
+        ? BlockNode._takeSeparator(cursor)
+        : null;
+
     final first = ColumnNode._parse(cursor, align);
     final row = _parse(cursor, first);
     if (row != null) return row;

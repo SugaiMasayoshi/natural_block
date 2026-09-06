@@ -15,13 +15,11 @@ sealed class BlockNode extends NaturalBlockNode {
   /// would take it for the latter. Only the level doing the arranging knows,
   /// which is why the answer arrives at [_parse] as an argument.
   ///
-  /// **Why it sits on `BlockNode` even so.** Eating the symbol belongs to
-  /// whoever is arranging -- the document between blocks, a table between
-  /// rows, a row between cells -- and those three share no supertype and no
-  /// common loop. What they produce does: an alignment describing the block
-  /// about to be read, which ends up in [ColumnNode.align] or
-  /// [TableNode.align]. The result is a fact about a block, so it is named
-  /// where blocks are.
+  /// **Why it sits on `BlockNode`.** Every separator it eats opens a block:
+  /// [_parse] takes the `|` that opened this one, [TableNode] the `~` that
+  /// opened it, [RowNode] the `^` that opens each cell after the first. What
+  /// comes back is an alignment describing that block, which ends up in
+  /// [ColumnNode.align] or [TableNode.align].
   ///
   /// Null when no marker was written, which is not [BlockAlign.start]: a
   /// block that stated nothing is a different thing from one that asked for
@@ -40,21 +38,29 @@ sealed class BlockNode extends NaturalBlockNode {
     return align;
   }
 
-  /// Reads whichever block starts here, given the alignment the separator
-  /// that opened it stated.
+  /// Reads whichever block starts here, including the separator that opened
+  /// it.
   ///
   /// The sealed supertype decides which of its subtypes the source becomes,
-  /// the same shape [ContentNode] and [InlineNode] have. A `~` opens a
-  /// table, and the table reads its own delimiters.
+  /// the same shape [ContentNode] and [InlineNode] have.
   ///
-  /// Otherwise the first cell is read before anything is known about what
-  /// the block is, because the same text serves either reading. What the
-  /// separator after it turns out to be decides who finishes the job, and
-  /// the cell already read is handed on rather than re-read or re-labelled.
+  /// Every block reads the separator that opened it -- a `~` by way of the
+  /// table it opens, a `|` here, and nothing at all for the first block of
+  /// a document. That is why the markers land where they do: a `|` opens a
+  /// cell, and the block becomes a row only if a `^` turns up afterwards.
+  /// Read from the level above instead, the same marker would look like it
+  /// described the row and then quietly settle on its first cell.
+  ///
+  /// The first cell is read before anything is known about what the block
+  /// is, because the same text serves either reading. What the separator
+  /// after it turns out to be decides who finishes the job, and the cell
+  /// already read is handed on rather than re-read or re-labelled.
   ///
   /// Null when the block turned out to have nothing in it.
-  static BlockNode? _parse(SourceCursor cursor, BlockAlign? align) {
+  static BlockNode? _parse(SourceCursor cursor) {
     if (cursor.peek == tableSymbol) return TableNode._parse(cursor);
+
+    final align = cursor.peek == columnSymbol ? _takeSeparator(cursor) : null;
 
     final first = ColumnNode._parse(cursor, align);
     final row = RowNode._parse(cursor, first);

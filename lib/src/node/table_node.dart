@@ -44,24 +44,13 @@ final class TableNode extends BlockNode {
 
     final rows = <RowNode>[];
 
-    // What the `|` that opened the coming row said about its first cell.
-    // The markers on the `~` that opened the table describe the table, not
-    // its first cell, so the first row starts with nothing stated.
-    BlockAlign? firstCellAlign;
-
-    while (true) {
-      // An empty row contributes nothing, which is what lets every row be
-      // written with a leading `|`.
-      final row = RowNode._parseInTable(cursor, firstCellAlign);
+    // An empty row contributes nothing, which is what lets every row be
+    // written with a leading `|`.
+    while (!cursor.isEnd && cursor.peek != tableSymbol) {
+      final row = RowNode._parseInTable(cursor);
       if (row != null) rows.add(row);
-
-      if (cursor.isEnd) break;
-      if (cursor.peek == tableSymbol) {
-        cursor.take();
-        break;
-      }
-      firstCellAlign = BlockNode._takeSeparator(cursor);
     }
+    if (cursor.peek == tableSymbol) cursor.take();
 
     if (rows.isEmpty) return null;
     return TableNode(align: align, children: rows);

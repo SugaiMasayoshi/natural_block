@@ -9,27 +9,13 @@ final class DocumentNode extends NaturalBlockNode {
     final cursor = SourceCursor(source);
     final children = <BlockNode>[];
 
-    // The first block is opened by the start of the source, not by a
-    // separator, so it carries no markers.
-    BlockAlign? align;
-
-    // A separator at the very end of the source needs no special case: the
-    // block it opens is empty, and an empty Column block contributes no
-    // node.
-    while (true) {
+    // Nothing to arrange but the blocks themselves: each reads the `|` that
+    // opened it, and a separator at the very end needs no special case
+    // because the block it opens is empty and contributes no node.
+    while (!cursor.isEnd) {
       final before = cursor.position;
-      final block = BlockNode._parse(cursor, align);
+      final block = BlockNode._parse(cursor);
       if (block != null) children.add(block);
-
-      if (cursor.isEnd) break;
-
-      // Only `|` separates blocks here. A `~` is the table's own and was
-      // eaten by it, so after a table the cursor is on ordinary text and
-      // there is nothing to consume -- and nothing to state markers about.
-      align = cursor.peek == columnSymbol
-          ? BlockNode._takeSeparator(cursor)
-          : null;
-
       assert(
         cursor.position > before,
         'block parse made no progress at ${cursor.position}',
