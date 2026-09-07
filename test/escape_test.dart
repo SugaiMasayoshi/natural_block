@@ -330,12 +330,10 @@ void main() {
       });
 
       test("it works inside a table cell too", () {
-        final table =
-            NaturalBlockParser.parse('~x^y|$bs$bs^z~').children.single
-                as TableNode;
+        final table = onlyTable('~x^y|$bs$bs^z~');
 
-        expect(table.children[1].children.first, cell(bs));
-        expect(table.children[1].children.last, cell('z'));
+        expect(table.children[1].children.first, tableCell(bs));
+        expect(table.children[1].children.last, tableCell('z'));
       });
     });
   });

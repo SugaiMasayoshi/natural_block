@@ -1,32 +1,9 @@
 part of '../node.dart';
 
-final class RowNode extends BlockNode {
+final class RowNode extends LayoutNode {
   final List<ColumnNode> children;
 
   RowNode({this.children = const []});
-
-  /// Reads one row of a table.
-  ///
-  /// The same reading a block outside a table gets, differing in one thing:
-  /// what a block that read no `^` becomes. Out there it stays a column;
-  /// here every `|` opens a row, so a lone cell is a row of one.
-  ///
-  /// It goes through here rather than through [BlockNode._parse] because a
-  /// `~` met while reading a table is the one that ends it, never one that
-  /// opens another -- and a row really can start with `~`, as in
-  /// `|~a^b|~e`.
-  ///
-  /// Null when the row had nothing in it.
-  static RowNode? _parseInTable(SourceCursor cursor) {
-    final align = cursor.peek == columnSymbol
-        ? BlockNode._takeSeparator(cursor)
-        : null;
-
-    final first = ColumnNode._parse(cursor, align);
-    if (cursor.peek == rowSymbol) return _parse(cursor, first);
-
-    return first.children.isEmpty ? null : RowNode(children: [first]);
-  }
 
   /// Continues a block that turned out to be a row, given the cell already
   /// read.
@@ -46,7 +23,7 @@ final class RowNode extends BlockNode {
       // the row must not mean one thing at the end of a document and
       // another with a character after it -- which is what a reader would
       // watch happen as they typed past it.
-      final align = BlockNode._takeSeparator(cursor);
+      final align = LayoutNode._takeSeparator(cursor);
       cells.add(ColumnNode._parse(cursor, align));
     }
     return RowNode(children: cells);

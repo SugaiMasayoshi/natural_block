@@ -1,20 +1,20 @@
 part of '../node.dart';
 
 final class DocumentNode extends NaturalBlockNode {
-  final List<BlockNode> children;
+  final List<LayoutNode> children;
 
   DocumentNode({this.children = const []});
 
   static DocumentNode _parse(String source) {
     final cursor = SourceCursor(source);
-    final children = <BlockNode>[];
+    final children = <LayoutNode>[];
 
     // Nothing to arrange but the blocks themselves: each reads the `|` that
     // opened it, and a separator at the very end needs no special case
     // because the block it opens is empty and contributes no node.
     while (!cursor.isEnd) {
       final before = cursor.position;
-      final block = BlockNode._parse(cursor);
+      final block = LayoutNode._parse(cursor);
       if (block != null) children.add(block);
       assert(
         cursor.position > before,

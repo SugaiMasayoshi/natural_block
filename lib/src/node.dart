@@ -14,10 +14,11 @@
 /// | node | consumes | stops before |
 /// |---|---|---|
 /// | `TextSpanNode`, `VerbatimSpanNode` | — | `^` `\|` `~` |
-/// | `ColumnNode` | — | `^` `\|` `~` |
+/// | `ColumnNode` | the `\|` that opened it | `^` `\|` |
+/// | `TableCellNode` | the `\|` or `^` that opened it | `^` `\|` `~` |
 /// | `RowNode` | the `^` between its cells | `\|` `~` |
+/// | `TableRowNode` | the `^` between its cells | `\|` `~` |
 /// | `TableNode` | its own `~` at each end | — |
-/// | `BlockNode` | the `\|` that opened it | — |
 /// | `DocumentNode` | — | — |
 ///
 /// **Each block eats the separator that opened it**, and a delimiter belongs
@@ -100,13 +101,15 @@ part 'node/span_decoration.dart';
 part 'node/text_span_node.dart';
 part 'node/verbatim_span_node.dart';
 
-part 'node/block_node.dart';
+part 'node/layout_node.dart';
 part 'node/content_node.dart';
 part 'node/verbatim_node.dart';
 part 'node/text_node.dart';
 part 'node/column_node.dart';
 part 'node/row_node.dart';
 part 'node/table_node.dart';
+part 'node/table_row_node.dart';
+part 'node/table_cell_node.dart';
 
 part 'node/document_node.dart';
 part 'node/parser.dart';

@@ -314,9 +314,6 @@ void main() {
   });
 
   group('Tables', () {
-    TableNode onlyTable(String source) =>
-        NaturalBlockParser.parse(source).children.single as TableNode;
-
     /// The alignment each cell is drawn with: what it stated, else what its
     /// column stated. The resolution the README documents for consumers.
     List<List<BlockAlign?>> effective(TableNode table) => [
@@ -431,8 +428,8 @@ void main() {
       expect(
         NaturalBlockParser.parse(
           fromReadme('~A^B|C^D^E|note~after', 'A table ends at `~`'),
-        ).children.map((c) => c.runtimeType),
-        [TableNode, ColumnNode],
+        ).children.single.asColumn.children.map((c) => c.runtimeType),
+        [TableNode, TextNode],
       );
     });
 
@@ -447,19 +444,23 @@ void main() {
     );
 
     test('a table ends at the end of the document', () {
-      expect(
-        NaturalBlockParser.parse('~A^B').children.single,
-        isA<TableNode>(),
-      );
+      expect(onlyBlock('~A^B').children.single, isA<TableNode>());
     });
 
     test('writing `~` again closes it', () {
-      expect(
-        NaturalBlockParser.parse(fromReadme('~A^B~C^D', 'A table ends at `~`'))
-            .children
-            .map((c) => c.runtimeType),
-        [TableNode, RowNode],
-      );
+      final row =
+          NaturalBlockParser.parse(
+                fromReadme('~A^B~C^D', 'A table ends at `~`'),
+              ).children.single
+              as RowNode;
+
+      // The table took only `A^B`. What follows the closer is ordinary
+      // content, so its `^` lays out a row -- and the table, being content
+      // too, sits in that row's first cell.
+      final table = row.children.first.children.first as TableNode;
+      expect(table.children, hasLength(1));
+      expect(row.children.first.children.last, line('C'));
+      expect(row.children.last.children.single, line('D'));
     });
 
     test('an empty block does not end a table, or `||` would be an invisible '
@@ -467,7 +468,7 @@ void main() {
       expect(
         NaturalBlockParser.parse(
           fromReadme('~A^B||C^D~', 'contributes no node at all'),
-        ).children.single,
+        ).children.single.asColumn.children.single,
         isA<TableNode>(),
       );
     });
@@ -512,9 +513,7 @@ void main() {
     });
 
     test('a region can go in a table cell', () {
-      final table =
-          NaturalBlockParser.parse('~A^`x`|B^`y`~').children.single
-              as TableNode;
+      final table = onlyTable('~A^`x`|B^`y`~');
       // A run, not a block: the cell sits on the same line as `A`, and a
       // region is a block only when it opens on a line of its own.
       expect(

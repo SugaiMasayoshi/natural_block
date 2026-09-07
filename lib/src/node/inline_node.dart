@@ -4,7 +4,7 @@ sealed class InlineNode extends NaturalBlockNode {
   /// Reads whichever kind of inline content starts here, together with the
   /// decoration state it leaves behind.
   ///
-  /// The same shape [BlockNode] and [ContentNode] have: the sealed supertype
+  /// The same shape [LayoutNode] and [ContentNode] have: the sealed supertype
   /// decides which of its subtypes the source becomes. This one also passes
   /// the decoration along, because a run's style is carried in from what was
   /// written before it rather than found within it.

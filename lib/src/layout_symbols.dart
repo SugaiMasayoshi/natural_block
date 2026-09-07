@@ -3,11 +3,10 @@
 ///
 /// That is the only axis all three share, and it is the same axis the node
 /// classes are named on: `|` stacks what it separates, `^` lays it out
-/// across, `~` wraps it into a grid, and the results are the node types
-/// named the same way. Naming them for what they *separate* instead
-/// -- blocks, cells, tables -- puts them on three different levels of one
-/// hierarchy, because a cell is a block and so is a table; every one of the
-/// three node types extends `BlockNode`.
+/// across, `~` wraps it into a grid, and the results are `ColumnNode`,
+/// `RowNode` and `TableNode`. Naming them for what they *separate*
+/// instead -- blocks, cells, tables -- would put them on three levels of
+/// one hierarchy, because a cell is a block.
 ///
 /// They form one hierarchy of their own, and each ends everything below it:
 /// [rowSymbol] is innermost, then [columnSymbol], then [tableSymbol].
@@ -47,3 +46,12 @@ const String tableSymbol = '~';
 
 /// All three, for the levels that stop at any of them without caring which.
 const Set<String> layoutSymbols = {columnSymbol, rowSymbol, tableSymbol};
+
+/// The two that separate siblings.
+///
+/// [tableSymbol] is not one. It opens a table, and a table is content, so a
+/// block reads straight through it and keeps going afterwards -- which is
+/// what lets one block hold text, a table, and more text. A table's own
+/// cells do stop at it, because there the `~` is the one that ends the
+/// table.
+const Set<String> separators = {columnSymbol, rowSymbol};

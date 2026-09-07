@@ -1,9 +1,14 @@
 part of '../node.dart';
 
-final class TableNode extends BlockNode {
+/// A grid, written between a pair of `~`.
+///
+/// Content, not layout: from the outside it is a thing you place, sized to
+/// its own rows rather than to the width it is given. Inside it arranges,
+/// which makes it the one node with a foot on each side.
+final class TableNode extends ContentNode {
   /// The rows as the source wrote them. A row may be shorter than the table
   /// is wide; it is not padded here, because the author wrote no cell there.
-  final List<RowNode> children;
+  final List<TableRowNode> children;
 
   /// What each column declared, and by its length how wide the table is.
   ///
@@ -24,6 +29,11 @@ final class TableNode extends BlockNode {
   late final List<BlockAlign?> columns = _columns(children);
 
   /// The alignment written for the table itself, or null when none was.
+  ///
+  /// Where the table sits inside its block, which is not the same question
+  /// as [ColumnNode.align] -- that one says how a block arranges everything
+  /// it holds. `|=` centres the text and the table together; `~=` centres
+  /// only the table.
   final BlockAlign? align;
 
   TableNode({this.children = const [], this.align});
@@ -33,24 +43,31 @@ final class TableNode extends BlockNode {
   /// Each delimiter is the table's own -- the one that opens it and the one
   /// that ends it -- exactly as a verbatim region owns both of its fences. A
   /// `~` wraps rather than separates, and what wraps belongs to what it
-  /// wraps. That is what lets the document read blocks without remembering
-  /// whether it is inside a table.
+  /// wraps. It has to: a table is sized to its own content, so it must know
+  /// where it stops.
   ///
-  /// Everything in between is the table's, so there is nothing to hand back.
   /// Null when no row had any content.
   static TableNode? _parse(SourceCursor cursor) {
     // The markers on the opening `~` describe the table itself.
-    final align = BlockNode._takeSeparator(cursor);
+    final align = LayoutNode._takeSeparator(cursor);
 
-    final rows = <RowNode>[];
+    final rows = <TableRowNode>[];
 
-    // An empty row contributes nothing, which is what lets every row be
-    // written with a leading `|`.
     while (!cursor.isEnd && cursor.peek != tableSymbol) {
-      final row = RowNode._parseInTable(cursor);
+      final before = cursor.position;
+      final row = TableRowNode._parse(cursor);
       if (row != null) rows.add(row);
+      assert(
+        cursor.position > before,
+        'table row parse made no progress at ${cursor.position}',
+      );
     }
     if (cursor.peek == tableSymbol) cursor.take();
+
+    // And the newline written after it, which belongs to the boundary --
+    // the same as the one after a region's closing fence. See the rule in
+    // `node.dart`.
+    if (cursor.peek == '\n') cursor.take();
 
     if (rows.isEmpty) return null;
     return TableNode(align: align, children: rows);
@@ -61,7 +78,7 @@ final class TableNode extends BlockNode {
   /// For the ordinary table -- whose first row is its widest -- that is just
   /// "the first row". A later row that is wider than every row before it
   /// declares the columns it adds.
-  static List<BlockAlign?> _columns(List<RowNode> rows) {
+  static List<BlockAlign?> _columns(List<TableRowNode> rows) {
     final columns = <BlockAlign?>[];
     for (final row in rows) {
       for (var i = columns.length; i < row.children.length; i++) {

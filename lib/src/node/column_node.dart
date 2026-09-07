@@ -1,6 +1,6 @@
 part of '../node.dart';
 
-final class ColumnNode extends BlockNode {
+final class ColumnNode extends LayoutNode {
   final List<ContentNode> children;
 
   /// The alignment written for this block, or null when none was.
@@ -27,7 +27,9 @@ final class ColumnNode extends BlockNode {
 
     final content = <ContentNode>[];
 
-    while (!cursor.isEnd && !layoutSymbols.contains(cursor.peek)) {
+    // Reads straight through a `~`: a table is content, so it belongs to
+    // this block rather than ending it.
+    while (!cursor.isEnd && !separators.contains(cursor.peek)) {
       final before = cursor.position;
       final piece = ContentNode._parse(cursor);
       if (piece != null) content.add(piece);

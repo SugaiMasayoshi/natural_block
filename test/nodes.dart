@@ -34,3 +34,22 @@ TextNode onlyLine(String source) =>
 /// That line's runs, as the styled spans they are.
 List<TextSpanNode> runs(String source) =>
     onlyLine(source).children.cast<TextSpanNode>();
+
+/// A single-line cell of a table, optionally stating its own alignment.
+TableCellNode tableCell(String text, [BlockAlign? align]) =>
+    TableCellNode(children: [line(text)], align: align);
+
+/// An empty cell of a table -- what an explicit `^^` holds.
+TableCellNode emptyTableCell([BlockAlign? align]) =>
+    TableCellNode(align: align);
+
+/// The document's only table. A table is content, so it always sits inside
+/// a block.
+TableNode onlyTable(String source) =>
+    onlyBlock(source).children.single as TableNode;
+
+/// The block as the column it is, for the many claims that read straight
+/// into a block's contents.
+extension AsColumn on NaturalBlockNode {
+  ColumnNode get asColumn => this as ColumnNode;
+}

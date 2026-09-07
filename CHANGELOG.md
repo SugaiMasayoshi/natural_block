@@ -136,11 +136,21 @@ this repository, which is why the entries below describe changes freely.
 
 ### AST
 
-- `DocumentNode` (the root) holds `BlockNode`s: `RowNode`, `TableNode`,
-  `ColumnNode`, and the two `ContentNode`s -- `TextNode` and `VerbatimNode`.
-  A `ColumnNode` holds only `ContentNode`s, so a cell cannot contain a row or
-  a table; stating that in the type keeps a later decision to allow it a
-  visible change rather than something that silently always worked.
+- `DocumentNode` (the root) holds `LayoutNode`s -- `ColumnNode` and
+  `RowNode`, the two that say how what is inside them is arranged. A
+  `ColumnNode` holds `ContentNode`s: `TextNode`, `VerbatimNode` and
+  `TableNode`.
+- **A table is content.** It is written between a pair of `~` and arrives
+  already formatted, exactly like a verbatim region, so it sits *inside* a
+  block rather than beside one. That is what lets one block hold text, a
+  table, and more text -- and what makes `|=` reach all of it. A table can
+  also go in a row's cell, which it could not when it was a block itself.
+- A table has its own rows and cells: `TableRowNode` and `TableCellNode`.
+  They are not `RowNode` and `ColumnNode`, which divide the width they are
+  given -- a table's line up with the rows above and below instead. Their
+  own types are also what keeps a table out of a table: a cell is read by
+  the one content parse that has no branch for one, so a `~` met inside a
+  table is the one that ends it and never one that opens another.
 - A `TextNode` holds `InlineNode`s: `TextSpanNode` and `VerbatimSpanNode`.
 - A `TextSpanNode` holds its text and one `SpanDecoration` -- the size
   offset, the semantic color, and the two flags -- rather than four separate
@@ -149,8 +159,8 @@ this repository, which is why the entries below describe changes freely.
   that happen to match. The type is public because the rest of the tree's
   vocabulary (`BlockAlign`, `SemanticColor`) is, and a consumer writing its
   own builder should be able to name what it is handed.
-  Neither is a `BlockNode` -- a styled run only exists inside a line -- so
-  misplacing one is a compile error.
+  Neither is a `ContentNode` -- a styled run only exists inside a line --
+  so misplacing one is a compile error.
 - **Nothing in the tree corresponds to a line.** A newline is a character, so
   a `TextNode` runs across as many of them as the author wrote -- a block of
   three lines is one node holding two `\n`s. What divides a column's children
@@ -203,9 +213,10 @@ this repository, which is why the entries below describe changes freely.
   the node library imports `SourceCursor` at all, and nothing extends it:
   `VerbatimNode._opensAt` and `VerbatimSpanNode._opensAt` answer whether one
   of those starts here (the same fence, told apart by whether it was written
-  on a line of its own), and `BlockNode._takeSeparator` eats the layout
+  on a line of its own), and `LayoutNode._takeSeparator` eats the layout
   symbol that opens a block along with the markers describing it -- every
-  separator in the language opens a `BlockNode`, whether that is a block, a
+  separator in the language opens something that can state an alignment --
+  a block, a
   table row, or a cell.
 - What counts as markup is likewise stated by the level that decides it, not
   centrally. `TextSpanNode` names the symbols that end a run of text and can

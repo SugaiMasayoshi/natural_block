@@ -135,8 +135,10 @@ void main() {
       for (final block in NaturalBlockParser.parse(source).children)
         if (block is RowNode)
           block.children.length
-        else if (block is TableNode)
-          for (final row in block.children) row.children.length,
+        else if (block is ColumnNode)
+          for (final piece in block.children)
+            if (piece is TableNode)
+              for (final row in piece.children) row.children.length,
     ];
 
     test("a trailing Row separator adds a final empty cell", () {
@@ -170,10 +172,8 @@ void main() {
       // It reaches further inside a table: the width comes from the widest
       // row, so a row that changed width with the document's end would
       // change how every other row is squared off for drawing.
-      final open =
-          NaturalBlockParser.parse("~左^右^").children.single as TableNode;
-      final closed =
-          NaturalBlockParser.parse("~左^右^~").children.single as TableNode;
+      final open = onlyTable("~左^右^");
+      final closed = onlyTable("~左^右^~");
 
       expect(open.columns.length, 3);
       expect(closed.columns.length, 3);

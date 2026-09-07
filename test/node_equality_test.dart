@@ -20,7 +20,7 @@ void main() {
       TableNode table({BlockAlign align = BlockAlign.start}) => TableNode(
         align: align,
         children: [
-          RowNode(children: [block("セル")]),
+          TableRowNode(children: [tableCell('セル')]),
         ],
       );
 
@@ -63,18 +63,18 @@ void main() {
       'TableNode': (
         TableNode(
           children: [
-            RowNode(
+            TableRowNode(
               children: [
-                ColumnNode(children: [text('セル')]),
+                TableCellNode(children: [text('セル')]),
               ],
             ),
           ],
         ),
         TableNode(
           children: [
-            RowNode(
+            TableRowNode(
               children: [
-                ColumnNode(children: [text('セル')]),
+                TableCellNode(children: [text('セル')]),
               ],
             ),
           ],

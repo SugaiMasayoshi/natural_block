@@ -10,7 +10,7 @@ final class TextNode extends ContentNode {
   /// of the source.
   static bool _endsHere(SourceCursor cursor) =>
       cursor.isEnd ||
-      layoutSymbols.contains(cursor.peek) ||
+      separators.contains(cursor.peek) ||
       ContentNode._othersStartHere(cursor);
 
   /// Drops the newline written against the end of this run; see the rule in

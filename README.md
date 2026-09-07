@@ -61,7 +61,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   Nothing throws and nothing is lost, so the difference only shows once it is rendered. When in doubt, write the leading `|`.
 * **Tables (`~`)**
-  `~` is the third layout symbol, one level above `|`. Where `^` and `|` *separate* -- dividing siblings, and belonging to whatever arranges them -- `~` *delimits*: it wraps a table, and both `~` belong to that table the way both fences belong to a verbatim region. A `~` still ends whatever preceded it, being above `|` in the hierarchy, but it opens no block of its own.
+  `~` wraps a table, and both `~` belong to that table the way both fences belong to a verbatim region -- it *delimits* where `^` and `|` *separate*. And like a verbatim region, **a table is content**: it sits inside a block rather than beside one, so a block can hold text, a table, and more text, and an alignment written on that block reaches all of it. It can also go in a cell of a row. A table cannot go inside another table: a `~` met inside one is the closer, never an opener.
 
   ```
   ~

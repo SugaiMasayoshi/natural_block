@@ -37,19 +37,22 @@ void main() {
       ],
   ];
 
-  TableNode onlyTable(String source) =>
-      NaturalBlockParser.parse(source).children.single as TableNode;
-
   group('declaring a table', () {
     test('`~` turns a run of rows into one TableNode', () {
+      // A table is content, so it sits inside a block the way a verbatim
+      // region does -- not beside one.
       expect(
         NaturalBlockParser.parse('~A^B|C^D~'),
         DocumentNode(
           children: [
-            TableNode(
+            ColumnNode(
               children: [
-                RowNode(children: [cell('A'), cell('B')]),
-                RowNode(children: [cell('C'), cell('D')]),
+                TableNode(
+                  children: [
+                    TableRowNode(children: [tableCell('A'), tableCell('B')]),
+                    TableRowNode(children: [tableCell('C'), tableCell('D')]),
+                  ],
+                ),
               ],
             ),
           ],
@@ -72,14 +75,14 @@ void main() {
       );
     });
 
-    test('`~` ends a cell as readily as a block, being the level above', () {
-      // `^` separates cells, `|` separates rows, `~` separates tables. Each
-      // ends everything below it, so a `~` written mid-row closes the cell,
-      // closes the row, and opens the table.
-      final document = NaturalBlockParser.parse('A^~B~');
+    test('a table written after a `^` lands in that cell', () {
+      // A table is content, so it goes wherever content goes -- including
+      // one cell of a row. It used to end the row and stand beside it,
+      // which is what made `|=` stop working at a table.
+      final row = NaturalBlockParser.parse('A^~B~').children.single as RowNode;
 
-      expect(document.children.first, RowNode(children: [cell('A'), empty()]));
-      expect(document.children[1], isA<TableNode>());
+      expect(row.children.first, cell('A'));
+      expect(row.children[1].children.single, isA<TableNode>());
     });
 
     test('an escaped `~` is ordinary text', () {
@@ -99,11 +102,18 @@ void main() {
       // The case that makes an explicit closer necessary: rows of the same
       // shape following a table, which no implicit rule could separate --
       // an empty block between them would not survive parsing.
-      final document = NaturalBlockParser.parse('~A^B|C^D~E^F');
+      // What follows the closer is ordinary content again, and the `^`
+      // in it makes a row -- with the table sitting in that row's first
+      // cell, because a table is content and content is what cells hold.
+      final row =
+          NaturalBlockParser.parse('~A^B|C^D~E^F').children.single as RowNode;
 
-      expect(document.children, hasLength(2));
-      expect((document.children[0] as TableNode).children, hasLength(2));
-      expect(document.children[1], isA<RowNode>());
+      expect(row.children, hasLength(2));
+      expect(
+        (row.children.first.children.first as TableNode).children,
+        hasLength(2),
+      );
+      expect(row.children.first.children.last, line('E'));
     });
 
     test('a row of a different width does not end it -- the table widens', () {
@@ -123,7 +133,10 @@ void main() {
       final table = onlyTable('~A^B|paragraph|C^D~');
 
       expect(table.children, hasLength(3));
-      expect(table.children[1], RowNode(children: [cell('paragraph')]));
+      expect(
+        table.children[1],
+        TableRowNode(children: [tableCell('paragraph')]),
+      );
     });
 
     test('an empty block contributes nothing, here as anywhere', () {
@@ -141,11 +154,11 @@ void main() {
       // `~` separates table regions from ordinary ones, the way `|`
       // separates blocks. Nothing else opens or closes one, so the author
       // can see from the source alone which side of a `~` they are on.
-      final document = NaturalBlockParser.parse('~A^B~note~C^D~');
+      final block = onlyBlock('~A^B~note~C^D~');
 
-      expect(document.children[0], isA<TableNode>());
-      expect(document.children[1], block('note'));
-      expect(document.children[2], isA<TableNode>());
+      expect(block.children[0], isA<TableNode>());
+      expect(block.children[1], line('note'));
+      expect(block.children[2], isA<TableNode>());
     });
 
     test('a table given no rows contributes no node', () {
@@ -169,10 +182,7 @@ void main() {
       // table they delimit receives no rows, so it emits no node and what
       // follows is ordinary.
       expect(NaturalBlockParser.parse('~~A^B').children.single, isA<RowNode>());
-      expect(
-        NaturalBlockParser.parse('~~~A^B~').children.single,
-        isA<TableNode>(),
-      );
+      expect(onlyBlock('~~~A^B~').children.single, isA<TableNode>());
     });
 
     test('contradictory alignment markers keep the last one', () {
@@ -280,8 +290,9 @@ void main() {
         // first block of a document does.
         final document = NaturalBlockParser.parse('~A^B~=after');
 
-        expect((document.children[0] as TableNode).align, isNull);
-        expect(document.children[1], block('=after'));
+        final pieces = (document.children.single as ColumnNode).children;
+        expect((pieces[0] as TableNode).align, isNull);
+        expect(pieces[1], line('=after'));
 
         final aligned = NaturalBlockParser.parse('~A^B~|=after');
         expect((aligned.children[1] as ColumnNode).align, BlockAlign.center);
@@ -294,7 +305,7 @@ void main() {
       final table = onlyTable('~A^^C|D^^F~');
 
       expect(table.children.first.children, hasLength(3));
-      expect(table.children.first.children[1], ColumnNode(children: []));
+      expect(table.children.first.children[1], emptyTableCell());
     });
 
     test('a multi-line cell stacks its lines', () {

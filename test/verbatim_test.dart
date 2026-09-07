@@ -113,9 +113,7 @@ void main() {
       // It is a run rather than a block. A region is a block because it was
       // opened on a line of its own, and this one sits beside `x` on the
       // same line -- the separator before it divides cells, not lines.
-      final table =
-          NaturalBlockParser.parse('~x^`a|b`|y^z~').children.single
-              as TableNode;
+      final table = onlyTable('~x^`a|b`|y^z~');
       final cell = table.children.first.children.last.children.single;
 
       expect(
