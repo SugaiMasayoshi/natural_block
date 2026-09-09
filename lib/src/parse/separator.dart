@@ -24,7 +24,11 @@ const Map<String, HorizontalAlign> _byChar = {
 /// **Why it sits on its own.** The nodes it ends up on -- a column, a table,
 /// a table's cell -- share no ancestor closer than the root.
 ///
-/// A later marker overrides an earlier one, so `|<^>` ends up end-aligned.
+/// A later marker overrides an earlier one, so `|<>` ends up end-aligned --
+/// the rule a decoration cluster already has, where `:!%` is success.
+///
+/// A `^` is not a marker, so it ends the run of them and opens a cell of its
+/// own: `|<^>a` is a row, not an end-aligned block.
 HorizontalAlign takeSeparator(SourceCursor cursor) {
   cursor.take();
 

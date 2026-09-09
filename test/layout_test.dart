@@ -434,6 +434,34 @@ void main() {
       final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
     });
+
+    test("contradictory markers keep the last one", () {
+      // 【解説】 装飾クラスタと同じ規則。`:!%` が success になるのと同じで、
+      // 後に書いたほうが勝つ。表側の `~<=>` は table_test.dart が固定して
+      // いるので、ここは区切りの側。
+      expect(
+        NaturalBlockParser.parse("|<>a"),
+        DocumentNode(children: [cell("a", HorizontalAlign.end)]),
+      );
+    });
+
+    test("a row symbol ends the markers rather than being one", () {
+      // 【解説】 `^` はマーカーではないので、寄せの並びをそこで終わらせて
+      // 新しいセルを開く。`|<^>a` は「end 寄せの塊」ではなく行になる。
+      expect(
+        NaturalBlockParser.parse("|<^>a"),
+        DocumentNode(
+          children: [
+            RowNode(
+              children: [
+                empty(HorizontalAlign.start),
+                cell("a", HorizontalAlign.end),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
   });
 
   group("An empty block contributes nothing, marker or not", () {
