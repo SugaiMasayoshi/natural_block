@@ -16,20 +16,6 @@ class SpanDecoration {
     this.isAction = false,
   });
 
-  SpanDecoration apply(DecorationAction action) => switch (action) {
-    DecorationAction.larger => _copy(sizeOffset: sizeOffset + 1),
-    DecorationAction.smaller => _copy(sizeOffset: sizeOffset - 1),
-    DecorationAction.danger => _copy(color: _toggle(SemanticColor.danger)),
-    DecorationAction.success => _copy(color: _toggle(SemanticColor.success)),
-    DecorationAction.emphasis => _copy(emphasis: !emphasis),
-    DecorationAction.action => _copy(isAction: !isAction),
-    DecorationAction.reset => _copy(
-      color: SemanticColor.none,
-      emphasis: false,
-      isAction: false,
-    ),
-  };
-
   @override
   String toString() =>
       'SpanDecoration(sizeOffset: $sizeOffset, color: $color, '
@@ -60,4 +46,31 @@ class SpanDecoration {
     emphasis: emphasis ?? this.emphasis,
     isAction: isAction ?? this.isAction,
   );
+}
+
+/// What each character of a decoration cluster does to the state a run
+/// carries.
+///
+/// An extension rather than a method, so that the package can export the type
+/// without it. `show SpanDecoration` hides this name, and an extension that
+/// is not in scope contributes no members -- a consumer asking for `.apply`
+/// is told there is no such member, not merely warned. A method has no name
+/// of its own to hide, and an annotation would only warn.
+///
+/// It still lives here, beside the private fields it copies, because it is
+/// [SpanDecoration]'s own arithmetic and nothing else's.
+extension SpanDecorationActions on SpanDecoration {
+  SpanDecoration apply(DecorationAction action) => switch (action) {
+    DecorationAction.larger => _copy(sizeOffset: sizeOffset + 1),
+    DecorationAction.smaller => _copy(sizeOffset: sizeOffset - 1),
+    DecorationAction.danger => _copy(color: _toggle(SemanticColor.danger)),
+    DecorationAction.success => _copy(color: _toggle(SemanticColor.success)),
+    DecorationAction.emphasis => _copy(emphasis: !emphasis),
+    DecorationAction.action => _copy(isAction: !isAction),
+    DecorationAction.reset => _copy(
+      color: SemanticColor.none,
+      emphasis: false,
+      isAction: false,
+    ),
+  };
 }
