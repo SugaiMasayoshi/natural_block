@@ -213,11 +213,12 @@ this repository, which is why the entries below describe changes freely.
   the node library imports `SourceCursor` at all, and nothing extends it:
   `VerbatimNode._opensAt` and `VerbatimSpanNode._opensAt` answer whether one
   of those starts here (the same fence, told apart by whether it was written
-  on a line of its own), and `LayoutNode._takeSeparator` eats the layout
-  symbol that opens a block along with the markers describing it -- every
-  separator in the language opens something that can state an alignment --
-  a block, a
-  table row, or a cell.
+  on a line of its own), and `BlockAlign._takeSeparator` eats the layout
+  symbol that opens something along with the markers describing it. It
+  lives on the alignment rather than on any node because the nodes an
+  alignment lands on -- a column, a table, a table's cell -- share no
+  ancestor closer than the root, and that alignment is the one thing they
+  do have in common.
 - What counts as markup is likewise stated by the level that decides it, not
   centrally. `TextSpanNode` names the symbols that end a run of text and can
   be escaped in one; `SpanDecoration` names the wider set that is live

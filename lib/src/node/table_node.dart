@@ -49,7 +49,7 @@ final class TableNode extends ContentNode {
   /// Null when no row had any content.
   static TableNode? _parse(SourceCursor cursor) {
     // The markers on the opening `~` describe the table itself.
-    final align = LayoutNode._takeSeparator(cursor);
+    final align = BlockAlign._takeSeparator(cursor);
 
     final rows = <TableRowNode>[];
 

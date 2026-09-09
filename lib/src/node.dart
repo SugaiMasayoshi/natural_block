@@ -87,14 +87,14 @@ library;
 
 import 'package:collection/collection.dart';
 
-import 'block_align.dart';
 import 'decoration_action.dart';
 import 'layout_symbols.dart';
-import 'semantic_color.dart';
 import 'source_cursor.dart';
 import 'verbatim_region.dart';
 
 part 'node/natural_block_node.dart';
+part 'node/block_align.dart';
+part 'node/semantic_color.dart';
 
 part 'node/inline_node.dart';
 part 'node/span_decoration.dart';

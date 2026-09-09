@@ -25,7 +25,7 @@ final class TableRowNode extends NaturalBlockNode {
   /// written with a leading `|`.
   static TableRowNode? _parse(SourceCursor cursor) {
     final align = cursor.peek == columnSymbol
-        ? LayoutNode._takeSeparator(cursor)
+        ? BlockAlign._takeSeparator(cursor)
         : null;
 
     final cells = [TableCellNode._parse(cursor, align)];
@@ -33,7 +33,7 @@ final class TableRowNode extends NaturalBlockNode {
       // The cell this `^` opens is read whatever follows, the end of the
       // table included. An empty cell is a position the grid keeps.
       cells.add(
-        TableCellNode._parse(cursor, LayoutNode._takeSeparator(cursor)),
+        TableCellNode._parse(cursor, BlockAlign._takeSeparator(cursor)),
       );
     }
 

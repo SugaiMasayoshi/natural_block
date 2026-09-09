@@ -23,7 +23,7 @@ final class RowNode extends LayoutNode {
       // the row must not mean one thing at the end of a document and
       // another with a character after it -- which is what a reader would
       // watch happen as they typed past it.
-      final align = LayoutNode._takeSeparator(cursor);
+      final align = BlockAlign._takeSeparator(cursor);
       cells.add(ColumnNode._parse(cursor, align));
     }
     return RowNode(children: cells);
