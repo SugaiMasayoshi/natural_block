@@ -1,5 +1,6 @@
 import '../nodes.dart';
 import '../source_cursor.dart';
+import '../span_decoration.dart';
 import 'text_span_node.dart';
 import 'verbatim_span_node.dart';
 

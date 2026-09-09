@@ -1,3 +1,4 @@
+import '../horizontal_align.dart';
 import '../layout_symbols.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';

@@ -2,6 +2,7 @@ import '../decoration_action.dart';
 import '../layout_symbols.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
+import '../span_decoration.dart';
 import '../verbatim_region.dart';
 import 'decoration.dart';
 import 'inline_node.dart';

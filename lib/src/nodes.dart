@@ -5,6 +5,9 @@
 /// library. That is the whole reason -- not privacy, and not the reading
 /// order. The reading is in `src/parse/`, one library per node.
 ///
+/// Written from the root down: a document, then what it arranges, then what
+/// those hold, and the spans a run of text is made of last.
+///
 /// **What the tree records.** What the source said, never what a renderer
 /// needs. `align` is `unstated` when nothing was written, which is not
 /// [HorizontalAlign.start]; a table keeps its columns rather than stamping
@@ -14,12 +17,8 @@ library;
 
 import 'package:collection/collection.dart';
 
-import 'decoration_action.dart';
 import 'horizontal_align.dart';
-import 'semantic_color.dart';
-
-export 'horizontal_align.dart';
-export 'semantic_color.dart';
+import 'span_decoration.dart';
 
 /// Everything in the tree. Sealed, so the set of node types is closed and
 /// a consumer that handles all of them cannot be caught out by a new one.
@@ -29,111 +28,24 @@ sealed class NaturalBlockNode {}
 /// a hand-built tree different from the one the parser produced.
 const _childrenEquality = ListEquality<NaturalBlockNode>();
 
-sealed class InlineNode extends NaturalBlockNode {}
+final class DocumentNode extends NaturalBlockNode {
+  final List<LayoutNode> children;
 
-/// The decoration state a run carries, and the parser's reading state -- one
-/// type, because they are one thing.
-class SpanDecoration {
-  final int sizeOffset;
-  final SemanticColor color;
-  final bool emphasis;
-  final bool isAction;
-
-  const SpanDecoration({
-    this.sizeOffset = 0,
-    this.color = SemanticColor.none,
-    this.emphasis = false,
-    this.isAction = false,
-  });
-
-  SpanDecoration apply(DecorationAction action) => switch (action) {
-    DecorationAction.larger => _copy(sizeOffset: sizeOffset + 1),
-    DecorationAction.smaller => _copy(sizeOffset: sizeOffset - 1),
-    DecorationAction.danger => _copy(color: _toggle(SemanticColor.danger)),
-    DecorationAction.success => _copy(color: _toggle(SemanticColor.success)),
-    DecorationAction.emphasis => _copy(emphasis: !emphasis),
-    DecorationAction.action => _copy(isAction: !isAction),
-    DecorationAction.reset => _copy(
-      color: SemanticColor.none,
-      emphasis: false,
-      isAction: false,
-    ),
-  };
+  DocumentNode({this.children = const []});
 
   @override
-  String toString() =>
-      'SpanDecoration(sizeOffset: $sizeOffset, color: $color, '
-      'emphasis: $emphasis, isAction: $isAction)';
-
-  @override
-  bool operator ==(Object other) =>
-      other is SpanDecoration &&
-      sizeOffset == other.sizeOffset &&
-      color == other.color &&
-      emphasis == other.emphasis &&
-      isAction == other.isAction;
-
-  @override
-  int get hashCode => Object.hash(sizeOffset, color, emphasis, isAction);
-
-  SemanticColor _toggle(SemanticColor next) =>
-      color == next ? SemanticColor.none : next;
-
-  SpanDecoration _copy({
-    int? sizeOffset,
-    SemanticColor? color,
-    bool? emphasis,
-    bool? isAction,
-  }) => SpanDecoration(
-    sizeOffset: sizeOffset ?? this.sizeOffset,
-    color: color ?? this.color,
-    emphasis: emphasis ?? this.emphasis,
-    isAction: isAction ?? this.isAction,
-  );
-}
-
-final class TextSpanNode extends InlineNode {
-  final String text;
-
-  /// Everything the decoration syntax said about this run.
-  ///
-  /// One field rather than four: a run's decoration and the reader's current
-  /// decoration are not two ideas that happen to match.
-  final SpanDecoration decoration;
-
-  TextSpanNode({required this.text, this.decoration = const SpanDecoration()});
-
-  @override
-  String toString() => 'TextSpanNode(text: $text, decoration: $decoration)';
+  String toString() => 'DocumentNode(children: $children)';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is TextSpanNode &&
-        text == other.text &&
-        decoration == other.decoration;
+    return other is DocumentNode &&
+        _childrenEquality.equals(children, other.children);
   }
 
   @override
-  int get hashCode => Object.hash(text, decoration);
-}
-
-final class VerbatimSpanNode extends InlineNode {
-  final String text;
-
-  VerbatimSpanNode({required this.text});
-
-  @override
-  String toString() => 'VerbatimSpanNode(text: $text)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is VerbatimSpanNode && text == other.text;
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, text);
+  int get hashCode =>
+      Object.hash(runtimeType, _childrenEquality.hash(children));
 }
 
 /// How the things inside are arranged, and nothing else.
@@ -142,58 +54,6 @@ final class VerbatimSpanNode extends InlineNode {
 /// Neither is content itself -- they say where content goes. A document is a
 /// stack of these. A [TableNode] is not one; see there.
 sealed class LayoutNode extends NaturalBlockNode {}
-
-/// What a block holds, and what gets arranged.
-///
-/// **Nothing here is a line.** A newline is a character, so a [TextNode] runs
-/// across as many as the author wrote: three lines are one `TextNode` holding
-/// two `\n`s. The tree has no line-level structure at all, which is worth
-/// stating plainly, because a per-line role is exactly what a heading or a
-/// list item would need.
-///
-/// A table is one of these, the same as a verbatim region: something written
-/// between delimiters that arrives already formatted. That is what lets a
-/// block hold text, a table, and more text without breaking in two, so an
-/// alignment written on the block reaches all of it.
-sealed class ContentNode extends NaturalBlockNode {}
-
-final class VerbatimNode extends ContentNode {
-  final String text;
-
-  VerbatimNode({required this.text});
-
-  @override
-  String toString() => 'VerbatimNode(text: $text)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is VerbatimNode && text == other.text;
-  }
-
-  @override
-  int get hashCode => Object.hash(runtimeType, text);
-}
-
-final class TextNode extends ContentNode {
-  final List<InlineNode> children;
-
-  TextNode({this.children = const []});
-
-  @override
-  String toString() => 'TextNode(children: $children)';
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is TextNode &&
-        _childrenEquality.equals(children, other.children);
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(runtimeType, _childrenEquality.hash(children));
-}
 
 final class ColumnNode extends LayoutNode {
   final List<ContentNode> children;
@@ -237,6 +97,58 @@ final class RowNode extends LayoutNode {
   @override
   int get hashCode =>
       Object.hash(runtimeType, _childrenEquality.hash(children));
+}
+
+/// What a block holds, and what gets arranged.
+///
+/// **Nothing here is a line.** A newline is a character, so a [TextNode] runs
+/// across as many as the author wrote: three lines are one `TextNode` holding
+/// two `\n`s. The tree has no line-level structure at all, which is worth
+/// stating plainly, because a per-line role is exactly what a heading or a
+/// list item would need.
+///
+/// A table is one of these, the same as a verbatim region: something written
+/// between delimiters that arrives already formatted. That is what lets a
+/// block hold text, a table, and more text without breaking in two, so an
+/// alignment written on the block reaches all of it.
+sealed class ContentNode extends NaturalBlockNode {}
+
+final class TextNode extends ContentNode {
+  final List<InlineNode> children;
+
+  TextNode({this.children = const []});
+
+  @override
+  String toString() => 'TextNode(children: $children)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is TextNode &&
+        _childrenEquality.equals(children, other.children);
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, _childrenEquality.hash(children));
+}
+
+final class VerbatimNode extends ContentNode {
+  final String text;
+
+  VerbatimNode({required this.text});
+
+  @override
+  String toString() => 'VerbatimNode(text: $text)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is VerbatimNode && text == other.text;
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, text);
 }
 
 /// A grid, written between a pair of `~`.
@@ -372,22 +284,48 @@ final class TableCellNode extends NaturalBlockNode {
       Object.hash(runtimeType, align, _childrenEquality.hash(children));
 }
 
-final class DocumentNode extends NaturalBlockNode {
-  final List<LayoutNode> children;
+sealed class InlineNode extends NaturalBlockNode {}
 
-  DocumentNode({this.children = const []});
+final class TextSpanNode extends InlineNode {
+  final String text;
+
+  /// Everything the decoration syntax said about this run.
+  ///
+  /// One field rather than four: a run's decoration and the reader's current
+  /// decoration are not two ideas that happen to match.
+  final SpanDecoration decoration;
+
+  TextSpanNode({required this.text, this.decoration = const SpanDecoration()});
 
   @override
-  String toString() => 'DocumentNode(children: $children)';
+  String toString() => 'TextSpanNode(text: $text, decoration: $decoration)';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is DocumentNode &&
-        _childrenEquality.equals(children, other.children);
+    return other is TextSpanNode &&
+        text == other.text &&
+        decoration == other.decoration;
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, _childrenEquality.hash(children));
+  int get hashCode => Object.hash(text, decoration);
+}
+
+final class VerbatimSpanNode extends InlineNode {
+  final String text;
+
+  VerbatimSpanNode({required this.text});
+
+  @override
+  String toString() => 'VerbatimSpanNode(text: $text)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is VerbatimSpanNode && text == other.text;
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, text);
 }

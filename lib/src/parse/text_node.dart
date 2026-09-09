@@ -1,6 +1,7 @@
 import '../layout_symbols.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
+import '../span_decoration.dart';
 import 'content_node.dart';
 import 'inline_node.dart';
 
