@@ -26,17 +26,17 @@ final class TableNode extends ContentNode {
   ///
   /// Read from the rows rather than passed in, so a hand-built table cannot
   /// disagree with itself. Computed once, on first use.
-  late final List<BlockAlign?> columns = _columns(children);
+  late final List<HorizontalAlign> columns = _columns(children);
 
-  /// The alignment written for the table itself, or null when none was.
+  /// The alignment written for the table itself, or `unstated` when none was.
   ///
   /// Where the table sits inside its block, which is not the same question
   /// as [ColumnNode.align] -- that one says how a block arranges everything
   /// it holds. `|=` centres the text and the table together; `~=` centres
   /// only the table.
-  final BlockAlign? align;
+  final HorizontalAlign align;
 
-  TableNode({this.children = const [], this.align});
+  TableNode({this.children = const [], this.align = HorizontalAlign.unstated});
 
   /// Reads the table that opens at the cursor, both `~` included.
   ///
@@ -49,7 +49,7 @@ final class TableNode extends ContentNode {
   /// Null when no row had any content.
   static TableNode? _parse(SourceCursor cursor) {
     // The markers on the opening `~` describe the table itself.
-    final align = BlockAlign._takeSeparator(cursor);
+    final align = HorizontalAlign._takeSeparator(cursor);
 
     final rows = <TableRowNode>[];
 
@@ -78,8 +78,8 @@ final class TableNode extends ContentNode {
   /// For the ordinary table -- whose first row is its widest -- that is just
   /// "the first row". A later row that is wider than every row before it
   /// declares the columns it adds.
-  static List<BlockAlign?> _columns(List<TableRowNode> rows) {
-    final columns = <BlockAlign?>[];
+  static List<HorizontalAlign> _columns(List<TableRowNode> rows) {
+    final columns = <HorizontalAlign>[];
     for (final row in rows) {
       for (var i = columns.length; i < row.children.length; i++) {
         columns.add(row.children[i].align);

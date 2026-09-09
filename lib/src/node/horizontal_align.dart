@@ -10,17 +10,27 @@ part of '../node.dart';
 /// marker to carry one. That fits what a row is -- it divides the width
 /// between its cells rather than sitting in it, so there is no room left to
 /// sit anywhere.
-enum BlockAlign {
-  start('<'),
-  center('='),
-  end('>');
+enum HorizontalAlign {
+  /// No marker was written. **Not [start]**: a cell that stated nothing
+  /// takes its column's alignment, and a renderer may draw an unstated block
+  /// differently from one that asked for the start.
+  ///
+  /// A value rather than `null`, because the tree records what the source
+  /// said and "the author wrote no marker here" is something it said. It
+  /// also matches [SemanticColor.none], which is the same idea for colour.
+  unstated,
 
-  final String _char;
-  const BlockAlign(this._char);
+  start,
+  center,
+  end;
 
-  static final Map<String, BlockAlign> _byChar = Map.unmodifiable({
-    for (final align in BlockAlign.values) align._char: align,
-  });
+  /// The three that can be written. [unstated] is absent because there is no
+  /// character for it -- that is what it means.
+  static const Map<String, HorizontalAlign> _byChar = {
+    '<': start,
+    '=': center,
+    '>': end,
+  };
 
   /// Consumes the layout symbol at the cursor together with the markers
   /// written after it, and returns what they said.
@@ -38,14 +48,11 @@ enum BlockAlign {
   /// ends up on -- a column, a table, a table's cell -- share no ancestor
   /// closer than the root. The one thing they have in common is this.
   ///
-  /// Null when no marker was written, which is not [start]: something that
-  /// stated nothing is a different thing from something that asked for the
-  /// start. A later marker overrides an earlier one, so `|<^>` ends up
-  /// end-aligned.
-  static BlockAlign? _takeSeparator(SourceCursor cursor) {
+  /// A later marker overrides an earlier one, so `|<^>` ends up end-aligned.
+  static HorizontalAlign _takeSeparator(SourceCursor cursor) {
     cursor.take();
 
-    BlockAlign? align;
+    var align = unstated;
     while (!cursor.isEnd) {
       final marker = _byChar[cursor.peek];
       if (marker == null) break;

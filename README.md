@@ -87,7 +87,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   final effective = row.children[i].align ?? table.columns[i];
   ```
 
-  This is what keeps `align == null` meaning "the source said nothing" inside a table as well as outside. Squaring short rows off into a rectangle is likewise the renderer's job -- `natural_block_flutter` does both.
+  This is what keeps `HorizontalAlign.unstated` meaning "the source said nothing" inside a table as well as outside. Squaring short rows off into a rectangle is likewise the renderer's job -- `natural_block_flutter` does both.
 * **Verbatim regions (`` ` ``)**
   A pair of backticks opens and closes a region taken exactly as written. Nothing inside is a separator, a decoration, or an escape.
 

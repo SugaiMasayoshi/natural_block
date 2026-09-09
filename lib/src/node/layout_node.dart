@@ -29,8 +29,8 @@ sealed class LayoutNode extends NaturalBlockNode {
   /// Null when the block turned out to have nothing in it.
   static LayoutNode? _parse(SourceCursor cursor) {
     final align = cursor.peek == columnSymbol
-        ? BlockAlign._takeSeparator(cursor)
-        : null;
+        ? HorizontalAlign._takeSeparator(cursor)
+        : HorizontalAlign.unstated;
 
     final first = ColumnNode._parse(cursor, align);
     if (cursor.peek == rowSymbol) return RowNode._parse(cursor, first);

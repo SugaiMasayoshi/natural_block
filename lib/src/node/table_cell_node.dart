@@ -15,16 +15,19 @@ final class TableCellNode extends NaturalBlockNode {
   final List<ContentNode> children;
 
   /// What this cell stated, which is also what its column declares when it
-  /// is the first row to reach that position. Null when it stated nothing.
-  final BlockAlign? align;
+  /// is the first row to reach that position. `unstated` when it stated nothing.
+  final HorizontalAlign align;
 
-  TableCellNode({this.children = const [], this.align});
+  TableCellNode({
+    this.children = const [],
+    this.align = HorizontalAlign.unstated,
+  });
 
   /// Reads one cell: everything up to the next `^`, `|` or `~`.
   ///
   /// Stops at all three. `~` is among them here and nowhere else, because
   /// inside a table it is the delimiter that ends it.
-  static TableCellNode _parse(SourceCursor cursor, BlockAlign? align) {
+  static TableCellNode _parse(SourceCursor cursor, HorizontalAlign align) {
     // A cell drops one blank line at its start, the same as a block; see the
     // rule in `node.dart`.
     if (cursor.peek == '\n') cursor.take();

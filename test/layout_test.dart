@@ -310,7 +310,10 @@ void main() {
       final expected = DocumentNode(
         children: [
           RowNode(
-            children: [cell("A", BlockAlign.start), cell("B", BlockAlign.end)],
+            children: [
+              cell("A", HorizontalAlign.start),
+              cell("B", HorizontalAlign.end),
+            ],
           ),
         ],
       );
@@ -321,7 +324,9 @@ void main() {
 
     test("a marker on a plain block wraps it in a centered ColumnNode", () {
       const input = "|=見出し|";
-      final expected = DocumentNode(children: [cell("見出し", BlockAlign.center)]);
+      final expected = DocumentNode(
+        children: [cell("見出し", HorizontalAlign.center)],
+      );
 
       final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
@@ -333,8 +338,14 @@ void main() {
         children: [
           RowNode(
             children: [
-              ColumnNode(children: [line("左")], align: null),
-              ColumnNode(children: [line("右")], align: null),
+              ColumnNode(
+                children: [line("左")],
+                align: HorizontalAlign.unstated,
+              ),
+              ColumnNode(
+                children: [line("右")],
+                align: HorizontalAlign.unstated,
+              ),
             ],
           ),
         ],
@@ -351,8 +362,8 @@ void main() {
       ColumnNode only(String source) =>
           NaturalBlockParser.parse(source).children.single as ColumnNode;
 
-      expect(only("本文").align, isNull);
-      expect(only("|<本文|").align, BlockAlign.start);
+      expect(only("本文").align, HorizontalAlign.unstated);
+      expect(only("|<本文|").align, HorizontalAlign.start);
       expect(only("本文"), isNot(only("|<本文|")));
     });
 
@@ -392,7 +403,9 @@ void main() {
 
     test("the marker is consumed and never appears in the cell's text", () {
       const input = "|>右寄せ|";
-      final expected = DocumentNode(children: [cell("右寄せ", BlockAlign.end)]);
+      final expected = DocumentNode(
+        children: [cell("右寄せ", HorizontalAlign.end)],
+      );
 
       final nodes = NaturalBlockParser.parse(input);
       expect(nodes, expected);
@@ -413,7 +426,7 @@ void main() {
                 ],
               ),
             ],
-            align: BlockAlign.end,
+            align: HorizontalAlign.end,
           ),
         ],
       );

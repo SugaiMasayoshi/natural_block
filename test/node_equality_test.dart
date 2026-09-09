@@ -17,18 +17,19 @@ import 'nodes.dart';
 void main() {
   group("Node equality and hashCode contract", () {
     test("equal TableNodes have equal hashCode, and align is part of it", () {
-      TableNode table({BlockAlign align = BlockAlign.start}) => TableNode(
-        align: align,
-        children: [
-          TableRowNode(children: [tableCell('セル')]),
-        ],
-      );
+      TableNode table({HorizontalAlign align = HorizontalAlign.start}) =>
+          TableNode(
+            align: align,
+            children: [
+              TableRowNode(children: [tableCell('セル')]),
+            ],
+          );
 
       expect(table(), table());
       expect(table().hashCode, table().hashCode);
       expect(
         table(),
-        isNot(table(align: BlockAlign.center)),
+        isNot(table(align: HorizontalAlign.center)),
         reason: 'a centered table is not the same node as a start-aligned one',
       );
     });
@@ -44,7 +45,7 @@ void main() {
     final cases = <String, (NaturalBlockNode, NaturalBlockNode, String)>{
       'ColumnNode': (
         ColumnNode(children: [text()]),
-        ColumnNode(children: [text()], align: BlockAlign.start),
+        ColumnNode(children: [text()], align: HorizontalAlign.start),
         'a start-aligned block is not one that stated nothing',
       ),
       'RowNode': (
@@ -78,7 +79,7 @@ void main() {
               ],
             ),
           ],
-          align: BlockAlign.center,
+          align: HorizontalAlign.center,
         ),
         'a centered table is not the same node as an unaligned one',
       ),

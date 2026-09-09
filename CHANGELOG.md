@@ -42,11 +42,14 @@ this repository, which is why the entries below describe changes freely.
 ### Alignment
 
 - `<`, `=`, `>` immediately after an unescaped `|`, `^`, or `~` set the block's
-  `BlockAlign`. Anywhere else they are ordinary text, so `a > b`, `->`, and
+  `HorizontalAlign`. Anywhere else they are ordinary text, so `a > b`, `->`, and
   `List<String>` need no escaping.
-- `align` is null when the source stated none, which is not the same as
-  `BlockAlign.start`. A theme is free to draw an unstated block differently,
-  and a block that wrote `<` opts out of that.
+- `align` is `HorizontalAlign.unstated` when the source wrote no marker,
+  which is not the same as `HorizontalAlign.start`. A theme is free to draw
+  an unstated block differently, and a block that wrote `<` opts out of
+  that. A value rather than `null`, because the tree records what the
+  source said and "nothing was written here" is something it said --
+  the same shape as `SemanticColor.none`.
 - The cell separator is `^` and the center marker is `=`; they were once the
   other way round. Three things argued for the swap. `<` `=` `>` is a set
   that reads itself -- `<` leans left, `>` leans right, `=` is balanced --
@@ -73,9 +76,10 @@ this repository, which is why the entries below describe changes freely.
   with no `^` becomes a one-cell row. The table is as wide as its widest row.
 - `TableNode.columns` holds what each column declared, and by its length how
   wide the table is. Rows keep exactly the cells the author wrote, each
-  carrying only its own marker, so `align == null` keeps meaning "the source
-  said nothing" inside a table too. A consumer resolves the two with
-  `cell.align ?? table.columns[i]`, and squares short rows off itself.
+  carrying only its own marker, so `unstated` keeps meaning "the source
+  said nothing" inside a table too. A consumer resolves the two -- take the
+  column's when the cell stated nothing -- and squares short rows off
+  itself.
 - Write one row per line with a leading `|`. The `|` opens an empty block,
   which contributes nothing -- it is there so every line has the same shape
   and every row's first cell has a marker slot of its own. With the `|` at
@@ -157,7 +161,7 @@ this repository, which is why the entries below describe changes freely.
   fields. It is one thing: the very object the parser carries while reading,
   so a run's decoration and the reader's current decoration are not two ideas
   that happen to match. The type is public because the rest of the tree's
-  vocabulary (`BlockAlign`, `SemanticColor`) is, and a consumer writing its
+  vocabulary (`HorizontalAlign`, `SemanticColor`) is, and a consumer writing its
   own builder should be able to name what it is handed.
   Neither is a `ContentNode` -- a styled run only exists inside a line --
   so misplacing one is a compile error.
@@ -213,7 +217,7 @@ this repository, which is why the entries below describe changes freely.
   the node library imports `SourceCursor` at all, and nothing extends it:
   `VerbatimNode._opensAt` and `VerbatimSpanNode._opensAt` answer whether one
   of those starts here (the same fence, told apart by whether it was written
-  on a line of its own), and `BlockAlign._takeSeparator` eats the layout
+  on a line of its own), and `HorizontalAlign._takeSeparator` eats the layout
   symbol that opens something along with the markers describing it. It
   lives on the alignment rather than on any node because the nodes an
   alignment lands on -- a column, a table, a table's cell -- share no

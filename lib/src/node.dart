@@ -71,8 +71,8 @@
 /// text. Only the node that has resolved which candidates are real can say.
 ///
 /// **What the tree records.** What the source said, never what a renderer
-/// needs. `align == null` means "nothing was written", which is not
-/// [BlockAlign.start]; a table keeps its columns rather than stamping them
+/// needs. `align` is `unstated` when nothing was written, which is not
+/// [HorizontalAlign.start]; a table keeps its columns rather than stamping them
 /// onto every cell; short rows are not padded. Resolving those for drawing
 /// is the consumer's step.
 ///
@@ -93,7 +93,7 @@ import 'source_cursor.dart';
 import 'verbatim_region.dart';
 
 part 'node/natural_block_node.dart';
-part 'node/block_align.dart';
+part 'node/horizontal_align.dart';
 part 'node/semantic_color.dart';
 
 part 'node/inline_node.dart';

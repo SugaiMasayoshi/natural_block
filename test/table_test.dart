@@ -21,20 +21,25 @@ import 'nodes.dart';
 void main() {
   /// What each cell *stated*, as a grid. Null where the source wrote no
   /// marker on that cell, whatever its column says.
-  List<List<BlockAlign?>> aligns(TableNode table) => [
+  List<List<HorizontalAlign?>> aligns(TableNode table) => [
     for (final row in table.children) [for (final c in row.children) c.align],
   ];
 
   /// The alignment each cell is *drawn* with -- the resolution a consumer
   /// performs, squared off to the table's width. This is the whole of what
   /// column inheritance means; the tree itself never stamps it onto a cell.
-  List<List<BlockAlign?>> effective(TableNode table) => [
+  /// What a cell is drawn with: what it stated, else what its column
+  /// declared. `unstated` is a value rather than a gap, so this is a
+  /// comparison rather than a `??`.
+  HorizontalAlign resolve(TableRowNode row, TableNode table, int i) {
+    if (i >= row.children.length) return table.columns[i];
+    final stated = row.children[i].align;
+    return stated == HorizontalAlign.unstated ? table.columns[i] : stated;
+  }
+
+  List<List<HorizontalAlign>> effective(TableNode table) => [
     for (final row in table.children)
-      [
-        for (var i = 0; i < table.columns.length; i++)
-          (i < row.children.length ? row.children[i].align : null) ??
-              table.columns[i],
-      ],
+      [for (var i = 0; i < table.columns.length; i++) resolve(row, table, i)],
   ];
 
   group('declaring a table', () {
@@ -188,7 +193,7 @@ void main() {
     test('contradictory alignment markers keep the last one', () {
       final table = onlyTable('~<=>A^B~');
 
-      expect(table.align, BlockAlign.end);
+      expect(table.align, HorizontalAlign.end);
     });
   });
 
@@ -203,10 +208,10 @@ void main() {
       // row that follows.
       final table = onlyTable('~=A^B|C^D~');
 
-      expect(table.align, BlockAlign.center);
+      expect(table.align, HorizontalAlign.center);
       expect(aligns(table), [
-        [null, null],
-        [null, null],
+        [HorizontalAlign.unstated, HorizontalAlign.unstated],
+        [HorizontalAlign.unstated, HorizontalAlign.unstated],
       ]);
     });
 
@@ -214,9 +219,9 @@ void main() {
       // `~=` reads as one cluster describing one block: `~` says it is a
       // table, `^` says how it sits. Meaningful because a table is sized to
       // its content, so there is room around it to be positioned within.
-      expect(onlyTable('~=A^B~').align, BlockAlign.center);
-      expect(onlyTable('~>A^B~').align, BlockAlign.end);
-      expect(onlyTable('~A^B~').align, isNull);
+      expect(onlyTable('~=A^B~').align, HorizontalAlign.center);
+      expect(onlyTable('~>A^B~').align, HorizontalAlign.end);
+      expect(onlyTable('~A^B~').align, HorizontalAlign.unstated);
     });
 
     test('a later row inherits each column from the first row', () {
@@ -224,11 +229,11 @@ void main() {
       // numeric column is repetition that carries no information.
       final table = onlyTable('~A^>B|C^D|E^F~');
 
-      expect(table.columns, [null, BlockAlign.end]);
+      expect(table.columns, [HorizontalAlign.unstated, HorizontalAlign.end]);
       expect(effective(table), [
-        [null, BlockAlign.end],
-        [null, BlockAlign.end],
-        [null, BlockAlign.end],
+        [HorizontalAlign.unstated, HorizontalAlign.end],
+        [HorizontalAlign.unstated, HorizontalAlign.end],
+        [HorizontalAlign.unstated, HorizontalAlign.end],
       ]);
     });
 
@@ -238,16 +243,16 @@ void main() {
       // stated nothing, and the tree says so; what they are drawn with is a
       // separate question, answered against `columns`.
       expect(aligns(onlyTable('~A^>B|C^D|E^F~')), [
-        [null, BlockAlign.end],
-        [null, null],
-        [null, null],
+        [HorizontalAlign.unstated, HorizontalAlign.end],
+        [HorizontalAlign.unstated, HorizontalAlign.unstated],
+        [HorizontalAlign.unstated, HorizontalAlign.unstated],
       ]);
     });
 
     test('a cell with its own marker overrides what it would inherit', () {
       expect(effective(onlyTable('~A^>B|C^<D~')), [
-        [null, BlockAlign.end],
-        [null, BlockAlign.start],
+        [HorizontalAlign.unstated, HorizontalAlign.end],
+        [HorizontalAlign.unstated, HorizontalAlign.start],
       ]);
     });
 
@@ -256,11 +261,11 @@ void main() {
       // the column, not from whatever the previous row happened to say.
       final table = onlyTable('~A^>B|C^<D|E^F~');
 
-      expect(table.columns, [null, BlockAlign.end]);
+      expect(table.columns, [HorizontalAlign.unstated, HorizontalAlign.end]);
       expect(effective(table), [
-        [null, BlockAlign.end],
-        [null, BlockAlign.start],
-        [null, BlockAlign.end],
+        [HorizontalAlign.unstated, HorizontalAlign.end],
+        [HorizontalAlign.unstated, HorizontalAlign.start],
+        [HorizontalAlign.unstated, HorizontalAlign.end],
       ]);
     });
 
@@ -271,12 +276,12 @@ void main() {
       // marker slot of its own. Writing `|` opens an empty block (which
       // vanishes) and gives that cell its slot back, uniformly on every row.
       expect(effective(onlyTable('~|<A^>B|C^D~')), [
-        [BlockAlign.start, BlockAlign.end],
-        [BlockAlign.start, BlockAlign.end],
+        [HorizontalAlign.start, HorizontalAlign.end],
+        [HorizontalAlign.start, HorizontalAlign.end],
       ]);
       expect(effective(onlyTable('~|>A^B|C^D~')), [
-        [BlockAlign.end, null],
-        [BlockAlign.end, null],
+        [HorizontalAlign.end, HorizontalAlign.unstated],
+        [HorizontalAlign.end, HorizontalAlign.unstated],
       ]);
     });
 
@@ -291,11 +296,14 @@ void main() {
         final document = NaturalBlockParser.parse('~A^B~=after');
 
         final pieces = (document.children.single as ColumnNode).children;
-        expect((pieces[0] as TableNode).align, isNull);
+        expect((pieces[0] as TableNode).align, HorizontalAlign.unstated);
         expect(pieces[1], line('=after'));
 
         final aligned = NaturalBlockParser.parse('~A^B~|=after');
-        expect((aligned.children[1] as ColumnNode).align, BlockAlign.center);
+        expect(
+          (aligned.children[1] as ColumnNode).align,
+          HorizontalAlign.center,
+        );
       },
     );
   });

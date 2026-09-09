@@ -15,12 +15,15 @@ TextNode line(String text) => TextNode(children: [TextSpanNode(text: text)]);
 ColumnNode block(String text) => ColumnNode(children: [line(text)]);
 
 /// A single-line cell, optionally stating its own alignment.
-ColumnNode cell(String text, [BlockAlign? align]) =>
-    ColumnNode(children: [line(text)], align: align);
+ColumnNode cell(
+  String text, [
+  HorizontalAlign align = HorizontalAlign.unstated,
+]) => ColumnNode(children: [line(text)], align: align);
 
 /// An empty cell -- what an explicit `^^` holds, and what a short row is
 /// padded with when it is drawn.
-ColumnNode empty([BlockAlign? align]) => ColumnNode(align: align);
+ColumnNode empty([HorizontalAlign align = HorizontalAlign.unstated]) =>
+    ColumnNode(align: align);
 
 /// The document's only block. A line always sits inside one, even when the
 /// block carries no marker of its own.
@@ -36,12 +39,15 @@ List<TextSpanNode> runs(String source) =>
     onlyLine(source).children.cast<TextSpanNode>();
 
 /// A single-line cell of a table, optionally stating its own alignment.
-TableCellNode tableCell(String text, [BlockAlign? align]) =>
-    TableCellNode(children: [line(text)], align: align);
+TableCellNode tableCell(
+  String text, [
+  HorizontalAlign align = HorizontalAlign.unstated,
+]) => TableCellNode(children: [line(text)], align: align);
 
 /// An empty cell of a table -- what an explicit `^^` holds.
-TableCellNode emptyTableCell([BlockAlign? align]) =>
-    TableCellNode(align: align);
+TableCellNode emptyTableCell([
+  HorizontalAlign align = HorizontalAlign.unstated,
+]) => TableCellNode(align: align);
 
 /// The document's only table. A table is content, so it always sits inside
 /// a block.

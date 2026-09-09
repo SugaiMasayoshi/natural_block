@@ -3,14 +3,14 @@ part of '../node.dart';
 final class ColumnNode extends LayoutNode {
   final List<ContentNode> children;
 
-  /// The alignment written for this block, or null when none was.
+  /// The alignment written for this block, or `unstated` when none was.
   ///
-  /// Null is not [BlockAlign.start]. Inside a table only a cell that stated
+  /// Unstated is not [HorizontalAlign.start]. Inside a table only a cell that stated
   /// nothing inherits its column's alignment, and a renderer is free to draw
   /// an unstated block differently from one that asked for the start.
-  final BlockAlign? align;
+  final HorizontalAlign align;
 
-  ColumnNode({this.children = const [], this.align});
+  ColumnNode({this.children = const [], this.align = HorizontalAlign.unstated});
 
   /// Reads one cell or block: everything up to the next `|` or `^`, which it
   /// leaves for whoever those belong to -- `^` divides cells and is the
@@ -18,7 +18,7 @@ final class ColumnNode extends LayoutNode {
   ///
   /// Decides only what kind of child comes next, by looking at the cursor.
   /// Each child reads itself and stops before anything that is not its own.
-  static ColumnNode _parse(SourceCursor cursor, BlockAlign? align) {
+  static ColumnNode _parse(SourceCursor cursor, HorizontalAlign align) {
     // The newline against a boundary belongs to the boundary; see the rule
     // in `node.dart`. This is the block's own start, not the separator's --
     // a document beginning with a newline drops it too, and there is no

@@ -128,7 +128,7 @@ void main() {
               as RowNode;
       expect(
         [for (final c in row.children) c.align],
-        [BlockAlign.start, BlockAlign.center, BlockAlign.end],
+        [HorizontalAlign.start, HorizontalAlign.center, HorizontalAlign.end],
       );
     });
 
@@ -316,13 +316,18 @@ void main() {
   group('Tables', () {
     /// The alignment each cell is drawn with: what it stated, else what its
     /// column stated. The resolution the README documents for consumers.
-    List<List<BlockAlign?>> effective(TableNode table) => [
+    /// What a cell is drawn with: what it stated, else what its column
+    /// declared. `unstated` is a value rather than a gap, so this is a
+    /// comparison rather than a `??`.
+    HorizontalAlign resolve(TableRowNode row, TableNode table, int i) {
+      if (i >= row.children.length) return table.columns[i];
+      final stated = row.children[i].align;
+      return stated == HorizontalAlign.unstated ? table.columns[i] : stated;
+    }
+
+    List<List<HorizontalAlign>> effective(TableNode table) => [
       for (final row in table.children)
-        [
-          for (var i = 0; i < table.columns.length; i++)
-            (i < row.children.length ? row.children[i].align : null) ??
-                table.columns[i],
-        ],
+        [for (var i = 0; i < table.columns.length; i++) resolve(row, table, i)],
     ];
 
     test('the README\'s worked example parses as the table it shows', () {
@@ -336,19 +341,22 @@ void main() {
 
       expect(table.children, hasLength(3));
       expect(table.columns, [
-        BlockAlign.start,
-        BlockAlign.end,
+        HorizontalAlign.start,
+        HorizontalAlign.end,
       ], reason: 'the leading `|` gives the first column a marker slot');
       expect(effective(table), [
-        [BlockAlign.start, BlockAlign.end],
-        [BlockAlign.start, BlockAlign.end],
-        [BlockAlign.start, BlockAlign.end],
+        [HorizontalAlign.start, HorizontalAlign.end],
+        [HorizontalAlign.start, HorizontalAlign.end],
+        [HorizontalAlign.start, HorizontalAlign.end],
       ]);
     });
 
     test('a marker after the opening `~` describes the table, not the '
         'first cell', () {
-      expect(onlyTable('~<Item^>Price|apple^100~').align, BlockAlign.start);
+      expect(
+        onlyTable('~<Item^>Price|apple^100~').align,
+        HorizontalAlign.start,
+      );
       expect(
         onlyTable('~|<Item^>Price|apple^100~')
             .children
@@ -356,9 +364,12 @@ void main() {
             .children
             .first
             .align,
-        BlockAlign.start,
+        HorizontalAlign.start,
       );
-      expect(onlyTable('~|<Item^>Price|apple^100~').align, isNull);
+      expect(
+        onlyTable('~|<Item^>Price|apple^100~').align,
+        HorizontalAlign.unstated,
+      );
     });
 
     test('with the `|` written at the end of each line instead, a marker '
@@ -367,7 +378,7 @@ void main() {
       final table = onlyTable('~Item^Price|\n<apple^100\n~');
       final firstCell = table.children[1].children.first;
 
-      expect(firstCell.align, isNull);
+      expect(firstCell.align, HorizontalAlign.unstated);
       expect(
         (firstCell.children.single as TextNode).children.single,
         TextSpanNode(text: '<apple'),
@@ -396,11 +407,11 @@ void main() {
           fromReadme('~|Item^>Price|A^100|B^200~', '~|Item^>Price|apple^100~'),
         );
 
-        expect(table.columns, [null, BlockAlign.end]);
+        expect(table.columns, [HorizontalAlign.unstated, HorizontalAlign.end]);
         expect(effective(table), [
-          [null, BlockAlign.end],
-          [null, BlockAlign.end],
-          [null, BlockAlign.end],
+          [HorizontalAlign.unstated, HorizontalAlign.end],
+          [HorizontalAlign.unstated, HorizontalAlign.end],
+          [HorizontalAlign.unstated, HorizontalAlign.end],
         ]);
       },
     );
@@ -413,14 +424,14 @@ void main() {
             'a marker on an individual cell overrides',
           ),
         ).children[1].children[1].align,
-        BlockAlign.center,
+        HorizontalAlign.center,
       );
     });
 
     test('`~=` is a centered table -- markers share one cluster', () {
       expect(
         onlyTable(fromReadme('~=A^B~', '`~=` is a centered table')).align,
-        BlockAlign.center,
+        HorizontalAlign.center,
       );
     });
 
