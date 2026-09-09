@@ -21,9 +21,8 @@ const Map<String, HorizontalAlign> _byChar = {
 /// centre marker and an end marker, and a node reading its own markers would
 /// take it for the latter. Only the level that ate the symbol knows.
 ///
-/// **Why it sits on its own.** What comes back is an alignment, and the
-/// nodes it ends up on -- a column, a table, a table's cell -- share no
-/// ancestor closer than the root. The one thing they have in common is this.
+/// **Why it sits on its own.** The nodes it ends up on -- a column, a table,
+/// a table's cell -- share no ancestor closer than the root.
 ///
 /// A later marker overrides an earlier one, so `|<^>` ends up end-aligned.
 HorizontalAlign takeSeparator(SourceCursor cursor) {

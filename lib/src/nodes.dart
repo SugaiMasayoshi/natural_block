@@ -1,14 +1,9 @@
 /// The syntax tree: every node the parser can build, and nothing about how
 /// it is built.
 ///
-/// One file, because `sealed` requires every subtype of a sealed class to
-/// live in the same library. That is the whole reason -- not privacy, and
-/// not the reading order. `sealed` is what lets a consumer switch over the
-/// node types and be told by the compiler when a new one appears.
-///
-/// The reading of source lives in `src/parse/`, one file per node. Those are
-/// ordinary libraries, so their imports say which nodes and which symbols
-/// each step of the reading depends on.
+/// One file, because `sealed` requires every subtype to live in the same
+/// library. That is the whole reason -- not privacy, and not the reading
+/// order. The reading is in `src/parse/`, one library per node.
 ///
 /// **What the tree records.** What the source said, never what a renderer
 /// needs. `align` is `unstated` when nothing was written, which is not
@@ -30,20 +25,14 @@ export 'semantic_color.dart';
 /// a consumer that handles all of them cannot be caught out by a new one.
 sealed class NaturalBlockNode {}
 
-/// How every node compares the children it holds.
-///
-/// Dart lists compare by identity, so a hand-written `==` that just wrote
-/// `children == other.children` would call two trees different whenever
-/// they were built separately -- which is every tree a test writes by hand
-/// against one the parser produced.
+/// Dart lists compare by identity, so `children == other.children` would call
+/// a hand-built tree different from the one the parser produced.
 const _childrenEquality = ListEquality<NaturalBlockNode>();
 
 sealed class InlineNode extends NaturalBlockNode {}
 
-/// The decoration state a run carries, and the parser's reading state.
-///
-/// Immutable: [apply] returns the next state rather than mutating, so the
-/// style of a finished run cannot change under it.
+/// The decoration state a run carries, and the parser's reading state -- one
+/// type, because they are one thing.
 class SpanDecoration {
   final int sizeOffset;
   final SemanticColor color;
@@ -106,11 +95,10 @@ class SpanDecoration {
 final class TextSpanNode extends InlineNode {
   final String text;
 
-  /// Everything the decoration syntax said about this run, as one value.
+  /// Everything the decoration syntax said about this run.
   ///
-  /// One field rather than four, because it is one thing: the same object
-  /// the parser carries while reading. A run's decoration and the reader's
-  /// current decoration are not two ideas that happen to match.
+  /// One field rather than four: a run's decoration and the reader's current
+  /// decoration are not two ideas that happen to match.
   final SpanDecoration decoration;
 
   TextSpanNode({required this.text, this.decoration = const SpanDecoration()});
@@ -151,30 +139,22 @@ final class VerbatimSpanNode extends InlineNode {
 /// How the things inside are arranged, and nothing else.
 ///
 /// A [ColumnNode] stacks its content; a [RowNode] lays its cells across.
-/// Neither is content itself -- they say where content goes. A document is
-/// a stack of these.
-///
-/// A table is *not* one, even though it arranges rows inside itself. From
-/// the outside it is a thing you place, sized to its own content, so it
-/// belongs with the content it sits among. It is the one node that is
-/// content on the outside and layout on the inside.
+/// Neither is content itself -- they say where content goes. A document is a
+/// stack of these. A [TableNode] is not one; see there.
 sealed class LayoutNode extends NaturalBlockNode {}
 
 /// What a block holds, and what gets arranged.
 ///
-/// **Not a line.** This was called `LineNode` and it misled: a [TextNode]
-/// runs across as many newlines as the author wrote, because a newline is a
-/// character rather than a boundary. A block of three lines is one
-/// `TextNode` holding two `\n`s, not three nodes.
+/// **Nothing here is a line.** A newline is a character, so a [TextNode] runs
+/// across as many as the author wrote: three lines are one `TextNode` holding
+/// two `\n`s. The tree has no line-level structure at all, which is worth
+/// stating plainly, because a per-line role is exactly what a heading or a
+/// list item would need.
 ///
-/// Three kinds, and a table is one of them -- the same as a verbatim region:
-/// something written between delimiters that arrives already formatted. That
-/// is what lets a block hold text, a table, and more text without breaking
-/// in two, so an alignment written on the block reaches all of it.
-///
-/// The tree has no line-level structure at all. That is worth stating
-/// plainly, because a per-line role is exactly what a heading or a list item
-/// would need, and the old name suggested somewhere to put one.
+/// A table is one of these, the same as a verbatim region: something written
+/// between delimiters that arrives already formatted. That is what lets a
+/// block hold text, a table, and more text without breaking in two, so an
+/// alignment written on the block reaches all of it.
 sealed class ContentNode extends NaturalBlockNode {}
 
 final class VerbatimNode extends ContentNode {
@@ -219,10 +199,6 @@ final class ColumnNode extends LayoutNode {
   final List<ContentNode> children;
 
   /// The alignment written for this block, or `unstated` when none was.
-  ///
-  /// Unstated is not [HorizontalAlign.start]. Inside a table only a cell that stated
-  /// nothing inherits its column's alignment, and a renderer is free to draw
-  /// an unstated block differently from one that asked for the start.
   final HorizontalAlign align;
 
   ColumnNode({this.children = const [], this.align = HorizontalAlign.unstated});
@@ -279,9 +255,9 @@ final class TableNode extends ContentNode {
   /// because some row had a cell at that position, and its alignment is what
   /// that row's cell stated -- which may be nothing.
   ///
-  /// This is where a table's column alignment lives, rather than being
-  /// stamped onto every cell. A cell's own `align` therefore keeps meaning
-  /// "what this cell stated", and a consumer resolves the two:
+  /// The column's alignment lives here rather than being stamped onto every
+  /// cell, so a cell's own `align` keeps meaning "what this cell stated". A
+  /// consumer resolves the two:
   ///
   /// ```dart
   /// final effective = cell.align == HorizontalAlign.unstated
@@ -290,7 +266,7 @@ final class TableNode extends ContentNode {
   /// ```
   ///
   /// Read from the rows rather than passed in, so a hand-built table cannot
-  /// disagree with itself. Computed once, on first use.
+  /// disagree with itself.
   late final List<HorizontalAlign> columns = _columns(children);
 
   /// The alignment written for the table itself, or `unstated` when none was.
@@ -303,11 +279,8 @@ final class TableNode extends ContentNode {
 
   TableNode({this.children = const [], this.align = HorizontalAlign.unstated});
 
-  /// What each column declared, taken from the first row that reached it.
-  ///
-  /// For the ordinary table -- whose first row is its widest -- that is just
-  /// "the first row". A later row that is wider than every row before it
-  /// declares the columns it adds.
+  /// Taken from the first row that reached each column, so a row wider than
+  /// every row before it declares the columns it adds.
   static List<HorizontalAlign> _columns(List<TableRowNode> rows) {
     final columns = <HorizontalAlign>[];
     for (final row in rows) {
@@ -338,10 +311,8 @@ final class TableNode extends ContentNode {
 /// One row of a table.
 ///
 /// Not a [RowNode]. Both hold cells written across, but a `RowNode` divides
-/// the width it is given between them while these line up with the rows
-/// above and below -- different enough that the renderer never treats one as
-/// the other. Its own type also keeps a table from holding anything but
-/// rows, and a row anything but cells.
+/// the width it is given between them while these line up with the rows above
+/// and below.
 ///
 /// In no sealed group, because nothing ever chooses: a table's children are
 /// always rows, and a row's are always cells.
@@ -367,20 +338,17 @@ final class TableRowNode extends NaturalBlockNode {
 
 /// One cell of a table.
 ///
-/// Holds what a block holds, and yet never another table -- not because the
-/// reading below skips that branch, but because it never gets that far. A
-/// cell stops at `~`, so the `~` inside a table is always the one that ends
-/// it and never one that opens another. Nesting is ruled out by where the
-/// cell stops, which is the one line of it that differs from a column.
+/// Holds what a block holds, and yet never another table: a cell stops at
+/// `~`, so the `~` inside a table is always the one that ends it. Nesting is
+/// ruled out by where the cell stops.
 ///
-/// Not a [ColumnNode], though it stacks its content the same way. A column
-/// reads through a `~` -- a table is content, so a block keeps going after
-/// one -- while a cell has to stop at it.
+/// That is also the one thing that separates it from a [ColumnNode], which
+/// reads straight through a `~` because a table is content.
 final class TableCellNode extends NaturalBlockNode {
   final List<ContentNode> children;
 
-  /// What this cell stated, which is also what its column declares when it
-  /// is the first row to reach that position. `unstated` when it stated nothing.
+  /// What this cell stated, which is also what its column declares when it is
+  /// the first row to reach that position.
   final HorizontalAlign align;
 
   TableCellNode({

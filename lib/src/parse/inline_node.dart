@@ -14,10 +14,8 @@ bool otherInlineStartsHere(SourceCursor cursor) =>
 /// Reads whichever kind of inline content starts here, together with the
 /// decoration state it leaves behind.
 ///
-/// The same shape the layout and content dispatches have: the sealed
-/// supertype decides which of its subtypes the source becomes. This one also
-/// passes the decoration along, because a run's style is carried in from what
-/// was written before it rather than found within it.
+/// Passes the decoration along, because a run's style is carried in from
+/// what was written before it rather than found within it.
 ///
 /// Null when the run turned out to be empty -- a cluster with no text after
 /// it changes the style and contributes no node.

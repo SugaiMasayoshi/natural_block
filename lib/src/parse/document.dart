@@ -23,20 +23,13 @@
 /// **Each block eats the separator that opened it**, and a delimiter belongs
 /// to what it wraps. So a `|` is read by the block it opens, a `~` by the
 /// table, a fence by the region -- and [DocumentNode] consumes nothing at
-/// all: it has only to ask for blocks until the source runs out.
-///
-/// That is also why an alignment marker lands where it does. `|<a` opens a
-/// cell and describes it; if a `^` turns up afterwards the block becomes a
-/// row *around* that cell, and the marker is still the cell's. Read one level
-/// up instead, the same marker would look like it described the row and then
-/// quietly settle on its first cell.
+/// all: it has only to ask for blocks until the source runs out. Which means
+/// `|` is not "a new block starts here": it is the full stop on what came
+/// before, and it means "next sibling" at whichever level is reading.
 ///
 /// The `^` is the exception, and it has to be: the first cell of a row has no
 /// `^` in front of it, so only the row can tell the difference between
 /// opening a cell and starting one.
-///
-/// So `|` is not "a new block starts here" -- it is the full stop on what
-/// came before, and it means "next sibling" at whichever level is reading.
 ///
 /// **The newline against a boundary.** One newline touching a structural
 /// boundary belongs to the boundary rather than to the text. It is what makes
@@ -76,12 +69,8 @@ import 'layout_node.dart';
 
 /// The package's front door.
 ///
-/// The tree is built by the nodes themselves -- each reads its own range and
-/// stops in front of what is not its own -- so this is where the work starts.
-/// It names that entry point without tying a caller to the root node's type,
-/// and it is the only public way in: every other `parse…Node` lives in
-/// `src/`, which the package does not export, so there is one door, not
-/// fifteen.
+/// The only public way in: every other `parse…Node` lives in `src/`, which
+/// the package does not export, so there is one door rather than fifteen.
 abstract final class NaturalBlockParser {
   static DocumentNode parse(String source) {
     final cursor = SourceCursor(source);

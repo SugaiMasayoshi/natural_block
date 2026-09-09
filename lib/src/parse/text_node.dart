@@ -15,12 +15,9 @@ bool textEndsHere(SourceCursor cursor) =>
 /// Drops the newline written against the end of this run; see the rule in
 /// `parse/document.dart`.
 ///
-/// Here rather than in the span that read it, because a span cannot know:
-/// whether the thing it stopped at ends this whole run is settled one level
-/// up, after it has returned. And it is not its rule to apply -- "content
-/// does not end with a newline" is about the run, which is this node.
-///
-/// The caller checks that the text actually reaches the boundary first.
+/// Here rather than in the span that read it: whether the thing that span
+/// stopped at ends the whole run is settled one level up, after it has
+/// returned. The caller checks that the text reaches the boundary first.
 void _dropNewlineAtBoundary(List<InlineNode> children) {
   if (children.isEmpty) return;
   final last = children.last;
@@ -38,11 +35,8 @@ void _dropNewlineAtBoundary(List<InlineNode> children) {
 }
 
 /// Reads one run of inline content, stopping in front of anything that is not
-/// its own: a separator that belongs to the block, or a verbatim region
-/// written on a line of its own.
-///
-/// Neither is consumed. A node never eats what belongs to something else, so
-/// the caller can look at the cursor and decide what comes next.
+/// its own and consuming none of it, so the caller can look at the cursor and
+/// decide what comes next.
 TextNode parseTextNode(SourceCursor cursor) {
   final children = <InlineNode>[];
   var style = const SpanDecoration();
@@ -59,9 +53,8 @@ TextNode parseTextNode(SourceCursor cursor) {
       children.add(node);
       textEnd = cursor.position;
     }
-    // A child that reads nothing where the loop expects content would spin
-    // here forever. The mistake is silent otherwise -- it hangs rather than
-    // producing a wrong tree -- so it is worth saying out loud.
+    // A child that reads nothing here spins forever rather than producing a
+    // wrong tree, so the mistake is worth saying out loud.
     assert(
       cursor.position > before,
       'inline parse made no progress at ${cursor.position}',

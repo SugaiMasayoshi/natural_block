@@ -6,10 +6,8 @@ const String verbatimFenceChar = '`';
 /// the same number. An opening fence with no closing one opens nothing: the
 /// backticks are ordinary text.
 ///
-/// Builds no string, deliberately. Of the four levels that meet a fence,
-/// three only ask *whether* a region is here and one consumes it; asking used
-/// to cost the same as consuming, because both went through the same function
-/// and it always cut the text out.
+/// Builds no string, deliberately: of the four levels that meet a fence,
+/// three only ask *whether* a region is here and one consumes it.
 int verbatimRegionEnd(String source, int openIndex) {
   if (openIndex >= source.length || source[openIndex] != verbatimFenceChar) {
     return -1;

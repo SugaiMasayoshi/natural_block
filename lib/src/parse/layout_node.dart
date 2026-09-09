@@ -7,16 +7,15 @@ import 'separator.dart';
 
 /// Reads whichever arrangement starts here, including the `|` that opened it.
 ///
-/// Every block reads the separator that opened it, and nothing at all for the
-/// first block of a document. That is why the markers land where they do: a
-/// `|` opens a cell, and the block becomes a row only if a `^` turns up
-/// afterwards. Read from the level above instead, the same marker would look
-/// like it described the row and then quietly settle on its first cell.
+/// That the `|` is read here is why an alignment marker lands on the cell it
+/// opens rather than on the row that may form around it afterwards. Read one
+/// level up, the same marker would look like it described the row and then
+/// quietly settle on its first cell.
 ///
 /// The first cell is read before anything is known about what the block is,
-/// because the same text serves either reading. What the separator after it
-/// turns out to be decides who finishes the job, and the cell already read is
-/// handed on rather than re-read or re-labelled.
+/// because the same text serves either reading. The separator after it
+/// decides who finishes the job, and the cell already read is handed on
+/// rather than re-read.
 ///
 /// Null when the block turned out to have nothing in it.
 LayoutNode? parseLayoutNode(SourceCursor cursor) {

@@ -8,9 +8,9 @@ import '../verbatim_region.dart';
 /// is live here, including the `:` that closes the cluster again, on top of
 /// the symbols that are markup everywhere.
 ///
-/// Stated here because this is the level that decides it. The difference
-/// from what a run of text reads outside a cluster is the whole rule:
-/// `:---\%%%` needs one backslash, and a bare `%` in a sentence needs none.
+/// The difference from what a run of text reads outside a cluster is the
+/// whole rule: `:---\%%%` needs one backslash, and a bare `%` in a sentence
+/// needs none.
 final Set<String> _markup = {
   ...layoutSymbols,
   verbatimFenceChar,
@@ -21,9 +21,7 @@ final Set<String> _markup = {
 /// leaves behind, together with any character a backslash rescued from it.
 ///
 /// That character is ordinary text belonging to the run that follows, and
-/// handing it back is what lets one backslash cover a whole run: past it
-/// every decoration character is literal again, so `:---\%%%` needs one
-/// backslash rather than one per character.
+/// handing it back is what lets one backslash cover a whole run.
 (SpanDecoration, String) readCluster(
   SpanDecoration style,
   SourceCursor cursor,
@@ -32,9 +30,8 @@ final Set<String> _markup = {
   while (!cursor.isEnd) {
     final char = cursor.peek;
 
-    // A backslash that cancels nothing is an ordinary character, and the
-    // cursor stays on it -- the cluster ends either way, and what the escape
-    // rescued (if anything) opens the run that follows.
+    // A backslash that cancels nothing is an ordinary character; the cluster
+    // ends either way, and what the escape rescued opens the run that follows.
     if (char == r'\') {
       return (result, cursor.takeEscape(_markup) ?? '');
     }
