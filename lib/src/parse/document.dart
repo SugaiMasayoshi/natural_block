@@ -13,10 +13,9 @@
 /// | node | consumes | stops before |
 /// |---|---|---|
 /// | [TextSpanNode], [VerbatimSpanNode] | — | `^` `\|` `~` |
-/// | [ColumnNode] | the `\|` that opened it | `^` `\|` |
+/// | [ColumnNode] | the `\|` or `^` that opened it | `^` `\|` |
 /// | [TableCellNode] | the `\|` or `^` that opened it | `^` `\|` `~` |
-/// | [RowNode] | the `^` between its cells | `\|` `~` |
-/// | [TableRowNode] | the `^` between its cells | `\|` `~` |
+/// | [RowNode], [TableRowNode] | — | `\|` `~` |
 /// | [TableNode] | its own `~` at each end | — |
 /// | [DocumentNode] | — | — |
 ///
@@ -27,9 +26,16 @@
 /// `|` is not "a new block starts here": it is the full stop on what came
 /// before, and it means "next sibling" at whichever level is reading.
 ///
-/// The `^` is the exception, and it has to be: the first cell of a row has no
-/// `^` in front of it, so only the row can tell the difference between
-/// opening a cell and starting one.
+/// A row eats nothing either. It tests for the `^` and the cell that `^`
+/// opens eats it, exactly as a block eats its own `|` -- which is also why a
+/// row has no alignment of its own to read. The level above always names
+/// which separator can open the thing it is asking for, because only it
+/// knows: `^a` at the start of a document is a row whose first cell is
+/// empty, not a cell opened by that `^`.
+///
+/// The markers written after a separator are read by whatever ate it, and
+/// nowhere else. That is the whole rule that keeps `=>` at the start of a
+/// document ordinary text.
 ///
 /// **The newline against a boundary.** One newline touching a structural
 /// boundary belongs to the boundary rather than to the text. It is what makes

@@ -12,8 +12,10 @@ import 'table_row_node.dart';
 ///
 /// Null when no row had any content.
 TableNode? parseTableNode(SourceCursor cursor) {
-  // The markers on the opening `~` describe the table itself.
-  final align = takeSeparator(cursor);
+  // Its own opening `~`, and the markers on it, which describe the table
+  // itself rather than its first row.
+  cursor.take();
+  final align = takeMarkers(cursor);
 
   final rows = <TableRowNode>[];
 

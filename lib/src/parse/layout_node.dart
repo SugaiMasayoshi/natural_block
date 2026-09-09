@@ -1,17 +1,14 @@
-import '../horizontal_align.dart';
 import '../layout_symbols.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
 import 'column_node.dart';
 import 'row_node.dart';
-import 'separator.dart';
 
-/// Reads whichever arrangement starts here, including the `|` that opened it.
+/// Reads whichever arrangement starts here.
 ///
-/// That the `|` is read here is why an alignment marker lands on the cell it
-/// opens rather than on the row that may form around it afterwards. Read one
-/// level up, the same marker would look like it described the row and then
-/// quietly settle on its first cell.
+/// Decides only that: which of the two a block turns out to be. The block
+/// itself reads the `|` that opened it and whatever alignment was written on
+/// it, because a [RowNode] has neither and a [ColumnNode] has both.
 ///
 /// The first cell is read before anything is known about what the block is,
 /// because the same text serves either reading. The separator after it
@@ -20,11 +17,7 @@ import 'separator.dart';
 ///
 /// Null when the block turned out to have nothing in it.
 LayoutNode? parseLayoutNode(SourceCursor cursor) {
-  final align = cursor.peek == columnSymbol
-      ? takeSeparator(cursor)
-      : HorizontalAlign.unstated;
-
-  final first = parseColumnNode(cursor, align);
+  final first = parseColumnNode(cursor);
   if (cursor.peek == rowSymbol) return parseRowNode(cursor, first);
 
   // An empty Column block is content that is not there, so it contributes no
