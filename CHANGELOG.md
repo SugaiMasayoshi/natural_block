@@ -182,8 +182,17 @@ this repository, which is why the entries below describe changes freely.
 
 ### Internals
 
-- Each node reads itself. A `Scanner` holds the one cursor and everything
-  that must be resolved before a node can read a character -- line endings,
+- The tree and the reading of it are separate. `src/nodes.dart` holds every
+  node class and no parsing at all -- one file, because `sealed` requires
+  every subtype to live in the same library, which is the whole reason and
+  not privacy. `src/parse/` holds one library per node, whose top-level
+  `parseColumnNode`-style functions are ordinary public names inside `src/`
+  and reach nobody outside it: `NaturalBlockParser.parse` is the only door.
+  Being ordinary libraries, their imports say which nodes and which symbols
+  each step of the reading depends on -- something a set of `part` files
+  cannot say, because parts see everything.
+- Each node reads itself. A `SourceCursor` holds the one position and
+  everything that must be resolved before a node can read a character -- line endings,
   escapes, verbatim regions; every node's parse consumes only what belongs
   to it and stops in front of the symbol that ends it, which its owner eats.
   `RowNode` consumes the `^` between cells but not the `|` that ends the
@@ -202,7 +211,7 @@ this repository, which is why the entries below describe changes freely.
 - What that cost and what it bought, measured rather than claimed. Counting
   code lines only, blanks and comments excluded: of the sixteen functions
   that do the parsing, fifteen are 22 lines or fewer, and the one outlier is
-  `TextSpanNode._parse` at 27 -- the run of styled text, which is where
+  `parseTextSpanNode` at 27 -- the run of styled text, which is where
   decoration, newlines and every layout symbol meet. The separated parser it
   replaced did that same reading in one function of 90 lines, and its entry
   point was 36. `lib` went from 581 code lines to 558.

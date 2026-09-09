@@ -22,7 +22,7 @@ import 'nodes.dart';
 void main() {
   group('line endings', () {
     test('a CRLF document parses exactly like the LF one', () {
-      // Not cosmetic. `ColumnNode._parse` drops a newline written directly
+      // Not cosmetic. `parseColumnNode` drops a newline written directly
       // against the separator that opened the block -- the rule that lets a
       // block's opening symbol sit on its own line. Under CRLF the cursor
       // sits on `'\r'` instead, so the rule silently stopped applying and
@@ -91,7 +91,7 @@ void main() {
 
     test("a block's own blank line at each end still goes", () {
       // The one thing that does disappear, and it belongs to the block
-      // rather than to any trimming of the source: `ColumnNode._parse`
+      // rather than to any trimming of the source: `parseColumnNode`
       // drops the newline at its start, and the run that holds the text
       // drops the one at its end. That is what lets a block's symbol sit on
       // a line of its own.

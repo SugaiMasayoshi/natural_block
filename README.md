@@ -84,7 +84,9 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   **The tree records what was written, not what will be drawn.** `TableNode.columns` holds what each column declared (and, by its length, how wide the table is); every row keeps exactly the cells the author wrote, each carrying only the marker that cell itself had. Resolving the two is the consumer's step:
 
   ```dart
-  final effective = row.children[i].align ?? table.columns[i];
+  final stated = row.children[i].align;
+  final effective =
+      stated == HorizontalAlign.unstated ? table.columns[i] : stated;
   ```
 
   This is what keeps `HorizontalAlign.unstated` meaning "the source said nothing" inside a table as well as outside. Squaring short rows off into a rectangle is likewise the renderer's job -- `natural_block_flutter` does both.

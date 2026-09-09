@@ -89,7 +89,7 @@ void main() {
     test('a multi-line region stays one node', () {
       // Every level that stops at a boundary has to know about regions
       // too, or this would be cut into a piece per line with nothing left
-      // to rejoin it. `Scanner.atBlockRegion` is the single answer they all
+      // to rejoin it. `verbatimNodeOpensAt` is the single answer they all
       // ask for.
       expect(
         onlyRegion('`\nif (x) {\n  y();\n}\n`').text,

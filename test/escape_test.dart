@@ -278,7 +278,7 @@ void main() {
 
       test("a literal backslash survives in front of a decoration cluster", () {
         // Resolving escapes in one place is what makes this work: were the
-        // cluster reader to collapse `\\` as well as `Scanner.read`, the
+        // cluster reader to collapse `\\` as well as `SourceCursor.read`, the
         // lone backslash the first one left behind would be read as an
         // escape again by the second and swallow the `:`.
         final spans =
