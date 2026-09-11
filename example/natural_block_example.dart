@@ -6,7 +6,7 @@ import 'package:natural_block/natural_block.dart';
 /// concern, and `natural_block_flutter` is one renderer for it.
 void main() {
   _show('Decoration', r'''
-:!Danger:! and :%Success:% and :?Info:? and :*Emphasis:*
+:!Danger:! and :%Success:% and :*Emphasis:*
 :!*Danger and bold at once::back to plain
 :+++Three steps larger:--- back to base
 Bare punctuation is literal: C++, 10-20, 100%, Really?!, you@example.com
@@ -22,19 +22,29 @@ as ordinary text.
 
   _show('Layout and alignment', r'''
 |A vertical block
-|<start=^center=>end|
-Left==Right
+|<start^=center^>end|
+Left^^Right
 ''');
 
   _show('Tables', r'''
-|~Item=>Price=^Stock|
-Apple=150=12|
-Banana=98=3|~
-:*Total=>248
+~
+|<Item  ^>Price^Stock
+|Apple  ^150^12
+|Banana ^98^3
+~
+|>:*Total 248
+''');
+
+  _show('Verbatim regions', r'''
+Compare `a == b` inline, or fence a block:
+`
+cat file.txt | grep foo | wc -l
+`
 ''');
 
   _show('Escaping', r'''
-\|and \= and \: are literal, \\ is one backslash.
+\=> at the start of a block is literal text.
+\| and \^ and \~ and \: are literal, \\ is one backslash.
 Inside a cluster a decoration character escapes too: :---\%off
 A path needs nothing: C:\Users\you\a.png -- but prefer C:/Users/you/a.png
 ''');
