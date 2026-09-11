@@ -197,7 +197,7 @@ For more comprehensive and advanced usage, please check the `/example` folder in
 
 * **Source Code & Issues:** If you encounter any bugs, have feature requests, or want to contribute, please visit our [GitHub repository](https://github.com/SugaiMasayoshi/natural_block).
 * **Contributions:** We welcome pull requests! Please ensure that all new features include unit tests covering edge cases (such as symbol escaping and boundary resets).
-* **The probe.** `test/probe_test.dart` pins the entire tree of 91 sources against `test/probe.expected.txt`. It is not a substitute for the other tests -- they check the rules the language *claims*, this checks that nothing else moved. Both are needed: it has caught changes that every other test passed through. When a change is meant to alter the output, read the diff, confirm only the intended cases moved, and then regenerate:
+* **The probe.** `test/probe_test.dart` pins the entire tree of every source it lists against `test/probe.expected.txt`. It is not a substitute for the other tests -- they check the rules the language *claims*, this checks that nothing else moved. Both are needed: it has caught changes that every other test passed through. When a change is meant to alter the output, read the diff, confirm only the intended cases moved, and then regenerate:
 
   ```
   UPDATE_PROBE=1 dart test test/probe_test.dart

@@ -23,16 +23,12 @@ library;
 /// Separates blocks stacked one above another. Inside a table it separates
 /// rows, which stack the same way.
 ///
-/// Read by the block it opens, which is why it is tested for by name: the
-/// level about to decide what that block turns out to be is the one that
-/// takes it.
+/// Eaten by the parent of what it separates: the document, or the table.
 const String columnSymbol = '|';
 
 /// Separates the blocks laid out across one row -- its cells.
 ///
-/// The one separator a block never reads for itself. A row's first cell has
-/// no `^` in front of it, so only the row can tell opening a cell apart
-/// from starting one.
+/// Eaten by the row.
 const String rowSymbol = '^';
 
 /// Wraps rows into a grid.

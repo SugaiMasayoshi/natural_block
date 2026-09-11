@@ -198,19 +198,22 @@ this repository, which is why the entries below describe changes freely.
 - The tree and the reading of it are separate. `src/nodes.dart` holds every
   node class and no parsing at all -- one file, because `sealed` requires
   every subtype to live in the same library, which is the whole reason and
-  not privacy. `src/parse/` holds one library per node, whose top-level
+  not privacy. `src/parse/` holds one library per node, plus the readings
+  several nodes share -- alignment markers, decoration clusters, verbatim
+  regions. Their top-level
   `parseColumnNode`-style functions are ordinary public names inside `src/`
   and reach nobody outside it: `NaturalBlockParser.parse` is the only door.
   Being ordinary libraries, their imports say which nodes and which symbols
   each step of the reading depends on -- something a set of `part` files
   cannot say, because parts see everything.
-- Each node reads itself. A `SourceCursor` holds the one position and
-  everything that must be resolved before a node can read a character -- line endings,
-  escapes, verbatim regions; every node's parse consumes only what belongs
-  to it and stops in front of the symbol that ends it, which its owner eats.
-  `RowNode` consumes the `^` between cells but not the `|` that ends the
-  row; `TableNode` consumes the `|` between rows but not the `~` that ends
-  the table. There is no assembly pass and no shared mutable state.
+- Each node reads itself. A `SourceCursor` holds the one position and what
+  must be resolved before a node can read a character -- line endings and
+  escapes. Every node's parse consumes only what belongs to it and stops in
+  front of anything that is not its own. A separator belongs to the parent
+  of the things it separates: the document and a table eat the `|` between
+  their children, a row eats the `^` between its cells. A delimiter belongs
+  to what it wraps: a table eats both of its `~`, a verbatim region both of
+  its fences. There is no assembly pass and no shared mutable state.
 - One consequence of that protocol, worth naming: several levels ask about
   the same position before anyone consumes it. Four levels ask whether a
   verbatim region opens at a given fence, because a child stops in front of
@@ -228,27 +231,26 @@ this repository, which is why the entries below describe changes freely.
   decoration, newlines and every layout symbol meet. The separated parser it
   replaced did that same reading in one function of 90 lines, and its entry
   point was 36. `lib` went from 581 code lines to 558.
-- `SourceCursor` is one position in the source and the reading of escapes,
-  and nothing else -- 43 lines, importing none of the syntax. Which
+- `SourceCursor` is one position in the source, the normalizing of line
+  endings and the reading of escapes, and nothing else -- 43 lines,
+  importing none of the syntax. Which
   characters are markup is passed in, because it is a fact about the grammar
   and because it is not even constant: `%` is prose in a sentence and a
   symbol inside a decoration cluster. Escapes are the exception that stays,
   being the one rule that changes what a character *is*: past a backslash
   there is no symbol left for a node to see.
-- Everything else that reads the source is a node saying what it is. Only
-  the node library imports `SourceCursor` at all, and nothing extends it:
-  `VerbatimNode._opensAt` and `VerbatimSpanNode._opensAt` answer whether one
-  of those starts here (the same fence, told apart by whether it was written
-  on a line of its own), and `HorizontalAlign._takeSeparator` eats the layout
-  symbol that opens something along with the markers describing it. It
-  lives on the alignment rather than on any node because the nodes an
-  alignment lands on -- a column, a table, a table's cell -- share no
-  ancestor closer than the root, and that alignment is the one thing they
-  do have in common.
-- What counts as markup is likewise stated by the level that decides it, not
-  centrally. `TextSpanNode` names the symbols that end a run of text and can
-  be escaped in one; `SpanDecoration` names the wider set that is live
-  inside a cluster. The difference between the two *is* the rule that `C++`
-  and `100%` are prose: `+` and `%` are absent from the first list.
+- Everything else that reads the source is a node saying what it is.
+  `verbatimNodeOpensAt` and `verbatimSpanNodeOpensAt` answer whether one of
+  those starts here -- the same fence, told apart by whether it was written
+  on a line of its own. An alignment marker is read by `parseAlign` at the
+  start of a column or a table cell, and by `parseTableAlign` after a
+  table's opening `~`, once whoever owns the symbol that opened the block
+  has eaten it. Only the table's version leaves a backslash alone, because
+  its first cell starts at the same place and settles it.
+- What counts as markup is stated in one place, `src/markup.dart`, grouped
+  by whether a symbol comes in a pair -- which is what decides who eats it.
+  A run of text is read against `textMarkup`, a decoration cluster against
+  the wider `clusterMarkup`. The difference between the two *is* the rule
+  that `C++` and `100%` are prose: `+` and `%` are absent from the first set.
 - `README.md`'s claims are executed as tests (`test/readme_test.dart`), so a
   statement in it that stops being true fails the suite.
