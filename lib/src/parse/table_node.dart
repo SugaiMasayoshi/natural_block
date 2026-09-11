@@ -15,7 +15,7 @@ TableNode? parseTableNode(SourceCursor cursor) {
   // Its own opening `~`, and the markers on it, which describe the table
   // itself rather than its first row.
   cursor.take();
-  final align = parseAlign(cursor);
+  final align = parseTableAlign(cursor);
 
   final rows = <TableRowNode>[];
 

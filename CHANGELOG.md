@@ -46,8 +46,11 @@ this repository, which is why the entries below describe changes freely.
   the very start of the document, so the first block needs no leading `|` to be
   aligned. Anywhere else they are ordinary text, so `a > b`, `->`, and
   `List<String>` need no escaping. The cost is the first character of a
-  document: `=>` there is a centered `>`, and since these three are markup
-  nowhere else a backslash cannot keep it literal -- a leading newline can.
+  document: `=>` there is a centered `>`. A backslash keeps a marker literal
+  wherever one would be read -- `\=>`, `|\<tag>` -- and only there; in the
+  middle of a sentence there is nothing for it to cancel, so `a\<b` keeps its
+  backslash. After a table's opening `~` the first cell settles the escape,
+  not the table, so `~\<a~` is an unaligned table whose first cell is `<a`.
 - One marker, not a run of them: `|<>a` is a start-aligned block whose text is
   `>a`. Alignment is a single value on a single axis, so a second marker could
   only contradict the first, and settling that would be a rule the language did
@@ -144,7 +147,8 @@ this repository, which is why the entries below describe changes freely.
 ### Escaping
 
 - `\` escapes what would otherwise be markup at that point: `\|`, `\^`,
-  `\~`, `\:`, `` \` ``, `\\`, and any decoration character inside a cluster.
+  `\~`, `\:`, `` \` ``, `\\`, any decoration character inside a cluster, and
+  an alignment marker at the start of a block.
   Elsewhere the backslash is kept, so `C:\Users\you` needs no escaping.
 
 ### AST

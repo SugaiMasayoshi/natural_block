@@ -190,6 +190,23 @@ void main() {
       expect(onlyBlock('~~~A^B~').children.single, isA<TableNode>());
     });
 
+    test(
+      "a backslash after `~` is settled by the first cell, not the table",
+      () {
+        // 【解説】 `~` の直後では、表の寄せと最初のセルの寄せが同じ位置で読ま
+        // れる。バックスラッシュは本文の直前の読み手、つまりセルが処理する。
+        // 表が先に `\` を食べると、残った `<` がセルの寄せとして読まれて
+        // しまい、バックスラッシュが消えたうえに寄せまで効く。
+        final escaped = onlyTable(r'~\<a~');
+        expect(escaped.align, HorizontalAlign.unstated);
+        expect(escaped.children.single.children.single, tableCell('<a'));
+
+        final afterTable = onlyTable(r'~<\>a~');
+        expect(afterTable.align, HorizontalAlign.start);
+        expect(afterTable.children.single.children.single, tableCell('>a'));
+      },
+    );
+
     test('the table and its first cell each take one marker', () {
       // 【解説】 `~<` で表が start 寄せになる。表の最初のセルはそこで始まる
       // ので、続く `=` をそのセルの寄せとして読み、残る `>` は本文になる。

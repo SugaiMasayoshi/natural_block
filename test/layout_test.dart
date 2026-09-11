@@ -446,6 +446,36 @@ void main() {
       );
     });
 
+    test("a backslash cancels a marker where one would be read", () {
+      // 【解説】 寄せが意味を持つのはブロックの始まりだけなので、エスケープも
+      // そこでだけ効く。`\<` はバックスラッシュを食べて `<` を本文に残す。
+      // 文中の `\<` は元から寄せではないので、バックスラッシュも残る。
+      expect(
+        NaturalBlockParser.parse(r"\<a"),
+        DocumentNode(children: [block("<a")]),
+      );
+      expect(
+        NaturalBlockParser.parse(r"x|\=>"),
+        DocumentNode(children: [block("x"), block("=>")]),
+      );
+      expect(
+        NaturalBlockParser.parse(r"a^\>b"),
+        DocumentNode(
+          children: [
+            RowNode(children: [cell("a"), cell(">b")]),
+          ],
+        ),
+      );
+      expect(
+        NaturalBlockParser.parse(r"a\<b"),
+        DocumentNode(children: [block(r"a\<b")]),
+      );
+      expect(
+        NaturalBlockParser.parse(r"\\<a"),
+        DocumentNode(children: [block(r"\<a")]),
+      );
+    });
+
     test("the first block of a document reads a marker too", () {
       // 【解説】 寄せは区切りの後ではなく、ブロックの始まりで読む。文書の
       // 最初のブロックは区切りを持たないが始まりではあるので、`<a` は

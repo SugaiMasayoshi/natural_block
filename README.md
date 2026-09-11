@@ -36,7 +36,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   That position is the entire trigger -- anywhere else `<`, `=`, and `>` are ordinary text, which matters because `a > b`, `->`, `=>`, and `List<String>` are everywhere in normal prose. An escaped separator leaves a following marker alone too, so `a\^>b` is literally `a^>b`.
 
-  **A document that begins with `<`, `=`, or `>` reads it as a marker**, so `=> x` at the very top is a centered `> x`. A backslash does not help: these three are markup nowhere else, so `\=` is a literal backslash followed by `=`. Start the document with a newline instead -- that newline belongs to the boundary and is dropped, and the character after it is text.
+  **A document that begins with `<`, `=`, or `>` reads it as a marker**, so `=> x` at the very top is a centered `> x`. A backslash keeps it literal: `\=> x` is the text `=> x`. That works at the start of every block -- `|\<tag>` is a block whose text is `<tag>` -- and only there. In the middle of a sentence a marker means nothing, so there is nothing to cancel and `a\<b` keeps its backslash.
 
   **One character, and only the first.** Alignment is a single value, so a second marker could only contradict the first: `|<>a` is a start-aligned block whose text is `>a`. That is what separates this from a decoration cluster, which reads a run of characters because it has several axes to set -- `:+!*` says three different things, where `|<>` says one thing twice.
 * **Why the cell separator is `^` and the center marker is `=`**
@@ -121,6 +121,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   * Anywhere: `\|`, `\^`, `\~`, `\:` and `` \` `` render as literal `|`, `^`, `~`, `:` and `` ` ``, and `\\` renders as a literal `\`.
   * **Inside a cluster**, every decoration character is live, so a backslash escapes those too. `:---\%off` gives `%off` at -3, with the backslash gone. The escape also ends the cluster, which is what lets one backslash cover a whole run: `:---\%%%` needs one, not three.
+  * **At the start of a block**, an alignment marker is live, so `\<`, `\=` and `\>` give a literal `<`, `=` and `>`: `\=> x` at the top of a document is the text `=> x`. After a table's opening `~` the escape belongs to the first cell, whose text it precedes.
   * Everywhere else a backslash is just a backslash -- `\+`, `\!`, and `C:\Users` keep it, because nothing there needed escaping.
 
   Escaping the backslash is what makes it possible to put one immediately before a separator: `\\^` is a cell holding `\` followed by a real separator, where `\^` would just be a literal `^`.
