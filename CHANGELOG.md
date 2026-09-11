@@ -49,8 +49,8 @@ this repository, which is why the entries below describe changes freely.
   document: `=>` there is a centered `>`. A backslash keeps a marker literal
   wherever one would be read -- `\=>`, `|\<tag>` -- and only there; in the
   middle of a sentence there is nothing for it to cancel, so `a\<b` keeps its
-  backslash. After a table's opening `~` the first cell settles the escape,
-  not the table, so `~\<a~` is an unaligned table whose first cell is `<a`.
+  backslash. After a table's opening `~` the first cell starts, so `~\<a~`
+  is a table whose first cell is `<a`.
 - One marker, not a run of them: `|<>a` is a start-aligned block whose text is
   `>a`. Alignment is a single value on a single axis, so a second marker could
   only contradict the first, and settling that would be a rule the language did
@@ -97,8 +97,15 @@ this repository, which is why the entries below describe changes freely.
   and every row's first cell has a marker slot of its own. With the `|` at
   the end of each line instead, a marker would land after a newline and stay
   literal.
-- Markers combine in one cluster: `~=` is a centered table. A marker written
-  straight after the opening `~` describes the table, not its first cell.
+- A table has no alignment of its own. The block that holds it positions
+  it, the way it positions everything else it holds: `|=~A^B~` centers the
+  table, and one that should sit apart from the text around it takes a
+  block of its own. A marker straight after the opening `~` is the first
+  cell's, as after any symbol that starts a block. An earlier version gave
+  the table a marker there too, which put two readers on one position and
+  needed a rule for which of them a backslash belonged to.
+- A one-cell table, `~注意~`, is also how to set a single thing apart in a
+  frame.
 - A column takes its alignment from the first row that has that column; a
   marker on an individual cell overrides just that cell.
 
@@ -243,10 +250,8 @@ this repository, which is why the entries below describe changes freely.
   `verbatimNodeOpensAt` and `verbatimSpanNodeOpensAt` answer whether one of
   those starts here -- the same fence, told apart by whether it was written
   on a line of its own. An alignment marker is read by `parseAlign` at the
-  start of a column or a table cell, and by `parseTableAlign` after a
-  table's opening `~`, once whoever owns the symbol that opened the block
-  has eaten it. Only the table's version leaves a backslash alone, because
-  its first cell starts at the same place and settles it.
+  start of a column or a table cell, once whoever owns the symbol that
+  opened the block has eaten it.
 - What counts as markup is stated in one place, `src/markup.dart`, grouped
   by whether a symbol comes in a pair -- which is what decides who eats it.
   A run of text is read against `textMarkup`, a decoration cluster against

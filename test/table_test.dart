@@ -190,62 +190,41 @@ void main() {
       expect(onlyBlock('~~~A^B~').children.single, isA<TableNode>());
     });
 
-    test(
-      "a backslash after `~` is settled by the first cell, not the table",
-      () {
-        // 【解説】 `~` の直後では、表の寄せと最初のセルの寄せが同じ位置で読ま
-        // れる。バックスラッシュは本文の直前の読み手、つまりセルが処理する。
-        // 表が先に `\` を食べると、残った `<` がセルの寄せとして読まれて
-        // しまい、バックスラッシュが消えたうえに寄せまで効く。
-        final escaped = onlyTable(r'~\<a~');
-        expect(escaped.align, HorizontalAlign.unstated);
-        expect(escaped.children.single.children.single, tableCell('<a'));
-
-        final afterTable = onlyTable(r'~<\>a~');
-        expect(afterTable.align, HorizontalAlign.start);
-        expect(afterTable.children.single.children.single, tableCell('>a'));
-      },
-    );
-
-    test('the table and its first cell each take one marker', () {
-      // 【解説】 `~<` で表が start 寄せになる。表の最初のセルはそこで始まる
-      // ので、続く `=` をそのセルの寄せとして読み、残る `>` は本文になる。
-      // 1つの位置が読む寄せは1文字だけ。区切りの側は layout_test.dart。
-      final table = onlyTable('~<=>A^B~');
-
-      expect(table.align, HorizontalAlign.start);
+    test("a backslash after `~` cancels the first cell's marker", () {
       expect(
-        table.children.first.children.first,
-        tableCell('>A', HorizontalAlign.center),
+        onlyTable(r'~\<a~').children.single.children.single,
+        tableCell('<a'),
+      );
+    });
+
+    test('the first cell takes one marker straight after `~`', () {
+      // 【解説】 1つの位置が読む寄せは1文字だけ。区切りの側は layout_test.dart。
+      expect(
+        onlyTable('~<=>A^B~').children.first.children.first,
+        tableCell('=>A', HorizontalAlign.start),
       );
     });
   });
 
   group('alignment', () {
-    test('the alignment that opens a table belongs to the table, not to its '
-        'first cell', () {
-      // `~=` is a centered table, and the separator that declares it is the
-      // same one that opens the first cell -- so the marker has to go to one
-      // or the other. It goes to the table. Letting it reach the cell would
-      // be worse than a one-off mistake: the first row fixes every column's
-      // alignment, so a leaked `^` would center that whole column in every
-      // row that follows.
+    test('a marker straight after `~` aligns the first cell', () {
+      // A table has no alignment of its own, so `~` starts the first cell
+      // the way `|` starts a block. The first row declares the columns, so
+      // that marker is the first column's.
       final table = onlyTable('~=A^B|C^D~');
 
-      expect(table.align, HorizontalAlign.center);
+      expect(table.columns, [HorizontalAlign.center, HorizontalAlign.unstated]);
       expect(aligns(table), [
-        [HorizontalAlign.unstated, HorizontalAlign.unstated],
+        [HorizontalAlign.center, HorizontalAlign.unstated],
         [HorizontalAlign.unstated, HorizontalAlign.unstated],
       ]);
     });
 
-    test('a marker in the opening cluster aligns the table itself', () {
-      // `~=` reads as one cluster describing one block: `~` says it is a
-      // table, `^` says how it sits. Meaningful because a table is sized to
-      // its content, so there is room around it to be positioned within.
-      expect(onlyTable('~=A^B~').align, HorizontalAlign.center);
-      expect(onlyTable('~>A^B~').align, HorizontalAlign.end);
-      expect(onlyTable('~A^B~').align, HorizontalAlign.unstated);
+    test('the block that holds a table is what positions it', () {
+      final block = onlyBlock('|=~A^B~');
+
+      expect(block.align, HorizontalAlign.center);
+      expect(block.children.single, isA<TableNode>());
     });
 
     test('a later row inherits each column from the first row', () {
@@ -293,16 +272,15 @@ void main() {
       ]);
     });
 
-    test('a leading `|` opens the first cell so it can carry a marker', () {
-      // Why the README writes every row with a leading `|`. The first cell
-      // of the first row would otherwise be opened by the `~` that declares
-      // the table, whose markers describe the table -- so the cell has no
-      // marker slot of its own. Writing `|` opens an empty block (which
-      // vanishes) and gives that cell its slot back, uniformly on every row.
-      expect(effective(onlyTable('~|<A^>B|C^D~')), [
-        [HorizontalAlign.start, HorizontalAlign.end],
-        [HorizontalAlign.start, HorizontalAlign.end],
-      ]);
+    test('a `|` straight after `~` changes nothing', () {
+      // It opens an empty block, which vanishes. The first cell starts right
+      // after the `~` either way.
+      for (final source in ['~|<A^>B|C^D~', '~<A^>B|C^D~']) {
+        expect(effective(onlyTable(source)), [
+          [HorizontalAlign.start, HorizontalAlign.end],
+          [HorizontalAlign.start, HorizontalAlign.end],
+        ]);
+      }
       expect(effective(onlyTable('~|>A^B|C^D~')), [
         [HorizontalAlign.end, HorizontalAlign.unstated],
         [HorizontalAlign.end, HorizontalAlign.unstated],
@@ -320,7 +298,7 @@ void main() {
         final document = NaturalBlockParser.parse('~A^B~=after');
 
         final pieces = (document.children.single as ColumnNode).children;
-        expect((pieces[0] as TableNode).align, HorizontalAlign.unstated);
+        expect(pieces[0], isA<TableNode>());
         expect(pieces[1], line('=after'));
 
         final aligned = NaturalBlockParser.parse('~A^B~|=after');

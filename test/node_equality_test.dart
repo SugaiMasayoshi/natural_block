@@ -16,24 +16,6 @@ import 'nodes.dart';
 
 void main() {
   group("Node equality and hashCode contract", () {
-    test("equal TableNodes have equal hashCode, and align is part of it", () {
-      TableNode table({HorizontalAlign align = HorizontalAlign.start}) =>
-          TableNode(
-            align: align,
-            children: [
-              TableRowNode(children: [tableCell('セル')]),
-            ],
-          );
-
-      expect(table(), table());
-      expect(table().hashCode, table().hashCode);
-      expect(
-        table(),
-        isNot(table(align: HorizontalAlign.center)),
-        reason: 'a centered table is not the same node as a start-aligned one',
-      );
-    });
-
     // Equal *and* unequal, per node type. Only the first half was here
     // before, which meant the file did not do the job its header claims:
     // deleting `align == other.align` from `ColumnNode.==` left every test
@@ -75,13 +57,12 @@ void main() {
           children: [
             TableRowNode(
               children: [
-                TableCellNode(children: [text('セル')]),
+                TableCellNode(children: [text('別のセル')]),
               ],
             ),
           ],
-          align: HorizontalAlign.center,
         ),
-        'a centered table is not the same node as an unaligned one',
+        'a cell of different text is a different table',
       ),
       'TextNode': (
         TextNode(

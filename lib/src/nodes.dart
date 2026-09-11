@@ -156,6 +156,9 @@ final class VerbatimNode extends ContentNode {
 /// Content, not layout: from the outside it is a thing you place, sized to
 /// its own rows rather than to the width it is given. Inside it arranges,
 /// which makes it the one node with a foot on each side.
+///
+/// It has no alignment of its own. The block that holds it positions it, the
+/// way it positions everything else it holds.
 final class TableNode extends ContentNode {
   /// The rows as the source wrote them. A row may be shorter than the table
   /// is wide; it is not padded here, because the author wrote no cell there.
@@ -181,15 +184,7 @@ final class TableNode extends ContentNode {
   /// disagree with itself.
   late final List<HorizontalAlign> columns = _columns(children);
 
-  /// The alignment written for the table itself, or `unstated` when none was.
-  ///
-  /// Where the table sits inside its block, which is not the same question
-  /// as [ColumnNode.align] -- that one says how a block arranges everything
-  /// it holds. `|=` centres the text and the table together; `~=` centres
-  /// only the table.
-  final HorizontalAlign align;
-
-  TableNode({this.children = const [], this.align = HorizontalAlign.unstated});
+  TableNode({this.children = const []});
 
   /// Taken from the first row that reached each column, so a row wider than
   /// every row before it declares the columns it adds.
@@ -204,20 +199,18 @@ final class TableNode extends ContentNode {
   }
 
   @override
-  String toString() =>
-      'TableNode(children: $children, columns: $columns, align: $align)';
+  String toString() => 'TableNode(children: $children, columns: $columns)';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is TableNode &&
-        align == other.align &&
         _childrenEquality.equals(children, other.children);
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, align, _childrenEquality.hash(children));
+      Object.hash(runtimeType, _childrenEquality.hash(children));
 }
 
 /// One row of a table.

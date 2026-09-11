@@ -1,7 +1,6 @@
 import '../layout_symbols.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
-import 'align.dart';
 import 'table_row_node.dart';
 
 /// Reads the table that opens at the cursor, both `~` included.
@@ -12,10 +11,8 @@ import 'table_row_node.dart';
 ///
 /// Null when no row had any content.
 TableNode? parseTableNode(SourceCursor cursor) {
-  // Its own opening `~`, and the markers on it, which describe the table
-  // itself rather than its first row.
+  // Its own opening `~`. What follows is the first cell, marker and all.
   cursor.take();
-  final align = parseTableAlign(cursor);
 
   final rows = <TableRowNode>[];
 
@@ -37,5 +34,5 @@ TableNode? parseTableNode(SourceCursor cursor) {
   if (cursor.peek == '\n') cursor.take();
 
   if (rows.isEmpty) return null;
-  return TableNode(align: align, children: rows);
+  return TableNode(children: rows);
 }

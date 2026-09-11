@@ -351,25 +351,19 @@ void main() {
       ]);
     });
 
-    test('a marker after the opening `~` describes the table, not the '
-        'first cell', () {
-      expect(
-        onlyTable('~<Item^>Price|apple^100~').align,
-        HorizontalAlign.start,
-      );
-      expect(
-        onlyTable('~|<Item^>Price|apple^100~')
-            .children
-            .first
-            .children
-            .first
-            .align,
-        HorizontalAlign.start,
-      );
-      expect(
-        onlyTable('~|<Item^>Price|apple^100~').align,
-        HorizontalAlign.unstated,
-      );
+    test("a marker after the opening `~` is the first cell's", () {
+      for (final source in [
+        fromReadme(
+          '~<Item^>Price|apple^100~',
+          '`~<Item^...` aligns the Item column',
+        ),
+        fromReadme('~|<Item^>Price|apple^100~', 'the same as `~|<Item^...`'),
+      ]) {
+        expect(onlyTable(source).columns, [
+          HorizontalAlign.start,
+          HorizontalAlign.end,
+        ]);
+      }
     });
 
     test('with the `|` written at the end of each line instead, a marker '
@@ -428,11 +422,24 @@ void main() {
       );
     });
 
-    test('`~=` is a centered table -- markers share one cluster', () {
-      expect(
-        onlyTable(fromReadme('~=A^B~', '`~=` is a centered table')).align,
-        HorizontalAlign.center,
-      );
+    test('the block that holds a table positions it', () {
+      final block = onlyBlock(fromReadme('|=~A^B~'));
+      expect(block.align, HorizontalAlign.center);
+      expect(block.children.single, isA<TableNode>());
+
+      final apart = NaturalBlockParser.parse(fromReadme('前文|=~A^B~|後文'))
+          .children;
+      expect(apart, hasLength(3));
+      expect(apart[0].asColumn.align, HorizontalAlign.unstated);
+      expect(apart[1].asColumn.align, HorizontalAlign.center);
+      expect(apart[1].asColumn.children.single, isA<TableNode>());
+      expect(apart[2].asColumn.align, HorizontalAlign.unstated);
+    });
+
+    test('`~注意~` is a table of one cell', () {
+      expect(onlyTable(fromReadme('~注意~')).children, [
+        TableRowNode(children: [tableCell('注意')]),
+      ]);
     });
 
     test('a table ends only at `~` or the end of the document', () {

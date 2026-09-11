@@ -65,7 +65,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   Nothing throws and nothing is lost, so the difference only shows once it is rendered. When in doubt, write the leading `|`.
 * **Tables (`~`)**
-  `~` wraps a table, and both `~` belong to that table the way both fences belong to a verbatim region -- it *delimits* where `^` and `|` *separate*. And like a verbatim region, **a table is content**: it sits inside a block rather than beside one, so a block can hold text, a table, and more text, and an alignment written on that block reaches all of it. It can also go in a cell of a row. A table cannot go inside another table: a `~` met inside one is the closer, never an opener.
+  `~` wraps a table, and both `~` belong to that table the way both fences belong to a verbatim region -- it *delimits* where `^` and `|` *separate*. And like a verbatim region, **a table is content**: it sits inside a block rather than beside one, so a block can hold text, a table, and more text, and an alignment written on that block reaches all of it. It can also go in a cell of a row. A table of one cell, `~注意~`, is also how to set a single thing apart in a frame. A table cannot go inside another table: a `~` met inside one is the closer, never an opener.
 
   ```
   ~
@@ -81,7 +81,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   **A table ends at `~` or at the end of the document, and nowhere else.** Everything in between belongs to it: a short row does not end it, and a line with no `^` becomes a one-cell row. The table is as wide as its widest row.
 
-  Alignment markers combine with it in the same cluster (`~=` is a centered table, meaningful because a table is sized to its content). A marker written straight after the opening `~` describes the *table*, not its first cell -- which is the other reason to write the leading `|` on every row: `~|<Item^...` aligns the Item column, where `~<Item^...` would align the table itself.
+  A table has no alignment of its own. The block that holds it positions it, the way it positions everything else it holds: `|=~A^B~` centers the table. To center a table while the text around it stays put, give it a block of its own: `前文|=~A^B~|後文`. A marker written straight after the opening `~` is therefore the first cell's, as after any other symbol that starts a block: `~<Item^...` aligns the Item column, the same as `~|<Item^...`.
 
   A column takes its alignment from the first row that has that column, so `~|Item^>Price|apple^100~` right-aligns the price column for every row without repeating the marker; a marker on an individual cell overrides just that cell.
 
