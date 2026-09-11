@@ -1,5 +1,6 @@
-import 'package:natural_block/natural_block.dart';
-import 'package:natural_block/src/decoration_action.dart';
+import '../decoration_action.dart';
+import '../semantic_color.dart';
+import '../span_decoration.dart';
 
 extension SpanDecorationActions on SpanDecoration {
   SpanDecoration apply(DecorationAction action) => switch (action) {

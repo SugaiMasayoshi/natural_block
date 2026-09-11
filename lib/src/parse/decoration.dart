@@ -1,9 +1,8 @@
-import 'package:natural_block/src/parse/span_decoration.dart';
-
 import '../decoration_action.dart';
 import '../markup.dart';
 import '../source_cursor.dart';
 import '../span_decoration.dart';
+import 'span_decoration.dart';
 
 /// Reads the cluster the cursor has just entered and returns the state it
 /// leaves behind, together with any character a backslash rescued from it.

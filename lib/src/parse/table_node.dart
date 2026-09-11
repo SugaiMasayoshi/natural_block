@@ -1,7 +1,7 @@
 import '../layout_symbols.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
-import 'separator.dart';
+import 'align.dart';
 import 'table_row_node.dart';
 
 /// Reads the table that opens at the cursor, both `~` included.

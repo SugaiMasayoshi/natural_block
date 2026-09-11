@@ -1,8 +1,8 @@
 import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
+import 'align.dart';
 import 'content_node.dart';
-import 'separator.dart';
 
 ColumnNode parseColumnNode(SourceCursor cursor) {
   final align = parseAlign(cursor);

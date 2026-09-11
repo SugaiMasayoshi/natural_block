@@ -1,8 +1,8 @@
 import '../layout_symbols.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
+import 'align.dart';
 import 'content_node.dart';
-import 'separator.dart';
 
 /// What ends a cell: the two separators, and the `~` that ends the table
 /// around it.
