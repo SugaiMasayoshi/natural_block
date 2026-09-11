@@ -1,6 +1,6 @@
 import '../nodes.dart';
 import '../source_cursor.dart';
-import '../verbatim_region.dart';
+import 'verbatim_region.dart';
 import 'verbatim_span_node.dart';
 
 /// Whether one of these opens at the cursor.
@@ -14,8 +14,7 @@ import 'verbatim_span_node.dart';
 /// The cheap half is asked first, so a fence written mid-line costs one
 /// character rather than a search for the closing fence.
 bool verbatimNodeOpensAt(SourceCursor cursor) =>
-    (cursor.position == 0 || cursor.peekAt(-1) == '\n') &&
-    verbatimSpanNodeOpensAt(cursor);
+    verbatimRegionIsBlock(cursor) && verbatimRegionOpensAt(cursor);
 
 /// Consumes the region opening at the cursor, plus the newline written after
 /// its closing fence -- the third of the boundaries in the rule in

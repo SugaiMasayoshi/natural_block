@@ -1,23 +1,11 @@
 import '../decoration_action.dart';
-import '../layout_symbols.dart';
+import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
 import '../span_decoration.dart';
-import '../verbatim_region.dart';
 import 'decoration.dart';
-import 'inline_node.dart';
-
-/// What counts as markup while a run of text is being read.
-///
-/// `+`, `-`, `!`, `%`, `*` and `@` are missing on purpose -- that absence is
-/// the rule that `C++` and `100%` are prose and need no escaping. Inside a
-/// cluster the answer is different, and `parse/decoration.dart` states its
-/// own.
-final Set<String> _markup = {
-  ...layoutSymbols,
-  verbatimFenceChar,
-  DecorationAction.reset.char,
-};
+import 'verbatim_region.dart';
+import 'verbatim_span_node.dart';
 
 bool _opensCluster(SourceCursor cursor) =>
     cursor.peek == ':' && DecorationAction.byChar.containsKey(cursor.peekAt(1));
@@ -33,7 +21,7 @@ bool _endsRun(SourceCursor cursor, SpanDecoration style) =>
       // with is the next run's cluster, and not this run's to consume.
       ':' => _opensCluster(cursor),
       // A fence that never closes opens no region, so it is text too.
-      verbatimFenceChar => otherInlineStartsHere(cursor),
+      verbatimFenceChar => verbatimRegionOpensAt(cursor),
       // A layout symbol. Nothing else gets here.
       _ => true,
     };
@@ -61,16 +49,18 @@ bool _endsRun(SourceCursor cursor, SpanDecoration style) =>
   // this loop only has to say which of those actually do; one that does not
   // is taken as text and the read resumes.
   while (true) {
-    pending.write(cursor.read(_markup));
+    pending.write(cursor.read(textMarkup));
     if (cursor.isEnd || _endsRun(cursor, style)) break;
     pending.write(cursor.take());
   }
 
-  // Only the newline-reset exit leaves the cursor on a `'\n'`, so which exit
-  // was taken need not be tracked.
   final outgoing = cursor.peek == '\n' ? const SpanDecoration() : style;
 
-  final run = pending.toString();
+  var run = pending.toString();
+  if (run.endsWith('\n') && !_opensCluster(cursor)) {
+    run = run.substring(0, run.length - 1);
+  }
+
   return (
     run.isEmpty ? null : TextSpanNode(text: run, decoration: style),
     outgoing,

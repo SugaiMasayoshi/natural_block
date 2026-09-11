@@ -13,6 +13,11 @@
 /// has in a way an enum would help with -- there is no `switch` over them and
 /// none is ever stored in the tree. It also keeps them the same shape as the
 /// verbatim fence, which is the same kind of thing: markup.
+///
+/// Named here one by one and grouped nowhere. Being markup is a different
+/// fact from arranging a document, and `markup.dart` groups them for that --
+/// by who eats them, which is what a reader of markup has to know. `~` is
+/// grouped there with the verbatim fence rather than with these two.
 library;
 
 /// Separates blocks stacked one above another. Inside a table it separates
@@ -37,14 +42,3 @@ const String rowSymbol = '^';
 /// A table needs that, being the one block sized to its own content rather
 /// than to the width it is given -- it has to know where it stops.
 const String tableSymbol = '~';
-
-/// All three, for the levels that stop at any of them without caring which.
-const Set<String> layoutSymbols = {columnSymbol, rowSymbol, tableSymbol};
-
-/// The two that separate siblings.
-///
-/// [tableSymbol] is not one. It opens a table, and a table is content, so a
-/// block reads straight through it -- which is what lets one block hold text,
-/// a table, and more text. A table's own cells do stop at it, because there
-/// the `~` is the one that ends the table.
-const Set<String> separators = {columnSymbol, rowSymbol};

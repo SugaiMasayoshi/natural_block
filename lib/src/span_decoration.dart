@@ -1,8 +1,5 @@
-import 'decoration_action.dart';
 import 'semantic_color.dart';
 
-/// The decoration state a run carries, and the parser's reading state -- one
-/// type, because they are one thing.
 class SpanDecoration {
   final int sizeOffset;
   final SemanticColor color;
@@ -32,10 +29,10 @@ class SpanDecoration {
   @override
   int get hashCode => Object.hash(sizeOffset, color, emphasis, isAction);
 
-  SemanticColor _toggle(SemanticColor next) =>
+  SemanticColor toggle(SemanticColor next) =>
       color == next ? SemanticColor.none : next;
 
-  SpanDecoration _copy({
+  SpanDecoration copy({
     int? sizeOffset,
     SemanticColor? color,
     bool? emphasis,
@@ -46,31 +43,4 @@ class SpanDecoration {
     emphasis: emphasis ?? this.emphasis,
     isAction: isAction ?? this.isAction,
   );
-}
-
-/// What each character of a decoration cluster does to the state a run
-/// carries.
-///
-/// An extension rather than a method, so that the package can export the type
-/// without it. `show SpanDecoration` hides this name, and an extension that
-/// is not in scope contributes no members -- a consumer asking for `.apply`
-/// is told there is no such member, not merely warned. A method has no name
-/// of its own to hide, and an annotation would only warn.
-///
-/// It still lives here, beside the private fields it copies, because it is
-/// [SpanDecoration]'s own arithmetic and nothing else's.
-extension SpanDecorationActions on SpanDecoration {
-  SpanDecoration apply(DecorationAction action) => switch (action) {
-    DecorationAction.larger => _copy(sizeOffset: sizeOffset + 1),
-    DecorationAction.smaller => _copy(sizeOffset: sizeOffset - 1),
-    DecorationAction.danger => _copy(color: _toggle(SemanticColor.danger)),
-    DecorationAction.success => _copy(color: _toggle(SemanticColor.success)),
-    DecorationAction.emphasis => _copy(emphasis: !emphasis),
-    DecorationAction.action => _copy(isAction: !isAction),
-    DecorationAction.reset => _copy(
-      color: SemanticColor.none,
-      emphasis: false,
-      isAction: false,
-    ),
-  };
 }

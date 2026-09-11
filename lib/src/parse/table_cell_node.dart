@@ -5,6 +5,14 @@ import '../source_cursor.dart';
 import 'content_node.dart';
 import 'separator.dart';
 
+/// What ends a cell: the two separators, and the `~` that ends the table
+/// around it.
+///
+/// That `~` is the one thing a cell stops at which a block reads through, and
+/// it is a guard rather than a boundary -- it is what keeps a table from
+/// nesting, because the content level never gets to see it.
+const _endsCell = {columnSymbol, rowSymbol, tableSymbol};
+
 /// Reads one cell: the separator that opened it, then everything up to the
 /// next `^`, `|` or `~`.
 ///
@@ -21,7 +29,7 @@ TableCellNode parseTableCellNode(
   var align = HorizontalAlign.unstated;
   if (cursor.peek == opener) {
     cursor.take();
-    align = takeMarkers(cursor);
+    align = parseAlign(cursor);
   }
 
   // A cell drops one blank line at its start, the same as a block; see the
@@ -30,7 +38,7 @@ TableCellNode parseTableCellNode(
 
   final content = <ContentNode>[];
 
-  while (!cursor.isEnd && !layoutSymbols.contains(cursor.peek)) {
+  while (!cursor.isEnd && !_endsCell.contains(cursor.peek)) {
     final before = cursor.position;
     final piece = parseContentNode(cursor);
     if (piece != null) content.add(piece);
