@@ -28,13 +28,15 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   Keeping the payload human-readable is the point: an implementation that does not recognise a payload still renders it as ordinary text, so nothing is lost that a person cannot read.
 * **Block alignment (`<`, `=`, `>`)**
-  An alignment marker written *immediately* after an unescaped `|`, `^`, or the `~` that opens a table sets how the block starting there is positioned: `<` start, `=` center, `>` end. `ColumnNode.align` carries it. The `~` that *closes* a table opens nothing, so a marker after it is ordinary text -- align what follows a table by writing `|` first, the same way the first block of a document needs one.
+  An alignment marker written *at the start of a block* sets how that block is positioned: `<` start, `=` center, `>` end. A block starts directly after the unescaped `|` or `^` that opens it, directly after the `~` that opens a table, and at the very start of the document -- so `<見出し` aligns the first block without a leading `|`. `ColumnNode.align` carries it. The `~` that *closes* a table opens nothing and the block goes on past it, so a marker after it is ordinary text -- align what follows a table by writing `|` first.
 
   ```dart
   NaturalBlockParser.parse('|<品名^=数量^>価格|');
   ```
 
   That position is the entire trigger -- anywhere else `<`, `=`, and `>` are ordinary text, which matters because `a > b`, `->`, `=>`, and `List<String>` are everywhere in normal prose. An escaped separator leaves a following marker alone too, so `a\^>b` is literally `a^>b`.
+
+  **A document that begins with `<`, `=`, or `>` reads it as a marker**, so `=> x` at the very top is a centered `> x`. A backslash does not help: these three are markup nowhere else, so `\=` is a literal backslash followed by `=`. Start the document with a newline instead -- that newline belongs to the boundary and is dropped, and the character after it is text.
 
   **One character, and only the first.** Alignment is a single value, so a second marker could only contradict the first: `|<>a` is a start-aligned block whose text is `>a`. That is what separates this from a decoration cluster, which reads a run of characters because it has several axes to set -- `:+!*` says three different things, where `|<>` says one thing twice.
 * **Why the cell separator is `^` and the center marker is `=`**

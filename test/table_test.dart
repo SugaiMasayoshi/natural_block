@@ -190,13 +190,17 @@ void main() {
       expect(onlyBlock('~~~A^B~').children.single, isA<TableNode>());
     });
 
-    test('only the first alignment marker is one; the rest are text', () {
-      // 【解説】 表の側でも同じ。`~<` で表が start 寄せになり、続く `=>` は
-      // 最初のセルの本文になる。区切りの側は layout_test.dart が固定する。
+    test('the table and its first cell each take one marker', () {
+      // 【解説】 `~<` で表が start 寄せになる。表の最初のセルはそこで始まる
+      // ので、続く `=` をそのセルの寄せとして読み、残る `>` は本文になる。
+      // 1つの位置が読む寄せは1文字だけ。区切りの側は layout_test.dart。
       final table = onlyTable('~<=>A^B~');
 
       expect(table.align, HorizontalAlign.start);
-      expect(table.children.first.children.first, tableCell('=>A'));
+      expect(
+        table.children.first.children.first,
+        tableCell('>A', HorizontalAlign.center),
+      );
     });
   });
 
@@ -294,8 +298,8 @@ void main() {
         // Both `~` belong to the table, the way both fences belong to a
         // verbatim region. A marker describes the block its separator opens,
         // and a closing delimiter opens none -- so `=` here is just text.
-        // Aligning what follows a table takes a `|`, the same as aligning the
-        // first block of a document does.
+        // Aligning what follows a table takes a `|`: the block goes on past
+        // the table, and a marker is read only where a block begins.
         final document = NaturalBlockParser.parse('~A^B~=after');
 
         final pieces = (document.children.single as ColumnNode).children;

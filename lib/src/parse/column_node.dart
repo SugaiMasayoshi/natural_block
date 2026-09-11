@@ -1,20 +1,11 @@
-import '../horizontal_align.dart';
-import '../layout_symbols.dart';
 import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
 import 'content_node.dart';
 import 'separator.dart';
 
-ColumnNode parseColumnNode(
-  SourceCursor cursor, {
-  String opener = columnSymbol,
-}) {
-  var align = HorizontalAlign.unstated;
-  if (cursor.peek == opener) {
-    cursor.take();
-    align = parseAlign(cursor);
-  }
+ColumnNode parseColumnNode(SourceCursor cursor) {
+  final align = parseAlign(cursor);
 
   if (cursor.peek == '\n') cursor.take();
 

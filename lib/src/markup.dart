@@ -17,9 +17,9 @@ import 'decoration_action.dart';
 import 'layout_symbols.dart';
 import 'parse/verbatim_region.dart';
 
-/// Markup with no closing half, which therefore belongs to what comes after
-/// it: a `|` opens a block, a `^` opens a cell, and each is eaten by the one
-/// it opens.
+/// Markup with no closing half. It stands between two siblings, so it is
+/// eaten by their parent: the document or a table eats a `|`, a row eats a
+/// `^`.
 ///
 /// The README calls these the *separators*.
 const Set<String> unpairedMarkup = {columnSymbol, rowSymbol};

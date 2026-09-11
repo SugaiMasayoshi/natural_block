@@ -6,14 +6,9 @@ import 'column_node.dart';
 RowNode parseRowNode(SourceCursor cursor, ColumnNode first) {
   final cells = [first];
   while (cursor.peek == rowSymbol) {
-    final before = cursor.position;
-
-    cells.add(parseColumnNode(cursor, opener: rowSymbol));
-
-    assert(
-      cursor.position > before,
-      'row cell parse made no progress at ${cursor.position}',
-    );
+    // The `^` between cells is the row's: it separates the row's children.
+    cursor.take();
+    cells.add(parseColumnNode(cursor));
   }
   return RowNode(children: cells);
 }

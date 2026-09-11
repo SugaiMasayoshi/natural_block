@@ -21,6 +21,8 @@ TableNode? parseTableNode(SourceCursor cursor) {
 
   while (!cursor.isEnd && cursor.peek != tableSymbol) {
     final before = cursor.position;
+    // The `|` between rows is the table's: it separates the table's children.
+    if (cursor.peek == columnSymbol) cursor.take();
     final row = parseTableRowNode(cursor);
     if (row != null) rows.add(row);
     assert(

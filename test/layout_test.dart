@@ -446,6 +446,20 @@ void main() {
       );
     });
 
+    test("the first block of a document reads a marker too", () {
+      // 【解説】 寄せは区切りの後ではなく、ブロックの始まりで読む。文書の
+      // 最初のブロックは区切りを持たないが始まりではあるので、`<a` は
+      // start 寄せになる。`=>` は `=` が寄せで、`>` が本文。
+      expect(
+        NaturalBlockParser.parse("<a"),
+        DocumentNode(children: [cell("a", HorizontalAlign.start)]),
+      );
+      expect(
+        NaturalBlockParser.parse("=>"),
+        DocumentNode(children: [cell(">", HorizontalAlign.center)]),
+      );
+    });
+
     test("a row symbol ends the markers rather than being one", () {
       // 【解説】 `^` はマーカーではないので、寄せの並びをそこで終わらせて
       // 新しいセルを開く。`|<^>a` は「end 寄せの塊」ではなく行になる。

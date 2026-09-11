@@ -41,9 +41,13 @@ this repository, which is why the entries below describe changes freely.
 
 ### Alignment
 
-- `<`, `=`, `>` immediately after an unescaped `|`, `^`, or `~` set the block's
-  `HorizontalAlign`. Anywhere else they are ordinary text, so `a > b`, `->`, and
-  `List<String>` need no escaping.
+- `<`, `=`, `>` at the start of a block set its `HorizontalAlign`. A block
+  starts after the `|` or `^` that opens it, after a table's opening `~`, and at
+  the very start of the document, so the first block needs no leading `|` to be
+  aligned. Anywhere else they are ordinary text, so `a > b`, `->`, and
+  `List<String>` need no escaping. The cost is the first character of a
+  document: `=>` there is a centered `>`, and since these three are markup
+  nowhere else a backslash cannot keep it literal -- a leading newline can.
 - One marker, not a run of them: `|<>a` is a start-aligned block whose text is
   `>a`. Alignment is a single value on a single axis, so a second marker could
   only contradict the first, and settling that would be a rule the language did

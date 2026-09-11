@@ -1,4 +1,3 @@
-import '../horizontal_align.dart';
 import '../layout_symbols.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
@@ -13,24 +12,14 @@ import 'separator.dart';
 /// nesting, because the content level never gets to see it.
 const _endsCell = {columnSymbol, rowSymbol, tableSymbol};
 
-/// Reads one cell: the separator that opened it, then everything up to the
-/// next `^`, `|` or `~`.
+/// Reads one cell: everything up to the next `^`, `|` or `~`, which it leaves
+/// for the row or the table -- a separator belongs to the parent of the
+/// things it separates.
 ///
 /// Stops at all three. `~` is among them here and nowhere else, because
 /// inside a table it is the delimiter that ends it.
-///
-/// [opener] is what can open this cell, named by the caller for the same
-/// reason a block's is: a `|` opens a row, so it opens that row's first cell,
-/// and a `^` opens each cell after it.
-TableCellNode parseTableCellNode(
-  SourceCursor cursor, {
-  String opener = columnSymbol,
-}) {
-  var align = HorizontalAlign.unstated;
-  if (cursor.peek == opener) {
-    cursor.take();
-    align = parseAlign(cursor);
-  }
+TableCellNode parseTableCellNode(SourceCursor cursor) {
+  final align = parseAlign(cursor);
 
   // A cell drops one blank line at its start, the same as a block; see the
   // rule in `parse/document.dart`.
