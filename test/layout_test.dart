@@ -435,13 +435,14 @@ void main() {
       expect(nodes, expected);
     });
 
-    test("contradictory markers keep the last one", () {
-      // 【解説】 装飾クラスタと同じ規則。`:!%` が success になるのと同じで、
-      // 後に書いたほうが勝つ。表側の `~<=>` は table_test.dart が固定して
-      // いるので、ここは区切りの側。
+    test("a second marker is ordinary text", () {
+      // 【解説】 寄せは1つの軸の1つの値なので、2文字目は矛盾しか言えない。
+      // どちらを採るかの規則を持たず、読むのは1文字だけにしてある。
+      // 装飾クラスタが並びを読むのは軸が複数あるからで、`:+!*` は3つの
+      // 別のことを言う。`|<>` は同じことを2回言っている。
       expect(
         NaturalBlockParser.parse("|<>a"),
-        DocumentNode(children: [cell("a", HorizontalAlign.end)]),
+        DocumentNode(children: [cell(">a", HorizontalAlign.start)]),
       );
     });
 

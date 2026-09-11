@@ -44,6 +44,11 @@ this repository, which is why the entries below describe changes freely.
 - `<`, `=`, `>` immediately after an unescaped `|`, `^`, or `~` set the block's
   `HorizontalAlign`. Anywhere else they are ordinary text, so `a > b`, `->`, and
   `List<String>` need no escaping.
+- One marker, not a run of them: `|<>a` is a start-aligned block whose text is
+  `>a`. Alignment is a single value on a single axis, so a second marker could
+  only contradict the first, and settling that would be a rule the language did
+  not need. A decoration cluster reads a run because it has several axes --
+  `:+!*` says three different things where `|<>` says one thing twice.
 - `align` is `HorizontalAlign.unstated` when the source wrote no marker,
   which is not the same as `HorizontalAlign.start`. A theme is free to draw
   an unstated block differently, and a block that wrote `<` opts out of

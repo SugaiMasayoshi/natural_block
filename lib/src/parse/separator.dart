@@ -8,12 +8,8 @@ const Map<String, HorizontalAlign> _byChar = {
 };
 
 HorizontalAlign parseAlign(SourceCursor cursor) {
-  var align = HorizontalAlign.unstated;
-  while (!cursor.isEnd) {
-    final marker = _byChar[cursor.peek];
-    if (marker == null) break;
-    align = marker;
-    cursor.take();
-  }
-  return align;
+  final marker = _byChar[cursor.peek];
+  if (marker == null) return HorizontalAlign.unstated;
+  cursor.take();
+  return marker;
 }

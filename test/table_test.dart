@@ -190,10 +190,13 @@ void main() {
       expect(onlyBlock('~~~A^B~').children.single, isA<TableNode>());
     });
 
-    test('contradictory alignment markers keep the last one', () {
+    test('only the first alignment marker is one; the rest are text', () {
+      // 【解説】 表の側でも同じ。`~<` で表が start 寄せになり、続く `=>` は
+      // 最初のセルの本文になる。区切りの側は layout_test.dart が固定する。
       final table = onlyTable('~<=>A^B~');
 
-      expect(table.align, HorizontalAlign.end);
+      expect(table.align, HorizontalAlign.start);
+      expect(table.children.first.children.first, tableCell('=>A'));
     });
   });
 

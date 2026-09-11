@@ -35,6 +35,8 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   ```
 
   That position is the entire trigger -- anywhere else `<`, `=`, and `>` are ordinary text, which matters because `a > b`, `->`, `=>`, and `List<String>` are everywhere in normal prose. An escaped separator leaves a following marker alone too, so `a\^>b` is literally `a^>b`.
+
+  **One character, and only the first.** Alignment is a single value, so a second marker could only contradict the first: `|<>a` is a start-aligned block whose text is `>a`. That is what separates this from a decoration cluster, which reads a run of characters because it has several axes to set -- `:+!*` says three different things, where `|<>` says one thing twice.
 * **Why the cell separator is `^` and the center marker is `=`**
   They used to be the other way round. Three things argued for the swap, in this order.
 
