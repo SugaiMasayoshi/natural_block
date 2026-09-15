@@ -1,25 +1,22 @@
-import '../layout_symbols.dart';
+// 【解説】[読む順 14/23] 表。
+// 【解説】
+// 【解説】 開きと閉じの ~ を両方自分で食べる(囲みは包むもの自身が持つ)。
+// 【解説】 行の間の | も表が食べる。閉じの ~ がなければ文書の終わりまで表。
+// 【解説】 開きの ~ の直後は最初のセルの始まりなので、寄せはセルが読む。
+// 【解説】 次: src/parse/table_row_node.dart
+import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
 import 'table_row_node.dart';
 
-/// Reads the table that opens at the cursor, both `~` included.
-///
-/// A `~` wraps rather than separates, and what wraps belongs to what it
-/// wraps -- exactly as a verbatim region owns both of its fences. It has to:
-/// a table is sized to its own content, so it must know where it stops.
-///
-/// Null when no row had any content.
 TableNode? parseTableNode(SourceCursor cursor) {
-  // Its own opening `~`. What follows is the first cell, marker and all.
   cursor.take();
 
   final rows = <TableRowNode>[];
 
-  while (!cursor.isEnd && cursor.peek != tableSymbol) {
+  while (!cursor.isEnd && cursor.peek != tableChar) {
     final before = cursor.position;
-    // The `|` between rows is the table's: it separates the table's children.
-    if (cursor.peek == columnSymbol) cursor.take();
+    if (cursor.peek == columnChar) cursor.take();
     final row = parseTableRowNode(cursor);
     if (row != null) rows.add(row);
     assert(
@@ -27,11 +24,7 @@ TableNode? parseTableNode(SourceCursor cursor) {
       'table row parse made no progress at ${cursor.position}',
     );
   }
-  if (cursor.peek == tableSymbol) cursor.take();
-
-  // And the newline written after it, which belongs to the boundary; see the
-  // rule in `parse/document.dart`.
-  if (cursor.peek == '\n') cursor.take();
+  if (cursor.peek == tableChar) cursor.take();
 
   if (rows.isEmpty) return null;
   return TableNode(children: rows);

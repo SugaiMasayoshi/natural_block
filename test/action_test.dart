@@ -51,7 +51,7 @@ void main() {
         TextSpanNode(
           text: "赤太字押せる",
           decoration: SpanDecoration(
-            color: SemanticColor.danger,
+            tone: Tone.negative,
             emphasis: true,
             isAction: true,
           ),

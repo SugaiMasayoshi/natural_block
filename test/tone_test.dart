@@ -14,21 +14,21 @@ import 'package:test/test.dart';
 import 'nodes.dart';
 
 void main() {
-  group("SemanticColor & toggle parsing edge cases", () {
+  group("Tone & toggle parsing edge cases", () {
     test("switching between multiple styles in sequence", () {
-      // Each of the three decoration kinds (danger, success, emphasis)
+      // Each of the three decoration kinds (negative, positive, emphasis)
       // toggles on then off in turn, with plain text in between -- verifies
       // they don't interfere with each other across the whole sequence.
       const input = ":!赤:!通常:%緑:%通常:*太字:*";
       final expected = [
         TextSpanNode(
           text: "赤",
-          decoration: SpanDecoration(color: SemanticColor.danger),
+          decoration: SpanDecoration(tone: Tone.negative),
         ),
         TextSpanNode(text: "通常"),
         TextSpanNode(
           text: "緑",
-          decoration: SpanDecoration(color: SemanticColor.success),
+          decoration: SpanDecoration(tone: Tone.positive),
         ),
         TextSpanNode(text: "通常"),
         TextSpanNode(text: "太字", decoration: SpanDecoration(emphasis: true)),
@@ -38,18 +38,18 @@ void main() {
     });
 
     test("overwriting a style directly with a different one", () {
-      // Danger is closed by opening success directly -- no explicit `:!` or
+      // Negative is closed by opening positive directly -- no explicit `:!` or
       // `::` reset is written in between -- so switching colors mid-stream
       // must not require closing the previous one first.
       const input = ":!危険から:%成功へ切り替え:%最後は通常";
       final expected = [
         TextSpanNode(
           text: "危険から",
-          decoration: SpanDecoration(color: SemanticColor.danger),
+          decoration: SpanDecoration(tone: Tone.negative),
         ),
         TextSpanNode(
           text: "成功へ切り替え",
-          decoration: SpanDecoration(color: SemanticColor.success),
+          decoration: SpanDecoration(tone: Tone.positive),
         ),
         TextSpanNode(text: "最後は通常"),
       ];
@@ -58,7 +58,7 @@ void main() {
     });
 
     test("an unclosed symbol runs to the end of the text", () {
-      // Danger is opened but never explicitly closed -- it must stay active
+      // Negative is opened but never explicitly closed -- it must stay active
       // all the way to the end of the input rather than being dropped or
       // silently reverting to plain.
       const input = "通常テキスト:!ここから文末までずっと危険状態";
@@ -66,7 +66,7 @@ void main() {
         TextSpanNode(text: "通常テキスト"),
         TextSpanNode(
           text: "ここから文末までずっと危険状態",
-          decoration: SpanDecoration(color: SemanticColor.danger),
+          decoration: SpanDecoration(tone: Tone.negative),
         ),
       ];
 
@@ -74,14 +74,14 @@ void main() {
     });
 
     test("the same symbol repeated in a row", () {
-      // The trailing ":!!" (one cluster, "!" doubled) toggles danger on then
+      // The trailing ":!!" (one cluster, "!" doubled) toggles negative on then
       // immediately off within the same cluster; verifies no empty-text
       // node is created and that it correctly falls back to plain.
       const input = ":!危険:!普通:!!普通";
       final expected = [
         TextSpanNode(
           text: "危険",
-          decoration: SpanDecoration(color: SemanticColor.danger),
+          decoration: SpanDecoration(tone: Tone.negative),
         ),
         TextSpanNode(text: "普通"),
         TextSpanNode(text: "普通"),
@@ -91,7 +91,7 @@ void main() {
     });
 
     test("style independence between cells inside a Row block", () {
-      // Danger is opened and closed inside the left cell only -- it must
+      // Negative is opened and closed inside the left cell only -- it must
       // not leak across the `^` boundary into the right cell.
       const input = "||:!左は危険:!^右は通常||";
       final expected = DocumentNode(
@@ -104,7 +104,7 @@ void main() {
                     children: [
                       TextSpanNode(
                         text: "左は危険",
-                        decoration: SpanDecoration(color: SemanticColor.danger),
+                        decoration: SpanDecoration(tone: Tone.negative),
                       ),
                     ],
                   ),
@@ -137,7 +137,7 @@ void main() {
                 children: [
                   TextSpanNode(
                     text: "警告: システムエラー",
-                    decoration: SpanDecoration(color: SemanticColor.danger),
+                    decoration: SpanDecoration(tone: Tone.negative),
                   ),
                   TextSpanNode(text: "\n"),
                   TextSpanNode(
@@ -158,9 +158,7 @@ void main() {
                       TextSpanNode(text: "解決策: "),
                       TextSpanNode(
                         text: "管理者へ連絡",
-                        decoration: SpanDecoration(
-                          color: SemanticColor.success,
-                        ),
+                        decoration: SpanDecoration(tone: Tone.positive),
                       ),
                     ],
                   ),
@@ -183,10 +181,7 @@ void main() {
       final expected = [
         TextSpanNode(
           text: "緊急対応",
-          decoration: SpanDecoration(
-            color: SemanticColor.danger,
-            emphasis: true,
-          ),
+          decoration: SpanDecoration(tone: Tone.negative, emphasis: true),
         ),
       ];
 
@@ -209,10 +204,7 @@ void main() {
         final expected = [
           TextSpanNode(
             text: "緊急",
-            decoration: SpanDecoration(
-              color: SemanticColor.danger,
-              emphasis: true,
-            ),
+            decoration: SpanDecoration(tone: Tone.negative, emphasis: true),
           ),
           TextSpanNode(text: "普通"),
         ];
@@ -240,15 +232,12 @@ void main() {
       // without a `:` reset landing in between them -- writing separate
       // `:X` tokens with no text separating them is not equivalent (see
       // "a combined cluster differs from adjacent separate clusters" below).
-      test("a combined :!* cluster applies danger and emphasis together", () {
+      test("a combined :!* cluster applies negative and emphasis together", () {
         const input = ":!*緊急対応";
         final expected = [
           TextSpanNode(
             text: "緊急対応",
-            decoration: SpanDecoration(
-              color: SemanticColor.danger,
-              emphasis: true,
-            ),
+            decoration: SpanDecoration(tone: Tone.negative, emphasis: true),
           ),
         ];
 
@@ -262,7 +251,7 @@ void main() {
             text: "重要",
             decoration: SpanDecoration(
               sizeOffset: 1,
-              color: SemanticColor.danger,
+              tone: Tone.negative,
               emphasis: true,
             ),
           ),
@@ -277,7 +266,7 @@ void main() {
         // tokens back to back, with no text between them, is not the same
         // as combining them in one cluster: the second `:` in ":!:*" is
         // absorbed into the first cluster as a reset before "*" opens
-        // emphasis, wiping out danger. To combine symbols without a reset
+        // emphasis, wiping out negative. To combine symbols without a reset
         // in between, write them in one cluster (`:!*`).
         const combined = ":!*結果";
         const adjacentSeparate = ":!:*結果";
@@ -291,7 +280,7 @@ void main() {
                     TextSpanNode(
                       text: "結果",
                       decoration: SpanDecoration(
-                        color: SemanticColor.danger,
+                        tone: Tone.negative,
                         emphasis: true,
                       ),
                     ),
@@ -323,13 +312,13 @@ void main() {
       });
 
       test("a : right before :: ends its own cluster rather than being swallowed by the reset", () {
-        // ":!" (danger) then "::" (reset) are two separate clusters -- the
+        // ":!" (negative) then "::" (reset) are two separate clusters -- the
         // reset must not be absorbed into the first cluster's payload.
         const input = ":!危険::普通";
         final expected = [
           TextSpanNode(
             text: "危険",
-            decoration: SpanDecoration(color: SemanticColor.danger),
+            decoration: SpanDecoration(tone: Tone.negative),
           ),
           TextSpanNode(text: "普通"),
         ];

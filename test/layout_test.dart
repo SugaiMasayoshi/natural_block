@@ -421,7 +421,7 @@ void main() {
                 children: [
                   TextSpanNode(
                     text: "赤い数字",
-                    decoration: SpanDecoration(color: SemanticColor.danger),
+                    decoration: SpanDecoration(tone: Tone.negative),
                   ),
                 ],
               ),

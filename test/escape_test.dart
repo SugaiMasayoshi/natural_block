@@ -7,7 +7,7 @@
 // 【解説】 裸の + - ! ? % * が素通しであるテストが並んでいるのは冗長ではない。
 // 【解説】 これがこの言語の存在理由そのもので、1つでも崩れたら C++ や 100% が
 // 【解説】 書けなくなる。守っている対象が大きいので、テストも厚くしてある。
-// 【解説】 次: test/verbatim_test.dart
+// 【解説】 次: test/raw_test.dart
 
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
@@ -92,12 +92,12 @@ void main() {
     });
 
     group("Escaping the `:`-prefixed decoration tokens", () {
-      test("an escaped :! is parsed as two literal characters, not danger coloring", () {
+      test("an escaped :! is parsed as two literal characters, not negative coloring", () {
         const input = r"こんにちは\:!世界";
         final expected = [
           TextSpanNode(
             text: "こんにちは:!世界",
-            decoration: SpanDecoration(color: SemanticColor.none),
+            decoration: SpanDecoration(tone: Tone.none),
           ),
         ];
 
@@ -111,7 +111,7 @@ void main() {
           final expected = [
             TextSpanNode(
               text: "危険::普通",
-              decoration: SpanDecoration(color: SemanticColor.danger),
+              decoration: SpanDecoration(tone: Tone.negative),
             ),
           ];
 
@@ -207,7 +207,7 @@ void main() {
           final expected = [
             TextSpanNode(
               text: "重要:!警告",
-              decoration: SpanDecoration(color: SemanticColor.danger),
+              decoration: SpanDecoration(tone: Tone.negative),
             ),
           ];
 
@@ -221,7 +221,7 @@ void main() {
         final expected = [
           TextSpanNode(
             text: ":",
-            decoration: SpanDecoration(color: SemanticColor.danger),
+            decoration: SpanDecoration(tone: Tone.negative),
           ),
         ];
 

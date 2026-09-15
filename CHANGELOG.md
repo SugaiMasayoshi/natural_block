@@ -6,9 +6,9 @@ this repository, which is why the entries below describe changes freely.
 
 ### Layout
 
-- `|` separates vertical blocks, `^` separates the cells of a horizontal row,
-  and `~` delimits a table (see Tables). The three form one hierarchy: each
-  ends everything below it.
+- `|` separates vertical blocks and `^` the cells of a horizontal row. `~`
+  wraps a table, which sits inside a block rather than beside one (see
+  Tables).
 - A run of `^`-joined cells becomes one `RowNode`, so `a^b|c^d` is two rows
   rather than one four-cell row.
 - An empty Column block contributes no node; an empty Row cell keeps its
@@ -61,7 +61,7 @@ this repository, which is why the entries below describe changes freely.
   an unstated block differently, and a block that wrote `<` opts out of
   that. A value rather than `null`, because the tree records what the
   source said and "nothing was written here" is something it said --
-  the same shape as `SemanticColor.none`.
+  the same shape as `Tone.none`.
 - The cell separator is `^` and the center marker is `=`; they were once the
   other way round. Three things argued for the swap. `<` `=` `>` is a set
   that reads itself -- `<` leans left, `>` leans right, `=` is balanced --
@@ -76,13 +76,10 @@ this repository, which is why the entries below describe changes freely.
 
 ### Tables
 
-- `~` is the third layout symbol, one level above `|`: `^` separates the
-  cells of a row and `|` separates rows and blocks, while `~` *delimits* --
-  it wraps a table, and both of its `~` belong to that table, the way both
-  fences belong to a verbatim region. Each symbol still ends everything
-  below it, so a `~` ends whatever preceded it; it just opens no block of
-  its own, which is why a marker after the closing one is ordinary text and
-  aligning what follows a table takes a `|`.
+  `~` wraps a table, and both of its `~` belong to that table, the way both
+  fences belong to a raw region. It opens no block of its own, which is
+  why a marker after the closing one is ordinary text and aligning what
+  follows a table takes a `|`.
 - **A table ends at `~` or at the end of the document, and nowhere else.**
   Everything between belongs to it: a short row does not end it, and a line
   with no `^` becomes a one-cell row. The table is as wide as its widest row.
@@ -111,26 +108,34 @@ this repository, which is why the entries below describe changes freely.
 
 ### Decoration
 
-- `:`-led clusters: `:+` / `:-` size steps, `:!` danger, `:%` success,
+- `:`-led clusters: `:+` / `:-` size steps, `:!` negative, `:%` positive,
   `:*` emphasis, `:@` actionable, `::` reset.
-- Size, color, emphasis, and actionability are independent axes; only a
-  layout symbol resets everything.
+- Size, tone, emphasis, and actionability are independent axes; only `|`,
+  `^` and `~` reset everything.
 - A bare `+ - ! % ? * @` is always literal, so `C++`, `100%`, `Really?!`,
   and `you@example.com` need no escaping. This is what the `:` prefix buys.
 - `:@...:@` marks a run actionable without saying what acting on it means.
   The run's own text is the whole payload.
-- There are two semantic colors, not three. `:?` (info) was dropped. It named
+- There are two tones, not three. `:?` (info) was dropped. It named
   nothing a writer means -- every sentence is information -- and it rendered
   in the same colour as `:@`, so it was an action span without the underline.
   Three documents written against this spec by people seeing it for the first
   time used it once between them, and that once was to set an aside apart from
-  the body, which is a block's job rather than a colour's. `danger` and
-  `success` stay because "careful" and "done" are things a writer means; note
-  that they are not opposites, which is a loose end rather than a design.
-  Dropping it also frees `?`, one of the rarest characters left.
+  the body, which is a block's job rather than a colour's. The other two stay
+  because "careful" and "done" are things a writer means. Dropping it also
+  frees `?`, one of the rarest characters left.
+- The two are the ends of one axis, and named that way: `Tone.negative` and
+  `Tone.positive`, with `Tone.none` between. They were `SemanticColor.danger`
+  and `.success`, which were not opposites -- a danger is a risk ahead, a
+  success an outcome behind -- although the parser already kept them in one
+  field, where writing one replaces the other. `Tone` rather than a colour,
+  because what a writer says is good or bad; red or green is the renderer's
+  choice.
 
-### Verbatim regions
+### Raw regions
 
+- Called raw rather than verbatim: nothing inside is a separator, a
+  decoration or an escape -- the promise a Dart raw string makes too.
 - A pair of `` ` `` fences marks text taken exactly as written -- no
   separators, no decoration, no escapes. This is what makes code writable:
   without it `cat a | grep b` parses as three blocks. It used to reach
@@ -142,11 +147,16 @@ this repository, which is why the entries below describe changes freely.
   backticks -- how the language quotes its own syntax.
 - The newline directly against each fence belongs to that fence, so a fence
   can sit on its own line.
-- An unclosed fence is **not** a region: it stays ordinary text and later
-  separators still work, so a stray backtick cannot swallow anything.
-- A region that stands alone on its line is a `VerbatimNode`, a block that
+- A fence with nothing to close it opens a region all the same, running to
+  the end of the document -- as a table with no closing `~` does. Whether a
+  region opens is settled by the fence alone, so what has been read is
+  always enough to know where you are. The cost is that a stray backtick
+  swallows the rest of the document, separators included; `` \` `` writes a
+  literal one. It used to stay ordinary text, which took a search to the
+  end of the document to find out.
+- A region that stands alone on its line is a `RawNode`, a block that
   sits among the lines of its column; one written inside a sentence is a
-  `VerbatimSpanNode` beside the styled runs. One syntax, and the tree
+  `RawSpanNode` beside the styled runs. One syntax, and the tree
   records which of the two places it was written in.
 - `` ` `` is therefore an always-active character; a literal one in prose is
   written `` \` ``.
@@ -162,33 +172,36 @@ this repository, which is why the entries below describe changes freely.
 
 - `DocumentNode` (the root) holds `LayoutNode`s -- `ColumnNode` and
   `RowNode`, the two that say how what is inside them is arranged. A
-  `ColumnNode` holds `ContentNode`s: `TextNode`, `VerbatimNode` and
-  `TableNode`.
+  `ColumnNode` holds `ContentNode`s: `TextNode`, `RawNode` and
+  `TableNode`. The first two are also `FlatContentNode`s -- content that
+  holds no block -- and that is all a table's cell can hold.
 - **A table is content.** It is written between a pair of `~` and arrives
-  already formatted, exactly like a verbatim region, so it sits *inside* a
+  already formatted, exactly like a raw region, so it sits *inside* a
   block rather than beside one. That is what lets one block hold text, a
   table, and more text -- and what makes `|=` reach all of it. A table can
   also go in a row's cell, which it could not when it was a block itself.
 - A table has its own rows and cells: `TableRowNode` and `TableCellNode`.
   They are not `RowNode` and `ColumnNode`, which divide the width they are
   given -- a table's line up with the rows above and below instead. Their
-  own types are also what keeps a table out of a table: a cell is read by
-  the one content parse that has no branch for one, so a `~` met inside a
-  table is the one that ends it and never one that opens another.
-- A `TextNode` holds `InlineNode`s: `TextSpanNode` and `VerbatimSpanNode`.
+  own types are also what keeps a table out of a table: a cell holds only
+  `FlatContentNode`s, so a table in a cell does not compile, and a cell is
+  read by the one content parse that has no branch for one. A `~` met
+  inside a table is therefore the one that ends it and never one that
+  opens another.
+- A `TextNode` holds `InlineNode`s: `TextSpanNode` and `RawSpanNode`.
 - A `TextSpanNode` holds its text and one `SpanDecoration` -- the size
-  offset, the semantic color, and the two flags -- rather than four separate
+  offset, the tone, and the two flags -- rather than four separate
   fields. It is one thing: the very object the parser carries while reading,
   so a run's decoration and the reader's current decoration are not two ideas
   that happen to match. The type is public because the rest of the tree's
-  vocabulary (`HorizontalAlign`, `SemanticColor`) is, and a consumer writing its
+  vocabulary (`HorizontalAlign`, `Tone`) is, and a consumer writing its
   own builder should be able to name what it is handed.
   Neither is a `ContentNode` -- a styled run only exists inside a line --
   so misplacing one is a compile error.
 - **Nothing in the tree corresponds to a line.** A newline is a character, so
   a `TextNode` runs across as many of them as the author wrote -- a block of
   three lines is one node holding two `\n`s. What divides a column's children
-  is a verbatim region written on a line of its own, and nothing else. The
+  is a raw region written on a line of its own, and nothing else. The
   type was called `LineNode` and is now `ContentNode`, because the old name
   suggested a per-line structure that has never existed and quietly shaped
   design discussions about headings and list items, both of which would need
@@ -206,7 +219,7 @@ this repository, which is why the entries below describe changes freely.
   node class and no parsing at all -- one file, because `sealed` requires
   every subtype to live in the same library, which is the whole reason and
   not privacy. `src/parse/` holds one library per node, plus the readings
-  several nodes share -- alignment markers, decoration clusters, verbatim
+  several nodes share -- alignment markers, decoration clusters, raw
   regions. Their top-level
   `parseColumnNode`-style functions are ordinary public names inside `src/`
   and reach nobody outside it: `NaturalBlockParser.parse` is the only door.
@@ -219,27 +232,22 @@ this repository, which is why the entries below describe changes freely.
   front of anything that is not its own. A separator belongs to the parent
   of the things it separates: the document and a table eat the `|` between
   their children, a row eats the `^` between its cells. A delimiter belongs
-  to what it wraps: a table eats both of its `~`, a verbatim region both of
+  to what it wraps: a table eats both of its `~`, a raw region both of
   its fences. There is no assembly pass and no shared mutable state.
-- One consequence of that protocol, worth naming: several levels ask about
-  the same position before anyone consumes it. Four levels ask whether a
-  verbatim region opens at a given fence, because a child stops in front of
-  what is not its own and its owner then asks again. Asking is made cheap
-  rather than remembered: finding the closing fence builds no string, and
-  only the level that consumes the region cuts the text out. An earlier
-  version cached the answer inside the cursor instead, which bought about
-  1.15x on a document that is mostly code blocks and cost the cursor the one
-  piece of this language's grammar it had no other reason to know.
-  `benchmark/verbatim_cost.dart` is the measurement.
+- Nothing searches ahead. Whether something opens is settled by what has
+  been read and at most the character after it: a fence opens a region on
+  sight, and a `:` opens a cluster when a decoration character follows. An
+  earlier version opened a region only once its closing fence had been
+  found, so four levels searched ahead for the same fence.
 - What that cost and what it bought, measured rather than claimed. Counting
   code lines only, blanks and comments excluded: of the sixteen functions
   that do the parsing, fifteen are 22 lines or fewer, and the one outlier is
   `parseTextSpanNode` at 27 -- the run of styled text, which is where
-  decoration, newlines and every layout symbol meet. The separated parser it
+  decoration, newlines and every symbol meet. The separated parser it
   replaced did that same reading in one function of 90 lines, and its entry
   point was 36. `lib` went from 581 code lines to 558.
 - `SourceCursor` is one position in the source, the normalizing of line
-  endings and the reading of escapes, and nothing else -- 43 lines,
+  endings and the reading of escapes, and nothing else -- 34 lines,
   importing none of the syntax. Which
   characters are markup is passed in, because it is a fact about the grammar
   and because it is not even constant: `%` is prose in a sentence and a
@@ -247,15 +255,29 @@ this repository, which is why the entries below describe changes freely.
   being the one rule that changes what a character *is*: past a backslash
   there is no symbol left for a node to see.
 - Everything else that reads the source is a node saying what it is.
-  `verbatimNodeOpensAt` and `verbatimSpanNodeOpensAt` answer whether one of
-  those starts here -- the same fence, told apart by whether it was written
-  on a line of its own. An alignment marker is read by `parseAlign` at the
+  Whether a raw region is a block or a run is settled by whoever dispatches
+  it, from `cursor.atLineStart` -- the same fence, told apart by whether it
+  was written on a line of its own. An alignment marker is read by `parseAlign` at the
   start of a column or a table cell, once whoever owns the symbol that
   opened the block has eaten it.
 - What counts as markup is stated in one place, `src/markup.dart`, grouped
-  by whether a symbol comes in a pair -- which is what decides who eats it.
-  A run of text is read against `textMarkup`, a decoration cluster against
-  the wider `clusterMarkup`. The difference between the two *is* the rule
-  that `C++` and `100%` are prose: `+` and `%` are absent from the first set.
+  by the node each symbol belongs to -- which is what decides who eats it.
+  A layout character (`|`, `^`, in `layoutChars`) sits between nodes and
+  belongs to none of them, so the parent that arranges them eats it. A
+  content character (`~`, `` ` ``, in `contentChars`) is part of its node,
+  which eats both ends -- it is sized to its own content, so it has to know
+  where it stops. Coming in a pair is the consequence, not the reason.
+  The characters are defined there too, named for the construct each
+  belongs to -- `columnChar`, `rowChar`, `tableChar` -- rather than for what
+  it does, which varies: `|` begins a block as well as ending one, and `:`
+  opens a cluster but resets inside one. A construct name also survives
+  swapping the character, as `=` and `^` once were.
+  A run of text is read against `textMarkup`, and `+` and `%` are absent
+  from it -- which *is* the rule that `C++` and `100%` are prose. Inside a
+  cluster they are live, so a backslash in front of one there is the
+  cluster's to eat, and the character is left for the run as text -- the
+  same shape as `parseAlign` eating the backslash before a marker. Whoever
+  alone would have read a character as markup eats the backslash that
+  cancels it.
 - `README.md`'s claims are executed as tests (`test/readme_test.dart`), so a
   statement in it that stops being true fails the suite.

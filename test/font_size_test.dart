@@ -1,6 +1,6 @@
 // 【解説】[テスト7/21] サイズ。他の軸と違って加算であることの確認。
 // 【解説】
-// 【解説】 色・強調・アクションはトグルだがサイズだけは +1/-1 の加算で、
+// 【解説】 トーン・強調・アクションはトグルだがサイズだけは +1/-1 の加算で、
 // 【解説】 :: でも消えない。この非対称は意図的で、独立した軸だという主張。
 // 【解説】 :+++ が +3 になるのは「クラスタは同じ文字を続けられる」だけの
 // 【解説】 帰結で、サイズ専用の規則があるわけではない。
@@ -77,10 +77,7 @@ void main() {
           TextSpanNode(text: "大きく", decoration: SpanDecoration(sizeOffset: 2)),
           TextSpanNode(
             text: "危険",
-            decoration: SpanDecoration(
-              color: SemanticColor.danger,
-              sizeOffset: 2,
-            ),
+            decoration: SpanDecoration(tone: Tone.negative, sizeOffset: 2),
           ),
         ];
 
@@ -94,17 +91,11 @@ void main() {
           final expected = [
             TextSpanNode(
               text: "危険状態",
-              decoration: SpanDecoration(
-                color: SemanticColor.danger,
-                sizeOffset: 0,
-              ),
+              decoration: SpanDecoration(tone: Tone.negative, sizeOffset: 0),
             ),
             TextSpanNode(
               text: "大きく",
-              decoration: SpanDecoration(
-                color: SemanticColor.danger,
-                sizeOffset: 2,
-              ),
+              decoration: SpanDecoration(tone: Tone.negative, sizeOffset: 2),
             ),
           ];
 
@@ -117,21 +108,15 @@ void main() {
         final expected = [
           TextSpanNode(
             text: "重要な警告",
-            decoration: SpanDecoration(
-              color: SemanticColor.danger,
-              emphasis: true,
-            ),
+            decoration: SpanDecoration(tone: Tone.negative, emphasis: true),
           ),
           TextSpanNode(
             text: "危険は継続",
-            decoration: SpanDecoration(
-              color: SemanticColor.danger,
-              emphasis: false,
-            ),
+            decoration: SpanDecoration(tone: Tone.negative, emphasis: false),
           ),
           TextSpanNode(
             text: "普通",
-            decoration: SpanDecoration(color: SemanticColor.none),
+            decoration: SpanDecoration(tone: Tone.none),
           ),
         ];
 
@@ -145,7 +130,7 @@ void main() {
             text: "重要",
             decoration: SpanDecoration(
               sizeOffset: 2,
-              color: SemanticColor.danger,
+              tone: Tone.negative,
               emphasis: true,
             ),
           ),

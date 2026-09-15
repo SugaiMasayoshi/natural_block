@@ -1,41 +1,33 @@
-import '../layout_symbols.dart';
+// 【解説】[読む順 16/23] 表のセル = 寄せ + 中身。列(10番)とほぼ同じ。
+// 【解説】
+// 【解説】 違いは中身の振り分け。セルは表の分岐がない 17番を使い、型も
+// 【解説】 FlatContentNode しか持てないので、表は入れ子にならない。~ でも止まる
+// 【解説】 (_endsCell)のは、表の終わりがセルの終わりでもあるから。
+// 【解説】 改行の扱いは列(10番)と同じ。
+// 【解説】 次: src/parse/flat_content_node.dart
+import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
 import 'align.dart';
-import 'content_node.dart';
+import 'flat_content_node.dart';
 
-/// What ends a cell: the two separators, and the `~` that ends the table
-/// around it.
-///
-/// That `~` is the one thing a cell stops at which a block reads through, and
-/// it is a guard rather than a boundary -- it is what keeps a table from
-/// nesting, because the content level never gets to see it.
-const _endsCell = {columnSymbol, rowSymbol, tableSymbol};
+const _endsCell = {columnChar, rowChar, tableChar};
 
-/// Reads one cell: everything up to the next `^`, `|` or `~`, which it leaves
-/// for the row or the table -- a separator belongs to the parent of the
-/// things it separates.
-///
-/// Stops at all three. `~` is among them here and nowhere else, because
-/// inside a table it is the delimiter that ends it.
 TableCellNode parseTableCellNode(SourceCursor cursor) {
   final align = parseAlign(cursor);
-
-  // A cell drops one blank line at its start, the same as a block; see the
-  // rule in `parse/document.dart`.
+  final children = <FlatContentNode>[];
   if (cursor.peek == '\n') cursor.take();
-
-  final content = <ContentNode>[];
 
   while (!cursor.isEnd && !_endsCell.contains(cursor.peek)) {
     final before = cursor.position;
-    final piece = parseContentNode(cursor);
-    if (piece != null) content.add(piece);
+    final content = parseFlatContentNode(cursor);
+    if (content != null) children.add(content);
+    if (cursor.peek == '\n') cursor.take();
     assert(
       cursor.position > before,
       'cell content parse made no progress at ${cursor.position}',
     );
   }
 
-  return TableCellNode(children: content, align: align);
+  return TableCellNode(children: children, align: align);
 }

@@ -11,7 +11,7 @@
 // 【解説】
 // 【解説】 最後の group は「1行だけの表」「1列だけの表」など、利用側が手で
 // 【解説】 組める形。パーサからは出てこないが、レンダラは受け取りうる。
-// 【解説】 次: test/semantic_color_test.dart
+// 【解説】 次: test/tone_test.dart
 
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
@@ -94,7 +94,7 @@ void main() {
       expect(NaturalBlockParser.parse(r'A \~ B').children, [block(r'A ~ B')]);
     });
 
-    test('a `~` inside a verbatim region opens nothing', () {
+    test('a `~` inside a raw region opens nothing', () {
       expect(
         NaturalBlockParser.parse('`A ~ B`').children.single,
         isA<ColumnNode>(),
@@ -291,7 +291,7 @@ void main() {
       'the `~` that closes a table opens nothing, so it takes no marker',
       () {
         // Both `~` belong to the table, the way both fences belong to a
-        // verbatim region. A marker describes the block its separator opens,
+        // raw region. A marker describes the block its separator opens,
         // and a closing delimiter opens none -- so `=` here is just text.
         // Aligning what follows a table takes a `|`: the block goes on past
         // the table, and a marker is read only where a block begins.

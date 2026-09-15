@@ -1,4 +1,4 @@
-// 【解説】[テスト4/21] verbatim 区間。この言語で最後に足した構文。
+// 【解説】[テスト4/21] raw 区間。この言語で最後に足した構文。
 // 【解説】
 // 【解説】 冒頭の group 名が「なぜ存在するか」になっているのが読みどころ。
 // 【解説】 final x = a == b ? 1 : 2; は区間が無ければ4セルの行になる。
@@ -9,8 +9,8 @@
 // 【解説】 同じ1つの構文で書ける。ブロック用とインライン用を分けなかった理由で、
 // 【解説】 分けると同じ概念が2つになる。どう見えるかは置かれ方で描画側が決める。
 // 【解説】
-// 【解説】 閉じ忘れが区間にならないことも固定している。飲み込む失敗より、
-// 【解説】 何も起きない失敗のほうが良い、という判断。
+// 【解説】 閉じ忘れは文書の終わりまで区間になる。表の ~ と同じで、読んだもの
+// 【解説】 だけで今どこにいるかが決まる、という判断。
 // 【解説】 次: test/table_test.dart
 
 import 'package:natural_block/natural_block.dart';
@@ -21,13 +21,13 @@ import 'nodes.dart';
 void main() {
   const bs = r'\';
 
-  /// The one verbatim region a source parses to.
-  VerbatimNode onlyRegion(String source) =>
-      onlyBlock(source).children.single as VerbatimNode;
+  /// The one raw region a source parses to.
+  RawNode onlyRegion(String source) =>
+      onlyBlock(source).children.single as RawNode;
 
   group('why this exists: code survives', () {
     test('a line of code full of `=` now needs no region at all', () {
-      // This used to be the headline argument for verbatim: while `=`
+      // This used to be the headline argument for raw regions: while `=`
       // separated cells, `final x = a == b ? 1 : 2;` parsed as a four-cell
       // row, and `=` is what code is made of. Moving the separator to `^`
       // took the argument away, which is the point -- code in prose survives
@@ -73,7 +73,7 @@ void main() {
         TextNode(
           children: [
             TextSpanNode(text: '比較は'),
-            VerbatimSpanNode(text: 'a == b'),
+            RawSpanNode(text: 'a == b'),
             TextSpanNode(text: 'です'),
           ],
         ),
@@ -83,13 +83,13 @@ void main() {
     test('a region standing alone is the whole line', () {
       // Same node, different placement -- which is what lets a renderer
       // draw this one as a block and the one above as a run of text.
-      expect(onlyBlock('`code`').children, [VerbatimNode(text: 'code')]);
+      expect(onlyBlock('`code`').children, [RawNode(text: 'code')]);
     });
 
     test('a multi-line region stays one node', () {
       // Every level that stops at a boundary has to know about regions
       // too, or this would be cut into a piece per line with nothing left
-      // to rejoin it. `verbatimNodeOpensAt` is the single answer they all
+      // to rejoin it. `cursor.atLineStart` is the single answer they all
       // ask for.
       expect(
         onlyRegion('`\nif (x) {\n  y();\n}\n`').text,
@@ -102,7 +102,7 @@ void main() {
 
       expect(children, [
         TextSpanNode(text: 'before'),
-        VerbatimSpanNode(text: 'code'),
+        RawSpanNode(text: 'code'),
         TextSpanNode(text: 'after'),
       ]);
     });
@@ -118,7 +118,7 @@ void main() {
 
       expect(
         (cell as TextNode).children.single,
-        VerbatimSpanNode(text: 'a|b'),
+        RawSpanNode(text: 'a|b'),
         reason: 'the pipe inside the region did not split the cell',
       );
     });
@@ -131,7 +131,7 @@ void main() {
         TextSpanNode(text: 'bold', decoration: SpanDecoration(emphasis: true)),
       );
       expect(children[1], TextSpanNode(text: 'and'));
-      expect(children[2], VerbatimSpanNode(text: 'code'));
+      expect(children[2], RawSpanNode(text: 'code'));
     });
 
     test('a region opening right after a cluster is still a region', () {
@@ -142,7 +142,7 @@ void main() {
       // read from the source, and the cluster is there even though it
       // produces no text of its own.
       final children = onlyLine(':!`code`').children;
-      expect(children, [VerbatimSpanNode(text: 'code')]);
+      expect(children, [RawSpanNode(text: 'code')]);
     });
   });
 
@@ -162,7 +162,7 @@ void main() {
       // nobody wrote.
       expect(onlyBlock('文章\n`code`\n続き').children, [
         line('文章'),
-        VerbatimNode(text: 'code'),
+        RawNode(text: 'code'),
         line('続き'),
       ]);
     });
@@ -174,28 +174,31 @@ void main() {
 
     test('an empty region contributes no node', () {
       expect(
-        NaturalBlockParser.parse('a``b'),
-        DocumentNode(children: [block('a``b')]),
+        NaturalBlockParser.parse('a`\n`'),
+        DocumentNode(children: [block('a')]),
       );
     });
   });
 
-  group('an unclosed fence is not a region', () {
-    test('it stays ordinary text', () {
-      // Nothing is swallowed: a stray backtick cannot eat a document. The
-      // fence is examined without being consumed, and only a closed one
-      // commits -- so every level that asks gets the same answer.
-      expect(
-        NaturalBlockParser.parse('a `b'),
-        DocumentNode(children: [block('a `b')]),
-      );
+  group('an unclosed fence runs to the end of the document', () {
+    test('it opens a region all the same', () {
+      // The fence alone settles it, the same as a table's `~`: nothing
+      // searches ahead for a closer.
+      expect(onlyLine('a `b').children, [
+        TextSpanNode(text: 'a '),
+        RawSpanNode(text: 'b'),
+      ]);
     });
 
-    test('separators after it still work', () {
-      expect(
-        NaturalBlockParser.parse('a `b | c'),
-        DocumentNode(children: [block('a `b '), block(' c')]),
-      );
+    test('separators after it are inside the region', () {
+      expect(onlyLine('a `b | c').children, [
+        TextSpanNode(text: 'a '),
+        RawSpanNode(text: 'b | c'),
+      ]);
+    });
+
+    test('on a line of its own it is a block region', () {
+      expect(onlyRegion('`\ncode\n').text, 'code');
     });
   });
 

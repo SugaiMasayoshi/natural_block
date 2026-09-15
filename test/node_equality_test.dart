@@ -82,23 +82,17 @@ void main() {
       'TextSpanNode': (
         TextSpanNode(
           text: '重要',
-          decoration: SpanDecoration(
-            sizeOffset: 1,
-            color: SemanticColor.danger,
-          ),
+          decoration: SpanDecoration(sizeOffset: 1, tone: Tone.negative),
         ),
         TextSpanNode(
           text: '重要',
-          decoration: SpanDecoration(
-            sizeOffset: 1,
-            color: SemanticColor.success,
-          ),
+          decoration: SpanDecoration(sizeOffset: 1, tone: Tone.positive),
         ),
-        'the colour is part of the span',
+        'the tone is part of the span',
       ),
-      'VerbatimNode': (
-        VerbatimNode(text: 'code'),
-        VerbatimNode(text: 'other'),
+      'RawNode': (
+        RawNode(text: 'code'),
+        RawNode(text: 'other'),
         'the text is the whole of a region',
       ),
     };
@@ -144,14 +138,14 @@ void main() {
         text: "本文",
         decoration: SpanDecoration(
           sizeOffset: 1,
-          color: SemanticColor.danger,
+          tone: Tone.negative,
           emphasis: true,
         ),
       );
 
       expect(base == base.copyWith(text: "別文"), isFalse);
       expect(base == base.copyWith(sizeOffset: 2), isFalse);
-      expect(base == base.copyWith(color: SemanticColor.success), isFalse);
+      expect(base == base.copyWith(tone: Tone.positive), isFalse);
       expect(base == base.copyWith(emphasis: false), isFalse);
     });
 
@@ -185,14 +179,14 @@ extension on TextSpanNode {
   TextSpanNode copyWith({
     String? text,
     int? sizeOffset,
-    SemanticColor? color,
+    Tone? tone,
     bool? emphasis,
   }) {
     return TextSpanNode(
       text: text ?? this.text,
       decoration: SpanDecoration(
         sizeOffset: sizeOffset ?? decoration.sizeOffset,
-        color: color ?? decoration.color,
+        tone: tone ?? decoration.tone,
         emphasis: emphasis ?? decoration.emphasis,
       ),
     );

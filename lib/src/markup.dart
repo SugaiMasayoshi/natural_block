@@ -1,57 +1,56 @@
-/// Which characters are not ordinary text, and therefore which a backslash
-/// can cancel.
-///
-/// One place, because it is a fact about the language rather than about any
-/// node. A run of text stops in front of every character named here; it does
-/// not ask what any of them opens, or whose it is. Adding a construct to the
-/// language means putting its character in one of the groups below and giving
-/// it a parse -- nothing that reads text has to hear about it.
-///
-/// The two groups are "does it come in a pair", which is the question that
-/// settles who eats it. They are not "layout" and "content": a `~` arranges
-/// rows *and* is a piece of content, so that axis would put one character in
-/// both groups for one reason. Counting halves does not.
+// 【解説】[読む順 7/23] この言語で記号になる文字のすべて。
+// 【解説】
+// 【解説】 名前はその文字が属する構造で付けている(列・行・表・raw 区間・クラスタ・
+// 【解説】 エスケープ)。「区切る」「囲む」のような動作の名前と違い、文字を入れ替えても
+// 【解説】 役割が変わっても正しいまま。例外は | で、表の中では行を分ける。
+// 【解説】 - alignMarkers: ブロックの始まりでだけ読む寄せ(11番)。
+// 【解説】 - DecorationAction: 装飾クラスタの7文字と意味。適用は 23番の apply。
+// 【解説】 - layoutChars(| ^): LayoutNode の文字。ノードとノードの間にあり、どの子にも
+// 【解説】   属さないので、並べている親が食べる。
+// 【解説】 - contentChars(~ `): ContentNode の文字。ノードの一部なので、そのノード自身が
+// 【解説】   両端を食べる(中身の大きさで決まるので、終わりも知っている必要がある)。
+// 【解説】 - textMarkup: run(21番)が手前で止まる文字。+ - ! % * @ が入って
+// 【解説】   いないので、C++ や 100% はエスケープなしでただの文字になる。
+// 【解説】 ここまでが語彙。次からは読み取りを、呼ばれる順にたどる。
+// 【解説】 次: src/parse/document_node.dart
 library;
 
-import 'decoration_action.dart';
-import 'layout_symbols.dart';
-import 'parse/verbatim_region.dart';
+import 'horizontal_align.dart';
 
-/// Markup with no closing half. It stands between two siblings, so it is
-/// eaten by their parent: the document or a table eats a `|`, a row eats a
-/// `^`.
-///
-/// The README calls these the *separators*.
-const Set<String> unpairedMarkup = {columnSymbol, rowSymbol};
+const String columnChar = '|';
+const String rowChar = '^';
+const String tableChar = '~';
+const String rawChar = '`';
+const String clusterChar = ':';
+const String escapeChar = r'\';
 
-/// Markup that comes in a pair, where both halves belong to what they wrap.
-///
-/// A `~` and a fence each mark out something sized to its own content, so it
-/// has to know where it stops -- which is why it owns its ending as well as
-/// its beginning.
-///
-/// The README calls these the *delimiters*.
-final Set<String> pairedMarkup = {tableSymbol, verbatimFenceChar};
-
-/// The markup a run of text is read against.
-///
-/// `+`, `-`, `!`, `%`, `*` and `@` are missing on purpose -- that absence is
-/// the rule that `C++` and `100%` are prose and need no escaping. Only the
-/// `:` that opens a decoration cluster is live out here.
-final Set<String> textMarkup = {
-  ...unpairedMarkup,
-  ...pairedMarkup,
-  DecorationAction.reset.char,
+const Map<String, HorizontalAlign> alignMarkers = {
+  '<': HorizontalAlign.start,
+  '=': HorizontalAlign.center,
+  '>': HorizontalAlign.end,
 };
 
-/// The markup a decoration cluster is read against: every decoration
-/// character is live inside one, including the `:` that closes it again.
-///
-/// The difference between the two sets is the whole escaping rule of this
-/// language: `:---\%%%` needs one backslash, and a bare `%` in a sentence
-/// needs none.
-final Set<String> clusterMarkup = {
-  ...unpairedMarkup,
-  ...pairedMarkup,
-  ...DecorationAction.chars,
-};
+enum DecorationAction {
+  larger('+'),
+  smaller('-'),
+  negative('!'),
+  positive('%'),
+  emphasis('*'),
+  action('@'),
+  reset(clusterChar);
+
+  final String char;
+  const DecorationAction(this.char);
+
+  static final Set<String> chars = byChar.keys.toSet();
+
+  static final Map<String, DecorationAction> byChar = Map.unmodifiable({
+    for (final action in DecorationAction.values) action.char: action,
+  });
+}
+
+const Set<String> layoutChars = {columnChar, rowChar};
+
+const Set<String> contentChars = {tableChar, rawChar};
+
+const Set<String> textMarkup = {...layoutChars, ...contentChars, clusterChar};

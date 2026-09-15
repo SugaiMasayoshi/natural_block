@@ -10,15 +10,15 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   Use the `|` (pipe) symbol to create column blocks. Spaces are content and are never trimmed; the one thing that disappears is a single blank line at each end of a block, so a block's symbol can sit on a line of its own.
 * **Horizontal Layout (Row)**
   Use the `^` (caret) symbol to split text into horizontal row nodes.
-  Layout symbols reset all decoration (size, color, emphasis, actionability) at the block boundary they create -- each block starts from a clean style.
+  Layout symbols reset all decoration (size, tone, emphasis, actionability) at the block boundary they create -- each block starts from a clean style.
 * **Decoration clusters (`:`-led)**
-  All decoration -- size, semantic color, emphasis, and actionability -- is triggered by a `:` immediately followed by one or more decoration characters, forming a *cluster*. Each character in the cluster applies in order:
+  All decoration -- size, tone, emphasis, and actionability -- is triggered by a `:` immediately followed by one or more decoration characters, forming a *cluster*. Each character in the cluster applies in order:
   * `:+` one step larger, `:-` one step smaller -- repeat the character to stack without retyping the colon (`:+++` is +3).
-  * `:!` Danger / Warning color, `:%` Success color -- each **toggles**: typing it again turns it back off.
+  * `:!` negative, `:%` positive -- the two ends of one tone, so writing one replaces the other. Each **toggles**: typing it again turns it back off.
   * `:*` Emphasis / Bold -- also toggles.
   * `:@` Actionable text -- also toggles. See below.
-  * `::` resets color, emphasis, and actionability together (a cluster whose only character is `:`). It does **not** reset the size offset.
-  * Multiple characters can share one cluster to apply together, e.g. `:!*` applies Danger color and Emphasis at the same time. Two clusters typed back-to-back are *not* the same as one combined cluster -- see [Combining decorations](#combining-decorations) below.
+  * `::` resets tone, emphasis, and actionability together (a cluster whose only character is `:`). It does **not** reset the size offset.
+  * Multiple characters can share one cluster to apply together, e.g. `:!*` applies the negative tone and Emphasis at the same time. Two clusters typed back-to-back are *not* the same as one combined cluster -- see [Combining decorations](#combining-decorations) below.
 * **Actionable text (`:@`)**
   Text between `:@` and `:@` is marked actionable -- `TextSpanNode.decoration.isAction` is true for it. The parser records only *that* a run is actionable, never what acting on it should do; the run's own text is the entire payload, and interpreting it (a URL to open, a section to jump to, a mention to resolve, an image to draw) belongs to the consuming app.
 
@@ -48,8 +48,8 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   Third, and noticed only after the first two had settled it: on a Japanese flick keyboard `<` `=` `>` share a single key, and the flick directions match the meanings -- left for left, right for right. `^` and `|` share a key too, so both layout separators are one key apart.
 
-* **Size, color, emphasis, and actionability are independent axes**
-  None of them resets another. A size change survives a following color/emphasis symbol and vice versa; only a layout symbol (`|`, `^`, or `~`) resets everything.
+* **Size, tone, emphasis, and actionability are independent axes**
+  None of them resets another. A size change survives a following tone/emphasis symbol and vice versa; only `|`, `^`, or `~` resets everything.
 * **Bare punctuation is always literal -- no escaping needed**
   A `+`, `-`, `!`, `%`, `?`, `*`, or `@` with no `:` immediately before it is always ordinary text. This is the whole point of the `:` prefix: everyday prose like `C++`, `10-20`, `100%`, `well-known`, `Really?!`, or `you@example.com` renders completely unchanged, in both Japanese and English, with zero escaping.
 * **A newline is a character, not a boundary**
@@ -65,7 +65,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   Nothing throws and nothing is lost, so the difference only shows once it is rendered. When in doubt, write the leading `|`.
 * **Tables (`~`)**
-  `~` wraps a table, and both `~` belong to that table the way both fences belong to a verbatim region -- it *delimits* where `^` and `|` *separate*. And like a verbatim region, **a table is content**: it sits inside a block rather than beside one, so a block can hold text, a table, and more text, and an alignment written on that block reaches all of it. It can also go in a cell of a row. A table of one cell, `~注意~`, is also how to set a single thing apart in a frame. A table cannot go inside another table: a `~` met inside one is the closer, never an opener.
+  `~` wraps a table, and both `~` belong to that table the way both fences belong to a raw region -- it *delimits* where `^` and `|` *separate*. And like a raw region, **a table is content**: it sits inside a block rather than beside one, so a block can hold text, a table, and more text, and an alignment written on that block reaches all of it. It can also go in a cell of a row. A table of one cell, `~注意~`, is also how to set a single thing apart in a frame. A table cannot go inside another table: a `~` met inside one is the closer, never an opener.
 
   ```
   ~
@@ -94,7 +94,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   ```
 
   This is what keeps `HorizontalAlign.unstated` meaning "the source said nothing" inside a table as well as outside. Squaring short rows off into a rectangle is likewise the renderer's job -- `natural_block_flutter` does both.
-* **Verbatim regions (`` ` ``)**
+* **Raw regions (`` ` ``)**
   A pair of backticks opens and closes a region taken exactly as written. Nothing inside is a separator, a decoration, or an escape.
 
   ```text
@@ -109,13 +109,13 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   It used to run much further backwards: while `=` separated cells, `final x = a == b ? 1 : 2;` was a four-cell row. Moving the separator to `^` retired that example -- assignments and comparisons now survive in prose on their own.
 
-  **A region can go anywhere**: inside a sentence, alone on a line, or in a table cell. It is one construct, and where you put it is what the tree records -- a region standing alone on its line is a `VerbatimNode`, a block sitting among the lines of its column, while one written inside a sentence is a `VerbatimSpanNode` beside the styled runs. That is what lets a renderer draw the first as a boxed code block and the second as a run of monospaced text. `` ` `` is the price: it is the fifth character that is always active, so a literal backtick in prose is written `` \` ``. A marker built on `|` could never have been inline, since `|` always breaks a block.
+  **A region can go anywhere**: inside a sentence, alone on a line, or in a table cell. It is one construct, and where you put it is what the tree records -- a region standing alone on its line is a `RawNode`, a block sitting among the lines of its column, while one written inside a sentence is a `RawSpanNode` beside the styled runs. That is what lets a renderer draw the first as a boxed code block and the second as a run of monospaced text. `` ` `` is the price: it is the fifth character that is always active, so a literal backtick in prose is written `` \` ``. A marker built on `|` could never have been inline, since `|` always breaks a block.
 
   The fence's run length sets the closing delimiter, so a region opened with ``` `` ``` ends at ``` `` ``` and may contain single backticks. That is how the language quotes its own syntax.
 
   The newline directly against each fence is treated as part of that fence, so a fence can sit on its own line. Written inline the content is exactly what was typed.
 
-  **An unclosed fence is not a region** -- it stays ordinary text, and separators after it still work, so a stray backtick cannot swallow anything. CRLF is normalized before parsing, so line endings do not round-trip.
+  **An unclosed fence runs to the end of the document**, the same as a table with no closing `~`. Whether a region opens is settled by the fence alone -- nothing searches ahead for a closer -- so what has been read is always enough to know where you are. The cost is that a stray backtick swallows everything after it, separators included; write a literal one as `` \` ``. CRLF is normalized before parsing, so line endings do not round-trip.
 * **Escape characters**
   A backslash escapes whatever would otherwise be markup *at that point*, and nothing else. Which characters those are depends on where you are:
 
@@ -147,14 +147,14 @@ dart pub add natural_block
 
 ## Usage
 
-Pass your markup text to `NaturalBlockParser.parse`. It will return a syntax tree (a `DocumentNode` holding `ColumnNode`, `RowNode`, `TableNode`, and the two kinds of line -- `TextNode` and `VerbatimNode` -- where a `TextNode` holds `TextSpanNode`s and `VerbatimSpanNode`s) that you can easily map to Flutter widgets like `Column`, `Row`, and `RichText`.
+Pass your markup text to `NaturalBlockParser.parse`. It will return a syntax tree (a `DocumentNode` holding `ColumnNode`, `RowNode`, `TableNode`, and the two kinds of line -- `TextNode` and `RawNode` -- where a `TextNode` holds `TextSpanNode`s and `RawSpanNode`s) that you can easily map to Flutter widgets like `Column`, `Row`, and `RichText`.
 
 ```dart
 import 'package:natural_block/natural_block.dart';
 
 void main() {
 
-  // Example 1: Layout with semantic color clusters.
+  // Example 1: Layout with tone clusters.
   // Layout symbols (| and ^) reset styles at each boundary they create.
   const input1 = "|:!Danger Zone^:%Safe Zone|";
   final nodes1 = NaturalBlockParser.parse(input1);
@@ -176,17 +176,17 @@ void main() {
 
 ### Combining decorations
 
-A single cluster can carry more than one decoration character, and each is applied in order -- `:!*` turns on Danger color *and* Emphasis together:
+A single cluster can carry more than one decoration character, and each is applied in order -- `:!*` turns on the negative tone *and* Emphasis together:
 
 ```dart
-NaturalBlockParser.parse(":!*緊急対応"); // color: danger, emphasis: true, in one span
+NaturalBlockParser.parse(":!*緊急対応"); // tone: negative, emphasis: true, in one span
 ```
 
-Writing two clusters back-to-back is *not* equivalent, because a `:` always continues extending the cluster it follows -- including a further `:`, which is read as a reset. `:!:*` opens Danger with `:!`, but the very next `:` is absorbed as a `::` reset before `*` opens Emphasis, so Danger is wiped out and only Emphasis survives:
+Writing two clusters back-to-back is *not* equivalent, because a `:` always continues extending the cluster it follows -- including a further `:`, which is read as a reset. `:!:*` opens the negative tone with `:!`, but the very next `:` is absorbed as a `::` reset before `*` opens Emphasis, so the tone is wiped out and only Emphasis survives:
 
 ```dart
-NaturalBlockParser.parse(":!*結果");  // -> color: danger, emphasis: true
-NaturalBlockParser.parse(":!:*結果"); // -> color: none,   emphasis: true  (danger was reset)
+NaturalBlockParser.parse(":!*結果");  // -> tone: negative, emphasis: true
+NaturalBlockParser.parse(":!:*結果"); // -> tone: none,     emphasis: true  (negative was reset)
 ```
 
 To combine symbols, always write them in one cluster.

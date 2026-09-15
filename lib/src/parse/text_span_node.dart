@@ -1,36 +1,38 @@
-import '../decoration_action.dart';
+// 【解説】[読む順 21/23] 文字の run。装飾・改行・記号がすべてここで出会う。
+// 【解説】
+// 【解説】 1. 始まりのクラスタ(:!* など)を先に適用し、この run の装飾を決める。
+// 【解説】 2. read(textMarkup) で記号の手前まで読み、_endsRun で本当に終わるかを
+// 【解説】    判定する。終わらないもの(記号にならない : や、途中の改行)は1文字
+// 【解説】    取って続ける。
+// 【解説】 3. 改行: 装飾があれば run を終える(装飾は改行でリセット)。境界に接した
+// 【解説】    改行(_touchesBoundary)なら手前で止まり、列(10番)かセル(16番)のループに任せる。
+// 【解説】 戻り値は run と、次の run に渡す装飾。
+// 【解説】 次: src/parse/decoration.dart
 import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
 import '../span_decoration.dart';
 import 'decoration.dart';
-import 'verbatim_region.dart';
-import 'verbatim_span_node.dart';
 
 bool _opensCluster(SourceCursor cursor) =>
-    cursor.peek == ':' && DecorationAction.byChar.containsKey(cursor.peekAt(1));
+    cursor.peek == clusterChar &&
+    DecorationAction.byChar.containsKey(cursor.peekAt(1));
 
-/// Whether the character the cursor stopped in front of really ends the run.
-/// Peeks only -- it never moves the cursor.
+bool _touchesBoundary(SourceCursor cursor) {
+  final next = cursor.peekAt(1);
+  return next.isEmpty ||
+      layoutChars.contains(next) ||
+      contentChars.contains(next);
+}
+
 bool _endsRun(SourceCursor cursor, SpanDecoration style) =>
     switch (cursor.peek) {
-      // A newline resets decoration, so it ends a run that has some. With
-      // nothing to reset it is an ordinary character in the middle of one.
-      '\n' => style != const SpanDecoration(),
-      // A `:` with no decoration character after it is ordinary text; one
-      // with is the next run's cluster, and not this run's to consume.
-      ':' => _opensCluster(cursor),
-      // A fence that never closes opens no region, so it is text too.
-      verbatimFenceChar => verbatimRegionOpensAt(cursor),
-      // A layout symbol. Nothing else gets here.
+      '\n' => style != const SpanDecoration() || _touchesBoundary(cursor),
+
+      clusterChar => _opensCluster(cursor),
       _ => true,
     };
 
-/// Reads one run of styled text, and the decoration state it leaves.
-///
-/// Any cluster written at the cursor is applied first, so the run's style is
-/// settled before a character of it is read. The run then stops in front of
-/// the next thing that is not part of it, consuming none of it.
 (TextSpanNode?, SpanDecoration) parseTextSpanNode(
   SourceCursor cursor,
   SpanDecoration incoming,
@@ -39,15 +41,9 @@ bool _endsRun(SourceCursor cursor, SpanDecoration style) =>
   var style = incoming;
 
   while (_opensCluster(cursor)) {
-    cursor.take();
-    final (next, escaped) = readCluster(style, cursor);
-    style = next;
-    pending.write(escaped);
+    style = parseCluster(cursor, style);
   }
 
-  // The cursor stops in front of every character that could end the run, so
-  // this loop only has to say which of those actually do; one that does not
-  // is taken as text and the read resumes.
   while (true) {
     pending.write(cursor.read(textMarkup));
     if (cursor.isEnd || _endsRun(cursor, style)) break;
@@ -56,10 +52,7 @@ bool _endsRun(SourceCursor cursor, SpanDecoration style) =>
 
   final outgoing = cursor.peek == '\n' ? const SpanDecoration() : style;
 
-  var run = pending.toString();
-  if (run.endsWith('\n') && !_opensCluster(cursor)) {
-    run = run.substring(0, run.length - 1);
-  }
+  final run = pending.toString();
 
   return (
     run.isEmpty ? null : TextSpanNode(text: run, decoration: style),

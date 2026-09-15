@@ -75,37 +75,37 @@ void main() {
 
     test('a color toggles: typing it again turns it back off', () {
       final spans = runs(fromReadme(':!on:!off', ':!'));
-      expect(spans[0].decoration.color, SemanticColor.danger);
-      expect(spans[1].decoration.color, SemanticColor.none);
+      expect(spans[0].decoration.tone, Tone.negative);
+      expect(spans[1].decoration.tone, Tone.none);
     });
 
     test('`::` resets color, emphasis and action but not the size', () {
       final spans = runs(fromReadme(':+!*@marked::plain', '::'));
-      expect(spans[0].decoration.color, SemanticColor.danger);
+      expect(spans[0].decoration.tone, Tone.negative);
       expect(spans[0].decoration.emphasis, isTrue);
       expect(spans[0].decoration.isAction, isTrue);
-      expect(spans[1].decoration.color, SemanticColor.none);
+      expect(spans[1].decoration.tone, Tone.none);
       expect(spans[1].decoration.emphasis, isFalse);
       expect(spans[1].decoration.isAction, isFalse);
       // "It does **not** reset the size offset."
       expect(spans[1].decoration.sizeOffset, 1);
     });
 
-    test('`:!*` applies Danger and Emphasis together in one span', () {
+    test('`:!*` applies negative and Emphasis together in one span', () {
       // README: NaturalBlockParser.parse(":!*緊急対応");
       final span = runs(':!*緊急対応').single;
-      expect(span.decoration.color, SemanticColor.danger);
+      expect(span.decoration.tone, Tone.negative);
       expect(span.decoration.emphasis, isTrue);
     });
 
     test('`:!:*` is not the same: the second `:` is absorbed as a reset', () {
-      // README: ":!*結果"  -> color: danger, emphasis: true
-      //         ":!:*結果" -> color: none,   emphasis: true
-      expect(runs(':!*結果').single.decoration.color, SemanticColor.danger);
+      // README: ":!*結果"  -> tone: negative, emphasis: true
+      //         ":!:*結果" -> tone: none,     emphasis: true
+      expect(runs(':!*結果').single.decoration.tone, Tone.negative);
       expect(runs(':!*結果').single.decoration.emphasis, isTrue);
 
       final absorbed = runs(':!:*結果').single;
-      expect(absorbed.decoration.color, SemanticColor.none);
+      expect(absorbed.decoration.tone, Tone.none);
       expect(absorbed.decoration.emphasis, isTrue);
     });
   });
@@ -149,7 +149,7 @@ void main() {
     test('a size change survives a following color symbol and vice versa', () {
       final span = runs(fromReadme(':++big:!red', ':+')).last;
       expect(span.decoration.sizeOffset, 2);
-      expect(span.decoration.color, SemanticColor.danger);
+      expect(span.decoration.tone, Tone.negative);
     });
 
     test('only a layout symbol resets everything', () {
@@ -160,7 +160,7 @@ void main() {
           (row.children[1].children.single as TextNode).children.single
               as TextSpanNode;
       expect(second.decoration.sizeOffset, 0);
-      expect(second.decoration.color, SemanticColor.none);
+      expect(second.decoration.tone, Tone.none);
     });
   });
 
@@ -199,7 +199,7 @@ void main() {
         [
           TextSpanNode(
             text: 'red',
-            decoration: SpanDecoration(color: SemanticColor.danger),
+            decoration: SpanDecoration(tone: Tone.negative),
           ),
           TextSpanNode(text: '\nplain'),
         ],
@@ -492,13 +492,13 @@ void main() {
     });
   });
 
-  group('Verbatim regions', () {
+  group('Raw regions', () {
     test('an inline region is one line of three runs, the middle verbatim', () {
       // README: 比較は`a == b`です
       final children = onlyLine('比較は`a == b`です').children;
       expect(children, [
         TextSpanNode(text: '比較は'),
-        VerbatimSpanNode(text: 'a == b'),
+        RawSpanNode(text: 'a == b'),
         TextSpanNode(text: 'です'),
       ]);
     });
@@ -507,7 +507,7 @@ void main() {
       // README's second example.
       expect(
         onlyBlock('`\ncat file.txt | grep foo | wc -l\n`').children.single,
-        VerbatimNode(text: 'cat file.txt | grep foo | wc -l'),
+        RawNode(text: 'cat file.txt | grep foo | wc -l'),
       );
     });
 
@@ -538,14 +538,14 @@ void main() {
         (table.children[0].children[1].children.single as TextNode)
             .children
             .single,
-        VerbatimSpanNode(text: 'x'),
+        RawSpanNode(text: 'x'),
       );
     });
 
     test('nothing inside is a separator, a decoration, or an escape', () {
       expect(
         onlyBlock(r'`| ^ : \n :!`').children.single,
-        VerbatimNode(text: r'| ^ : \n :!'),
+        RawNode(text: r'| ^ : \n :!'),
       );
     });
 
@@ -555,31 +555,29 @@ void main() {
         onlyBlock(fromReadme('``a `b` c``', 'may contain single backticks'))
             .children
             .single,
-        VerbatimNode(text: 'a `b` c'),
+        RawNode(text: 'a `b` c'),
       );
     });
 
     test('the newline directly against each fence belongs to that fence', () {
-      expect(
-        onlyBlock('`\ncode\n`').children.single,
-        VerbatimNode(text: 'code'),
-      );
+      expect(onlyBlock('`\ncode\n`').children.single, RawNode(text: 'code'));
     });
 
     test('written inline the content is exactly what was typed', () {
-      expect(
-        onlyLine('a`  b  `c').children[1],
-        VerbatimSpanNode(text: '  b  '),
-      );
+      expect(onlyLine('a`  b  `c').children[1], RawSpanNode(text: '  b  '));
     });
 
-    test('an unclosed fence is not a region: it stays ordinary text and '
-        'separators after it still work', () {
-      final doc = NaturalBlockParser.parse(
-        fromReadme('a`b|c', 'separators after it still work'),
+    test('an unclosed fence runs to the end of the document, separators '
+        'included', () {
+      expect(
+        onlyLine(
+          fromReadme(
+            'a`b|c',
+            'An unclosed fence runs to the end of the document',
+          ),
+        ).children,
+        [TextSpanNode(text: 'a'), RawSpanNode(text: 'b|c')],
       );
-      expect(doc.children.length, 2);
-      expect(doc.children.first, block('a`b'));
     });
   });
 
@@ -662,9 +660,9 @@ void main() {
       TextSpanNode runOf(int i) =>
           (row.children[i].children.single as TextNode).children.single
               as TextSpanNode;
-      expect(runOf(0).decoration.color, SemanticColor.danger);
+      expect(runOf(0).decoration.tone, Tone.negative);
       expect(runOf(0).text, 'Danger Zone');
-      expect(runOf(1).decoration.color, SemanticColor.success);
+      expect(runOf(1).decoration.tone, Tone.positive);
       expect(runOf(1).text, 'Safe Zone');
     });
 

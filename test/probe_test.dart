@@ -46,7 +46,7 @@ const _cases = [
   // Newlines: characters, except for the one at each end of a block.
   'a\nb', 'a\n\nb', '\na\n', 'a\n\n\nb', 'a\r\nb', 'a\rb',
 
-  // Verbatim regions, closed and not.
+  // Raw regions, closed and not.
   '`c`', 'a`c`b', '`\nc\n`', 'a`b', '``a`b`c``', 'a``b', '\n`c`\n',
   '文章\n`c`\n続き', 'x^`a|b`|y^z', 'a `b | c', '`a ~ b`',
 
@@ -59,7 +59,7 @@ const _cases = [
   // Prose that must come through with no escaping at all.
   'C++', '10-20', '100%', 'you@example.com',
 
-  // The two lines that made verbatim necessary.
+  // The two lines that made raw regions necessary.
   'cat a | grep b | wc -l', 'final x = a == b ? 1 : 2;',
 ];
 

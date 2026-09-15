@@ -6,8 +6,8 @@ import 'package:natural_block/natural_block.dart';
 /// concern, and `natural_block_flutter` is one renderer for it.
 void main() {
   _show('Decoration', r'''
-:!Danger:! and :%Success:% and :*Emphasis:*
-:!*Danger and bold at once::back to plain
+:!Negative:! and :%Positive:% and :*Emphasis:*
+:!*Negative and bold at once::back to plain
 :+++Three steps larger:--- back to base
 Bare punctuation is literal: C++, 10-20, 100%, Really?!, you@example.com
 ''');
@@ -35,7 +35,7 @@ Left^^Right
 |>:*Total 248
 ''');
 
-  _show('Verbatim regions', r'''
+  _show('Raw regions', r'''
 Compare `a == b` inline, or fence a block:
 `
 cat file.txt | grep foo | wc -l
