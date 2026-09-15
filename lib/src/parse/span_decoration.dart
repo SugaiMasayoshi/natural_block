@@ -1,9 +1,3 @@
-// 【解説】[読む順 23/23] 装飾の文字1つを SpanDecoration に適用する。
-// 【解説】
-// 【解説】 + と - はサイズを1段ずつ。トーン・強調・アクションはトグル(もう一度で消える)。
-// 【解説】 :: はトーン・強調・アクションを戻すが、サイズは戻さない。
-// 【解説】 このファイルは export されないので、apply も _copy / _toggle も外から見えない。
-// 【解説】 これで全部。
 import '../markup.dart';
 import '../span_decoration.dart';
 import '../tone.dart';

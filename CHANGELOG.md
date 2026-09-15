@@ -76,7 +76,7 @@ this repository, which is why the entries below describe changes freely.
 
 ### Tables
 
-  `~` wraps a table, and both of its `~` belong to that table, the way both
+- `~` wraps a table, and both of its `~` belong to that table, the way both
   fences belong to a raw region. It opens no block of its own, which is
   why a marker after the closing one is ordinary text and aligning what
   follows a table takes a `|`.
@@ -279,5 +279,3 @@ this repository, which is why the entries below describe changes freely.
   same shape as `parseAlign` eating the backslash before a marker. Whoever
   alone would have read a character as markup eats the backslash that
   cancels it.
-- `README.md`'s claims are executed as tests (`test/readme_test.dart`), so a
-  statement in it that stops being true fails the suite.

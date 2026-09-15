@@ -1,16 +1,3 @@
-// 【解説】[読む順 5/23] 木の全ノード。パースは一切しない。
-// 【解説】
-// 【解説】 sealed は同じライブラリにしか子を置けないので1ファイル。上から順に:
-// 【解説】   Document → Layout(Column / Row)→ Content(Flat(Text / Raw)/ Table)
-// 【解説】   → 表の行とセル → Inline(TextSpan / RawSpan)
-// 【解説】 読みどころ:
-// 【解説】 - 各ノードは持てる子の型を宣言している。置き間違いはコンパイルエラー。
-// 【解説】 - 表は ContentNode。ブロックの中に置くもので、寄せは持たない。
-// 【解説】 - 表のセルは FlatContentNode(中にブロックを持たない中身)しか持てない。
-// 【解説】   表の中の表は、手で組んでもコンパイルエラーになる。
-// 【解説】 - TableNode.columns は行から計算する(その列に最初に届いた行のセルの寄せ)。
-// 【解説】 - == / hashCode は構造比較。テストはこれに乗っている。
-// 【解説】 次: src/source_cursor.dart
 library;
 
 import 'package:collection/collection.dart';

@@ -1,14 +1,3 @@
-// 【解説】[テスト10/21] ノードの等価性。パーサ側の最後。
-// 【解説】
-// 【解説】 このファイルの存在理由は、他の全テストがこれに乗っているから。
-// 【解説】 expect(parse(x), DocumentNode(...)) という書き方が意味を持つのは
-// 【解説】 == が構造的に正しいときだけで、もし align を比較し忘れていたら
-// 【解説】 寄せのテストが全部無意味に通る。土台の検算。
-// 【解説】
-// 【解説】 フィールドを1つだけずらすと不一致になること、子の順序が効くこと、
-// 【解説】 null や無関係な型と等しくならないことまで見ている。
-// 【解説】 次: natural_block_flutter 側へ。test/rendered_spans.dart
-
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 

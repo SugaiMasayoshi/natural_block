@@ -1,16 +1,3 @@
-// 【解説】 このファイルは読む順の番号を持ちません。他のテストが「何を約束
-// 【解説】 しているか」を教えるのに対し、これは何も教えないからです。仕事は
-// 【解説】 1つ、「意図しない変化の検出」だけ。
-// 【解説】
-// 【解説】 テストは *書いた主張* を守ります。この探査は *書き忘れた主張* を
-// 【解説】 守ります。実際に何度も、他のテストが全部通っているのにここが
-// 【解説】 差分を出して間違いを捕まえました(表の寄せが消えていたことがある)。
-// 【解説】
-// 【解説】 使い方: 挙動を変えるつもりの変更をしたら、ここが落ちます。落ちた
-// 【解説】 差分が「変えるつもりだったケースだけ」かを目で確認してから、
-// 【解説】   UPDATE_PROBE=1 dart test test/probe_test.dart
-// 【解説】 で期待値を更新します。確認せずに更新すると、この網は意味を失います。
-
 import 'dart:io';
 
 import 'package:natural_block/natural_block.dart';
@@ -18,7 +5,7 @@ import 'package:test/test.dart';
 
 /// Every source whose whole tree is pinned, byte for byte.
 ///
-/// Not chosen to cover a rule each -- the numbered tests do that. These are
+/// Not chosen to cover a rule each -- the other tests do that. These are
 /// the shapes where a change is most likely to leak somewhere nobody looked:
 /// the empty and degenerate ones, the boundaries between two symbols, and
 /// the prose that must survive untouched.

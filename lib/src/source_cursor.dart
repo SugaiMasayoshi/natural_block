@@ -1,10 +1,3 @@
-// 【解説】[読む順 6/23] ソース上の1つの位置と、エスケープの読み方。文法は知らない。
-// 【解説】
-// 【解説】 - コンストラクタで CRLF と CR を \n に揃える。
-// 【解説】 - peek / peekAt は覗くだけ。take / jumpTo が位置を進める。
-// 【解説】 - read(markup) は markup か改行の手前まで読んで止まる。途中の \x は
-// 【解説】   (x が markup か \ なら)x になる。何が markup かは呼ぶ側が渡す。
-// 【解説】 次: src/markup.dart
 class SourceCursor {
   final String source;
 

@@ -1,7 +1,3 @@
-// 【解説】 テストがどこでも使う木の組み立てとほどきを1箇所に置いたもの。
-// 【解説】 番号は持ちません。ここには主張が1つも無く、他のテストが主張を
-// 【解説】 書くための語彙だけがあるからです。
-
 import 'package:natural_block/natural_block.dart';
 
 /// One line of text, the shape most cells and paragraphs take.

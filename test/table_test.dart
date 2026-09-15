@@ -1,18 +1,3 @@
-// 【解説】[テスト5/21] 表(~)。宣言して初めて表になる、という設計の固定。
-// 【解説】
-// 【解説】 「行が連続していたら自動で表」にしなかった理由が2つ目の group に
-// 【解説】 出てくる。左^^右 は「幅を等分する普通の行」に依存した書き方なので、
-// 【解説】 勝手に表にすると成立しなくなる。だから推論せず宣言させる。
-// 【解説】
-// 【解説】 ~ は3つ目のレイアウトシンボルで、| の1つ上の階層。^ がセルを、
-// 【解説】 | が行とブロックを、~ が表の区間を区切る。だから表の終わりは
-// 【解説】 ~ か入力の終わりだけで、間にあるものは全部その表のもの。
-// 【解説】 幅の足りない行は弾かれずに空セルで埋められる。
-// 【解説】
-// 【解説】 最後の group は「1行だけの表」「1列だけの表」など、利用側が手で
-// 【解説】 組める形。パーサからは出てこないが、レンダラは受け取りうる。
-// 【解説】 次: test/tone_test.dart
-
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
@@ -198,7 +183,6 @@ void main() {
     });
 
     test('the first cell takes one marker straight after `~`', () {
-      // 【解説】 1つの位置が読む寄せは1文字だけ。区切りの側は layout_test.dart。
       expect(
         onlyTable('~<=>A^B~').children.first.children.first,
         tableCell('=>A', HorizontalAlign.start),
