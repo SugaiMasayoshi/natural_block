@@ -1,8 +1,6 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
-import 'nodes.dart';
-
 void main() {
   group("Node equality and hashCode contract", () {
     // Equal *and* unequal, per node type. Only the first half was here
@@ -114,7 +112,7 @@ void main() {
       // -- ColumnNode holds TextNode and RowNode holds ColumnNode, so the
       // confusion it guarded against is now a compile error rather than
       // something equality has to rule out.
-      final child = block("本文");
+      final child = ColumnNode(children: [text()]);
       final document = DocumentNode(children: [child]);
       final row = RowNode(children: [child]);
 
@@ -139,10 +137,7 @@ void main() {
     });
 
     test("differing children make list-based nodes unequal", () {
-      final a = line("A");
-      final b = line("B");
-
-      expect(a == b, isFalse);
+      expect(text("A") == text("B"), isFalse);
     });
 
     test("children order matters for equality", () {
