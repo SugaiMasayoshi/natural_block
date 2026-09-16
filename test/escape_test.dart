@@ -1,329 +1,81 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
-import 'nodes.dart';
+import 'support/show.dart';
+
+/// One claim per line: the source, and the tree `show()` renders it as.
+///
+/// `\` engages only where the next character is markup *at that point*, so
+/// what needs checking is where that is and how many backslashes survive.
+/// The pairs `\|`, `\^`, `\~`, `` \` ``, `\:` and `\\` in every context are
+/// the grid's business; so is `\<` at the start of a block.
+void _table(String name, Map<String, String> cases) {
+  group(name, () {
+    cases.forEach((source, expected) {
+      test(source.replaceAll('\n', r'\n'), () {
+        expect(show(NaturalBlockParser.parse(source)), expected);
+      });
+    });
+  });
+}
 
 void main() {
-  group("Escape handling", () {
-    group("Layout symbol escaping", () {
-      test("an escaped pipe is parsed as a literal character, not a Column separator", () {
-        const input = r"|A\|B|";
-        final expected = DocumentNode(children: [block("A|B")]);
+  // Nothing needed escaping, so the backslash is ordinary text. This is what
+  // lets a Windows path through untouched.
+  _table('only where markup is', {
+    r'C:\Users\sugai': r'Col["C:\\Users\\sugai"]',
+    r'100\%off': r'Col["100\\%off"]',
+    r'\!': r'Col["\\!"]',
+    r':---\abc': r'Col["\\abc"{-3}]',
+  });
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
-      });
+  // A decoration character takes a `:` to become markup, so the bare ones --
+  // constant in ordinary prose, Japanese and English alike -- are literal
+  // with no escape at all. That is the whole reason for the prefix.
+  _table('characters that are never markup', {
+    'C++言語、1+1^2': 'Row[Col["C++言語、1+1"], Col["2"]]',
+    '-100点、10-20人': 'Col["-100点、10-20人"]',
+    'こんにちは!世界': 'Col["こんにちは!世界"]',
+    '本当ですか?はい': 'Col["本当ですか?はい"]',
+    '進捗100%完了': 'Col["進捗100%完了"]',
+    '*太字にしない*': 'Col["*太字にしない*"]',
+  });
 
-      test("an escaped caret is parsed as a single literal text, not a Row separator", () {
-        const input = r"左\^右";
-        final expected = DocumentNode(children: [block("左^右")]);
+  // The `:` is what is live, so escaping it leaves the character after it as
+  // text -- including a second `:`, which would otherwise reset.
+  _table('escaping a `:` token', {
+    r'こんにちは\:!世界': 'Col["こんにちは:!世界"]',
+    r'サイズ\:+固定': 'Col["サイズ:+固定"]',
+    r':!危険\::普通:!': 'Col["危険::普通"{negative}]',
+    r':!重要\:!警告:!': 'Col["重要:!警告"{negative}]',
+  });
 
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
-      });
-    });
+  // Inside a cluster every decoration character is live, which is where a
+  // backslash in front of one has work to do: it is the only way to butt
+  // literal text starting with one right up against a cluster. The escape
+  // also ends the cluster, so one backslash covers the whole run.
+  _table('escaping inside a cluster', {
+    r':+++100:---\%off': 'Col["100"{+3} "%off"]',
+    r':---\%%%off': 'Col["%%%off"{-3}]',
+  });
 
-    group("Bare decoration characters never need escaping", () {
-      // Every decoration symbol requires the `:` prefix (`:!`, `:%`,
-      // `:*`, `:+`, `:-`) to activate, so a bare `!`, `?`, `%`, `*`, `+`, or
-      // `-` -- extremely common in ordinary prose in both Japanese and
-      // English -- is always literal text on its own, with no escaping.
-      test("a bare plus sign is literal, no escaping needed", () {
-        const input = "C++言語、1+1^2";
-        final expected = DocumentNode(
-          children: [
-            RowNode(children: [block("C++言語、1+1"), block("2")]),
-          ],
-        );
-
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
-      });
-
-      test("a bare minus sign is literal, no escaping needed", () {
-        const input = "-100点、10-20人";
-        final expected = DocumentNode(children: [block("-100点、10-20人")]);
-
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
-      });
-      test("a bare exclamation mark is literal, no escaping needed", () {
-        const input = "こんにちは!世界";
-        final expected = DocumentNode(children: [block("こんにちは!世界")]);
-
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
-      });
-
-      test("a bare question mark is literal, no escaping needed", () {
-        const input = "本当ですか?はい";
-        final expected = DocumentNode(children: [block("本当ですか?はい")]);
-
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
-      });
-
-      test("a bare percent sign is literal, no escaping needed", () {
-        const input = "進捗100%完了";
-        final expected = DocumentNode(children: [block("進捗100%完了")]);
-
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
-      });
-
-      test("a bare asterisk is literal, no escaping needed", () {
-        const input = "*太字にしない*";
-        final expected = DocumentNode(children: [block("*太字にしない*")]);
-
-        final nodes = NaturalBlockParser.parse(input);
-        expect(nodes, expected);
-      });
-    });
-
-    group("Escaping the `:`-prefixed decoration tokens", () {
-      test("an escaped :! is parsed as two literal characters, not negative coloring", () {
-        const input = r"こんにちは\:!世界";
-        final expected = [
-          TextSpanNode(
-            text: "こんにちは:!世界",
-            decoration: SpanDecoration(tone: Tone.none),
-          ),
-        ];
-
-        expect(runs(input), expected);
-      });
-
-      test(
-        "an escaped :: is parsed as two literal characters, not a reset",
-        () {
-          const input = r":!危険\::普通:!";
-          final expected = [
-            TextSpanNode(
-              text: "危険::普通",
-              decoration: SpanDecoration(tone: Tone.negative),
-            ),
-          ];
-
-          expect(runs(input), expected);
-        },
-      );
-
-      test(
-        "an escaped :+ is parsed as two literal characters, not a size change",
-        () {
-          const input = r"サイズ\:+固定";
-          final expected = DocumentNode(children: [block("サイズ:+固定")]);
-
-          final nodes = NaturalBlockParser.parse(input);
-          expect(nodes, expected);
-        },
-      );
-    });
-
-    group("Escaping a decoration character inside a cluster", () {
-      // A decoration character is markup only while a cluster is open, so
-      // that is exactly where a backslash in front of one has work to do.
-      // Without it there is no way to butt literal text starting with a
-      // decoration character right up against a cluster -- a space would be
-      // the only separator, and a space is often not what you want.
-      test(
-        "an escaped decoration character ends the cluster and stays literal",
-        () {
-          const input = r":+++100:---\%off";
-          final expected = [
-            TextSpanNode(
-              text: "100",
-              decoration: SpanDecoration(sizeOffset: 3),
-            ),
-            TextSpanNode(text: "%off"),
-          ];
-
-          expect(runs(input), expected);
-        },
-      );
-
-      test("one backslash is enough, since the cluster is over after it", () {
-        const input = r":---\%%%off";
-        final expected = [
-          TextSpanNode(
-            text: "%%%off",
-            decoration: SpanDecoration(sizeOffset: -3),
-          ),
-        ];
-
-        expect(runs(input), expected);
-      });
-
-      test("a backslash before a non-decoration character is left alone", () {
-        // Nothing needed escaping, so the backslash is ordinary text -- the
-        // same reason a Windows path survives untouched.
-        const input = r":---\abc";
-        final expected = [
-          TextSpanNode(
-            text: r"\abc",
-            decoration: SpanDecoration(sizeOffset: -3),
-          ),
-        ];
-
-        expect(runs(input), expected);
-      });
-
-      test(
-        "a bare decoration character outside a cluster still needs no escape",
-        () {
-          // Escaping only engages where the character is actually markup, so
-          // this is unchanged: the backslash stays in the output.
-          const input = r"100\%off";
-          final expected = DocumentNode(children: [block(r"100\%off")]);
-
-          expect(NaturalBlockParser.parse(input), expected);
-        },
-      );
-
-      test("a Windows path keeps every backslash", () {
-        const input = r"C:\Users\sugai";
-        final expected = DocumentNode(children: [block(r"C:\Users\sugai")]);
-
-        expect(NaturalBlockParser.parse(input), expected);
-      });
-    });
-
-    group("Escaping inside a decoration block", () {
-      test(
-        "an escaped :! symbol inside a decoration block does not close it",
-        () {
-          const input = r":!重要\:!警告:!";
-          final expected = [
-            TextSpanNode(
-              text: "重要:!警告",
-              decoration: SpanDecoration(tone: Tone.negative),
-            ),
-          ];
-
-          expect(runs(input), expected);
-        },
-      );
-
-      test("an escaped colon right where the backslash itself ends the cluster "
-          "still counts as escaped", () {
-        const input = r":!\:";
-        final expected = [
-          TextSpanNode(
-            text: ":",
-            decoration: SpanDecoration(tone: Tone.negative),
-          ),
-        ];
-
-        expect(runs(input), expected);
-      });
-    });
-
-    group("Escaping the backslash itself", () {
-      // Built up from a named single backslash rather than written inline:
-      // these tests are entirely about *how many* backslashes there are,
-      // and a string literal full of them is exactly where a miscount hides.
-      const bs = r'\';
-
-      test("`\\\\` before a separator is a literal backslash, and the "
-          "separator still separates", () {
-        // The case this rule exists for: without it there is no way to end a
-        // cell with a backslash, because `\\=` escapes the separator and
-        // yields one cell holding `^` instead of two cells split after `\`.
-        expect(
-          NaturalBlockParser.parse('$bs$bs^B'),
-          DocumentNode(
-            children: [
-              RowNode(children: [cell(bs), cell('B')]),
-            ],
-          ),
-        );
-      });
-
-      test("the same holds for a Column separator", () {
-        expect(
-          NaturalBlockParser.parse('$bs$bs|B'),
-          DocumentNode(
-            children: [
-              ColumnNode(children: [line(bs)]),
-              block('B'),
-            ],
-          ),
-        );
-      });
-
-      test("a single `\\` before a separator still escapes it", () {
-        expect(
-          NaturalBlockParser.parse('$bs^B'),
-          DocumentNode(children: [block('^B')]),
-        );
-      });
-
-      test("three backslashes are a literal one plus an escaped separator", () {
-        expect(
-          NaturalBlockParser.parse('$bs$bs$bs^B'),
-          DocumentNode(children: [block('$bs^B')]),
-        );
-      });
-
-      test("a literal backslash survives in front of a decoration cluster", () {
-        // Resolving escapes in one place is what makes this work: were the
-        // cluster reader to collapse `\\` as well as `SourceCursor.read`, the
-        // lone backslash the first one left behind would be read as an
-        // escape again by the second and swallow the `:`.
-        final spans =
-            ((NaturalBlockParser.parse('$bs$bs:*x').children.single
-                            as ColumnNode)
-                        .children
-                        .single
-                    as TextNode)
-                .children
-                .cast<TextSpanNode>();
-
-        expect(spans.first.text, bs);
-        expect(spans.first.decoration.emphasis, isFalse);
-        expect(spans.last.text, 'x');
-        expect(spans.last.decoration.emphasis, isTrue);
-      });
-
-      test("a backslash before an ordinary character is still kept", () {
-        // Unchanged, and the reason Windows paths need no escaping at all.
-        expect(
-          NaturalBlockParser.parse('C:${bs}Users${bs}sugai'),
-          DocumentNode(children: [block('C:${bs}Users${bs}sugai')]),
-        );
-        expect(
-          NaturalBlockParser.parse('$bs!'),
-          DocumentNode(children: [block('$bs!')]),
-        );
-      });
-
-      test("a lone trailing backslash is literal", () {
-        expect(
-          NaturalBlockParser.parse(bs),
-          DocumentNode(
-            children: [
-              ColumnNode(children: [line(bs)]),
-            ],
-          ),
-        );
-      });
-
-      test("a doubled backslash collapses even away from any markup", () {
-        // The accepted cost of making `\` escapable: a UNC-style `\\server`
-        // now reads as `\server`. Escaping one backslash is the price of
-        // being able to write one before a separator at all.
-        expect(
-          NaturalBlockParser.parse('A$bs${bs}B'),
-          DocumentNode(children: [block('A${bs}B')]),
-        );
-      });
-
-      test("it works inside a table cell too", () {
-        final table = onlyTable('~x^y|$bs$bs^z~');
-
-        expect(table.children[1].children.first, tableCell(bs));
-        expect(table.children[1].children.last, tableCell('z'));
-      });
-    });
+  // How many backslashes there are is the whole claim here, which is why
+  // each case is spelled out rather than described.
+  _table('the backslash itself', {
+    // Without `\\` there is no way to end a cell with a backslash: a single
+    // one would escape the separator instead of standing on its own.
+    r'\\^B': r'Row[Col["\\"], Col["B"]]',
+    r'\\|B': r'Col["\\"], Col["B"]',
+    r'\^B': 'Col["^B"]',
+    r'\\\^B': r'Col["\\^B"]',
+    // Resolving escapes in one place is what makes this work: were the
+    // cluster reader to collapse `\\` as well, the backslash the first one
+    // left behind would be read as an escape again and swallow the `:`.
+    r'\\:*x': r'Col["\\" "x"{*}]',
+    // The accepted cost of making `\` escapable: a UNC-style `\\server`
+    // reads as `\server`. Being able to write one before a separator is
+    // what it buys.
+    r'A\\B': r'Col["A\\B"]',
+    r'~x^y|\\^z~': r'Col[Table[["x"] / ["y"]; ["\\"] / ["z"]]]',
   });
 }
