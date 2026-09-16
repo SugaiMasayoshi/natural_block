@@ -2,8 +2,10 @@ import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
 
-RawNode parseRawNode(SourceCursor cursor) =>
-    RawNode(text: _parseRegion(cursor));
+RawNode? parseRawNode(SourceCursor cursor) {
+  final text = _parseRegion(cursor);
+  return text.isEmpty ? null : RawNode(text: text);
+}
 
 RawSpanNode? parseRawSpanNode(SourceCursor cursor) {
   final text = _parseRegion(cursor);

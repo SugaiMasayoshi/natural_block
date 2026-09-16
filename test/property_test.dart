@@ -75,6 +75,8 @@ String? _brokenShape(NaturalBlockNode node) {
       if (text.isEmpty) return 'an empty raw run';
       return _noCarriageReturn(text);
     case RawNode(:final text):
+      // 【解説】 中身のないブロックの raw 区間も残らない(文中と同じ)。
+      if (text.isEmpty) return 'an empty raw block';
       return _noCarriageReturn(text);
   }
 }

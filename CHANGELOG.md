@@ -147,6 +147,11 @@ this repository, which is why the entries below describe changes freely.
   backticks -- how the language quotes its own syntax.
 - The newline directly against each fence belongs to that fence, so a fence
   can sit on its own line.
+- A region with nothing inside contributes no node, wherever it was written.
+  An empty region quotes nothing, so there is nothing for the tree to
+  record -- the same reading that drops an empty block and an empty run. A
+  block-level one used to keep an empty `RawNode`, which made the block case
+  an exception to the run case for no gain.
 - A fence with nothing to close it opens a region all the same, running to
   the end of the document -- as a table with no closing `~` does. Whether a
   region opens is settled by the fence alone, so what has been read is

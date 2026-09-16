@@ -115,6 +115,8 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   The newline directly against each fence is treated as part of that fence, so a fence can sit on its own line. Written inline the content is exactly what was typed.
 
+  A region with nothing inside contributes no node, wherever it was written. An empty region quotes nothing, so there is nothing for the tree to record -- the same reading that drops an empty block and an empty run.
+
   **An unclosed fence runs to the end of the document**, the same as a table with no closing `~`. Whether a region opens is settled by the fence alone -- nothing searches ahead for a closer -- so what has been read is always enough to know where you are. The cost is that a stray backtick swallows everything after it, separators included; write a literal one as `` \` ``. CRLF is normalized before parsing, so line endings do not round-trip.
 * **Escape characters**
   A backslash escapes whatever would otherwise be markup *at that point*, and nothing else. Which characters those are depends on where you are:
