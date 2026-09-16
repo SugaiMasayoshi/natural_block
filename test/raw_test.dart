@@ -1,215 +1,84 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
-import 'nodes.dart';
+import 'support/show.dart';
+
+/// One claim per line: the source, and the tree `show()` renders it as.
+///
+/// `Raw"..."` is a region standing on a line of its own, `raw"..."` one
+/// written inside a sentence. What needs checking here is what a region
+/// swallows and where it ends -- all of it longer than the two symbols the
+/// grid reaches.
+void _table(String name, Map<String, String> cases) {
+  group(name, () {
+    cases.forEach((source, expected) {
+      test(source.replaceAll('\n', r'\n').replaceAll('\r', r'\r'), () {
+        expect(show(NaturalBlockParser.parse(source)), expected);
+      });
+    });
+  });
+}
 
 void main() {
-  const bs = r'\';
-
-  /// The one raw region a source parses to.
-  RawNode onlyRegion(String source) =>
-      onlyBlock(source).children.single as RawNode;
-
-  group('why this exists: code survives', () {
-    test('a line of code full of `=` now needs no region at all', () {
-      // This used to be the headline argument for raw regions: while `=`
-      // separated cells, `final x = a == b ? 1 : 2;` parsed as a four-cell
-      // row, and `=` is what code is made of. Moving the separator to `^`
-      // took the argument away, which is the point -- code in prose survives
-      // on its own now.
-      const code = 'final x = a == b ? 1 : 2;';
-
-      expect(
-        NaturalBlockParser.parse(code).children,
-        [line(code)].map((l) => ColumnNode(children: [l])),
-      );
-      expect(onlyRegion('`$code`').text, code, reason: 'still quotable');
-    });
-
-    test('a line of code containing `^` does need one', () {
-      // What is left of the argument. `^` is rarer in code than `=` was, but
-      // it is not absent: exponents, regexes, and version constraints.
-      const code = 'assert(2^10 == 1024)';
-
-      expect(NaturalBlockParser.parse(code).children.single, isA<RowNode>());
-      expect(onlyRegion('`$code`').text, code);
-    });
-
-    test('a shell pipeline is not split into blocks', () {
-      const code = 'cat file.txt | grep foo | wc -l';
-
-      expect(NaturalBlockParser.parse(code).children, hasLength(3));
-      expect(onlyRegion('`$code`').text, code);
-    });
-
-    test('nothing inside is markup: no separators, decoration or escapes', () {
-      const raw = r':*bold:* and \| and :@action:@ and |a^b| and :---%%%';
-
-      expect(onlyRegion('`$raw`').text, raw);
-    });
+  // Why the construct exists: the characters a layout language wants are
+  // what code is made of. `=` used to separate cells, which made
+  // `final x = a == b ? 1 : 2;` a four-cell row; moving that to `^` took
+  // the headline argument away, but `^` is not absent from code either.
+  _table('code survives', {
+    'final x = a == b ? 1 : 2;': 'Col["final x = a == b ? 1 : 2;"]',
+    'assert(2^10 == 1024)': 'Row[Col["assert(2"], Col["10 == 1024)"]]',
+    '`assert(2^10 == 1024)`': 'Col[Raw"assert(2^10 == 1024)"]',
+    'cat file.txt | grep foo | wc -l':
+        'Col["cat file.txt "], Col[" grep foo "], Col[" wc -l"]',
+    '`cat file.txt | grep foo | wc -l`':
+        'Col[Raw"cat file.txt | grep foo | wc -l"]',
+    r'`:*bold:* and \| and :@action:@ and |a^b| and :---%%%`':
+        r'Col[Raw":*bold:* and \\| and :@action:@ and |a^b| and :---%%%"]',
   });
 
-  group('the point of one concept: it goes anywhere', () {
-    test('a region inside a sentence stays inside that line', () {
-      // The reason the delimiter cannot involve `|`: a `|`-based marker
-      // always breaks the block, so it could never be written mid-sentence.
-      expect(
-        onlyLine('比較は`a == b`です'),
-        TextNode(
-          children: [
-            TextSpanNode(text: '比較は'),
-            RawSpanNode(text: 'a == b'),
-            TextSpanNode(text: 'です'),
-          ],
-        ),
-      );
-    });
-
-    test('a region standing alone is the whole line', () {
-      // Same node, different placement -- which is what lets a renderer
-      // draw this one as a block and the one above as a run of text.
-      expect(onlyBlock('`code`').children, [RawNode(text: 'code')]);
-    });
-
-    test('a multi-line region stays one node', () {
-      // Every level that stops at a boundary has to know about regions
-      // too, or this would be cut into a piece per line with nothing left
-      // to rejoin it. `cursor.atLineStart` is the single answer they all
-      // ask for.
-      expect(
-        onlyRegion('`\nif (x) {\n  y();\n}\n`').text,
-        'if (x) {\n  y();\n}',
-      );
-    });
-
-    test('a multi-line region keeps the text around it in the same line', () {
-      final children = onlyLine('before`\ncode\n`after').children;
-
-      expect(children, [
-        TextSpanNode(text: 'before'),
-        RawSpanNode(text: 'code'),
-        TextSpanNode(text: 'after'),
-      ]);
-    });
-
-    test('a region works inside a table cell', () {
-      // Not possible with a `|`-based marker: a cell cannot hold a block.
-      //
-      // It is a run rather than a block. A region is a block because it was
-      // opened on a line of its own, and this one sits beside `x` on the
-      // same line -- the separator before it divides cells, not lines.
-      final table = onlyTable('~x^`a|b`|y^z~');
-      final cell = table.children.first.children.last.children.single;
-
-      expect(
-        (cell as TextNode).children.single,
-        RawSpanNode(text: 'a|b'),
-        reason: 'the pipe inside the region did not split the cell',
-      );
-    });
-
-    test('a region sits alongside decoration on the same line', () {
-      final children = onlyLine(':*bold:*and`code`and plain').children;
-
-      expect(
-        children[0],
-        TextSpanNode(text: 'bold', decoration: SpanDecoration(emphasis: true)),
-      );
-      expect(children[1], TextSpanNode(text: 'and'));
-      expect(children[2], RawSpanNode(text: 'code'));
-    });
-
-    test('a region opening right after a cluster is still a region', () {
-      // Inside a cluster a `:` is the reset action and is applied on sight,
-      // so the region check has to come first or this would be swallowed.
-      //
-      // It is a run rather than a block: whether a region stands alone is
-      // read from the source, and the cluster is there even though it
-      // produces no text of its own.
-      final children = onlyLine(':!`code`').children;
-      expect(children, [RawSpanNode(text: 'code')]);
-    });
+  // One construct, and where it is written is what the tree records. A
+  // marker built on `|` could never have been inline, since `|` always
+  // breaks a block.
+  _table('anywhere', {
+    '`code`': 'Col[Raw"code"]',
+    '比較は`a == b`です': 'Col["比較は" raw"a == b" "です"]',
+    'before`\ncode\n`after': 'Col["before" raw"code" "after"]',
+    ':*bold:*and`code`and plain': 'Col["bold"{*} "and" raw"code" "and plain"]',
+    // Not possible with a `|`-based marker: a cell cannot hold a block.
+    '~x^`a|b`|y^z~': 'Col[Table[["x"] / [raw"a|b"]; ["y"] / ["z"]]]',
   });
 
-  group('fences', () {
-    test('the newline against each fence belongs to the fence', () {
-      expect(onlyRegion('`\ncat a | grep b\n`').text, 'cat a | grep b');
-    });
-
-    test('only one newline goes at each end', () {
-      expect(onlyRegion('`\n\ncode\n\n`').text, '\ncode\n');
-    });
-
-    test('a block region also swallows the newline written after it', () {
-      // The same boundary rule from the outside: a region on a line of its
-      // own is a boundary, so the newline against it is the boundary's. Miss
-      // this and the text after a code block opens with a blank line that
-      // nobody wrote.
-      expect(onlyBlock('文章\n`code`\n続き').children, [
-        line('文章'),
-        RawNode(text: 'code'),
-        line('続き'),
-      ]);
-    });
-
-    test('a longer fence lets a region contain the fence character', () {
-      // Without this the language could not quote its own syntax.
-      expect(onlyRegion('``a `b` c``').text, 'a `b` c');
-    });
-
-    test('an empty region contributes no node', () {
-      expect(
-        NaturalBlockParser.parse('a`\n`'),
-        DocumentNode(children: [block('a')]),
-      );
-    });
+  // Every level that stops at a boundary has to know about regions, or a
+  // multi-line one would be cut into a piece per line with nothing left to
+  // rejoin it. `cursor.atLineStart` is the single answer they all ask for.
+  _table('fences', {
+    '`\nif (x) {\n  y();\n}\n`': r'Col[Raw"if (x) {\n  y();\n}"]',
+    '`\ncat a | grep b\n`': 'Col[Raw"cat a | grep b"]',
+    // The newline against each fence belongs to that fence -- one of them,
+    // so a blank line inside the region survives.
+    '`\n\ncode\n\n`': r'Col[Raw"\ncode\n"]',
+    // The same rule from the outside: miss it and the text after a code
+    // block opens with a blank line nobody wrote.
+    '文章\n`code`\n続き': 'Col["文章", Raw"code", "続き"]',
+    // How the language quotes its own syntax.
+    '``a `b` c``': 'Col[Raw"a `b` c"]',
   });
 
-  group('an unclosed fence runs to the end of the document', () {
-    test('it opens a region all the same', () {
-      // The fence alone settles it, the same as a table's `~`: nothing
-      // searches ahead for a closer.
-      expect(onlyLine('a `b').children, [
-        TextSpanNode(text: 'a '),
-        RawSpanNode(text: 'b'),
-      ]);
-    });
-
-    test('separators after it are inside the region', () {
-      expect(onlyLine('a `b | c').children, [
-        TextSpanNode(text: 'a '),
-        RawSpanNode(text: 'b | c'),
-      ]);
-    });
-
-    test('on a line of its own it is a block region', () {
-      expect(onlyRegion('`\ncode\n').text, 'code');
-    });
+  // The fence alone settles whether a region opens -- nothing searches ahead
+  // for a closer -- so what has been read is always enough to know where you
+  // are. The cost is that a stray backtick swallows the rest of the
+  // document, separators included.
+  _table('an unclosed fence runs to the end of the document', {
+    'a `b': 'Col["a " raw"b"]',
+    'a `b | c': 'Col["a " raw"b | c"]',
+    '`\ncode\n': 'Col[Raw"code"]',
   });
 
-  group('escaping the fence', () {
-    test('an escaped fence is a literal backtick and opens nothing', () {
-      expect(
-        NaturalBlockParser.parse('a $bs` b'),
-        DocumentNode(children: [block('a ` b')]),
-      );
-    });
+  // If an escaped fence were read as opening a region, this `|` would be
+  // swallowed instead of separating.
+  _table('escaping the fence', {r'a \` b | c': 'Col["a ` b "], Col[" c"]'});
 
-    test('a separator after an escaped fence still separates', () {
-      // The check that escaping and region-opening agree: if the escaped
-      // fence were read as opening a region, this `|` would be swallowed.
-      expect(
-        NaturalBlockParser.parse('a $bs` b | c'),
-        DocumentNode(children: [block('a ` b '), block(' c')]),
-      );
-    });
-  });
-
-  group('line endings', () {
-    test('CRLF is normalized inside a region too', () {
-      // Normalization happens before scanning, so line endings do not
-      // round-trip through a region. Pinned so the limit is stated.
-      expect(onlyRegion('`a\r\nb`').text, 'a\nb');
-    });
-  });
+  // Normalization happens before scanning, so line endings do not
+  // round-trip through a region. Pinned so the limit is stated.
+  _table('line endings', {'`a\r\nb`': r'Col[Raw"a\nb"]'});
 }
