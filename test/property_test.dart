@@ -9,9 +9,11 @@
 import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
-// 【解説】 試す文字。記号の代表と、普通の文字 'b'、改行。
-// 【解説】 grid と同じ考え方で、装飾の文字は '!'、寄せは '<' が代表。
-const _alphabet = ['b', '|', '^', '~', '`', ':', '!', r'\', '\n', '<'];
+import 'support/grid.dart';
+
+// 【解説】 試す文字。grid と同じ一覧(記号の代表と、普通の文字 'b'、改行)を使う。
+// 【解説】 片方にだけ記号を足して網が抜けることがないよう、定義は1箇所に置く。
+final _alphabet = gridTokens.values.toList();
 
 // 【解説】 エスケープの性質(4つ目)で使う、改行を除いた文字。
 // 【解説】 改行は打ち消せないので、この性質の対象から外す。
