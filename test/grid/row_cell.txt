@@ -2,7 +2,7 @@
 Row[Col["a"], Col["XX"]]
     bb  !!
 Row[Col["a"], Col["X"]]
-    b|  b~  b`  b⏎  b$  :|  :~  :`  :⏎  :$  !|  !~  !`  !⏎  !$  \\  \⏎  \$  <<
+    b|  b~  b`  bN  bE  :|  :~  :`  :N  :E  !|  !~  !`  !N  !E  \\  \N  \E  <<
 Row[Col["a"], Col["X"], Col[]]
     b^  :^  !^
 Row[Col["a"], Col["XY"]]
@@ -10,13 +10,13 @@ Row[Col["a"], Col["XY"]]
 Row[Col["a"], Col[]], Col["Y"]
     |b  |:  |!  |\
 Row[Col["a"], Col[]]
-    ||  |~  |`  |⏎  |<  |$  ~|  ~~  ~`  ~⏎  ~<  ~$  ``  `⏎  `$  ::  :!  ⏎|  ⏎~  ⏎`  ⏎⏎  ⏎$  <|  <~  <`  <⏎  <$
+    ||  |~  |`  |N  |<  |E  ~|  ~~  ~`  ~N  ~<  ~E  ``  `N  `E  ::  :!  N|  N~  N`  NN  NE  <|  <~  <`  <N  <E
 Row[Col["a"], Col[]], Row[Col[], Col[]]
     |^
 Row[Col["a"], Col[], Col["Y"]]
     ^b  ^:  ^!  ^\
 Row[Col["a"], Col[], Col[]]
-    ^|  ^~  ^`  ^⏎  ^<  ^$  ⏎^  <^
+    ^|  ^~  ^`  ^N  ^<  ^E  N^  <^
 Row[Col["a"], Col[], Col[], Col[]]
     ^^
 Row[Col["a"], Col[Table[["Y"]]]]
@@ -26,4 +26,4 @@ Row[Col["a"], Col[Table[[] / []]]]
 Row[Col["a"], Col[raw"Y"]]
     `b  `|  `^  `~  `:  `!  `\  `<
 Row[Col["a"], Col["Y"]]
-    \|  \^  \~  \`  \:  \<  ⏎b  ⏎:  ⏎!  ⏎\  ⏎<  <b  <:  <!  <\
+    \|  \^  \~  \`  \:  \<  Nb  N:  N!  N\  N<  <b  <:  <!  <\
