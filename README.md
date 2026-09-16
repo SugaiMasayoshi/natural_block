@@ -206,4 +206,12 @@ For more comprehensive and advanced usage, please check the `/example` folder in
   ```
 
   Regenerating without reading the diff makes it stop being a net.
+* **The grid.** `test/grid_test.dart` writes every pair of markup characters in every place a pair can be written -- nine contexts, 990 pairs -- and pins the shape of each resulting tree against `test/grid/<context>.txt`, listing the pairs that come out the same under one shape. The parser decides from the character it is on, the one after it, whether it stands at the start of a line, and a finite context, so pairs-in-context reach every decision it makes. Regenerate it the same way as the probe, and read the diff the same way:
+
+  ```
+  UPDATE_GRID=1 dart test test/grid_test.dart
+  ```
+
+  The shapes leave out alignment and decoration *values*, and `!` stands for every decoration character and `<` for every alignment marker. `test/representative_test.dart` is what makes that sound: it swaps each representative for the rest of its kind over the same 990 inputs and checks no shape changes, and it carries the table of which symbol sets which value.
+* **The property tests.** `test/property_test.dart` parses all 111,110 sources of up to five markup characters and checks only what must hold for any input at all: nothing throws, no node survives that should not exist (an empty run, a one-cell row), CRLF parses as LF, and escaping every symbol gives back exactly the text. It never says which tree is right, which is why the grid exists.
 * **Support:** We aim to respond to issues within a few days. Feel free to open a discussion for any usage questions.
