@@ -23,13 +23,16 @@ import 'decoration.dart';
     final next = cursor.peekAt(1);
     if (char.isEmpty || boundaryChars.contains(char)) break;
     if (char == clusterChar && DecorationAction.chars.contains(next)) break;
-    if (char == '\n' && decorated) break;
     if (char == '\n' && (next.isEmpty || boundaryChars.contains(next))) break;
 
     text.write(cursor.take());
+    if (char == '\n' && decorated) break;
   }
 
-  final nextStyle = cursor.peek == '\n' ? const SpanDecoration() : style;
-  if (text.isEmpty) return (null, nextStyle);
-  return (TextSpanNode(text: text.toString(), decoration: style), nextStyle);
+  final content = text.toString();
+  final nextStyle = cursor.peek == '\n' || content.endsWith('\n')
+      ? const SpanDecoration()
+      : style;
+  if (content.isEmpty) return (null, nextStyle);
+  return (TextSpanNode(text: content, decoration: style), nextStyle);
 }

@@ -27,6 +27,10 @@ this repository, which is why the entries below describe changes freely.
   however many lines it has. The one thing a newline does is reset
   decoration, so a cluster cannot leak past the end of its line -- a rule
   the parser applies while reading rather than a division the tree records.
+  The newline that ends a decorated line belongs to that line's run and
+  carries its decoration: Flutter sizes a line by the newline that ends it
+  too. It used to open the next, undecorated run instead, which made a line
+  of small text as tall as the line after it.
   A single blank line at the start or end of a block is dropped, so a
   block's symbol can sit on its own line. CRLF input is normalized, so a
   document written on Windows parses identically.
