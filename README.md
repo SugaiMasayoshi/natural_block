@@ -199,19 +199,15 @@ For more comprehensive and advanced usage, please check the `/example` folder in
 
 * **Source Code & Issues:** If you encounter any bugs, have feature requests, or want to contribute, please visit our [GitHub repository](https://github.com/SugaiMasayoshi/natural_block).
 * **Contributions:** We welcome pull requests! Please ensure that all new features include unit tests covering edge cases (such as symbol escaping and boundary resets).
-* **The probe.** `test/probe_test.dart` pins the entire tree of every source it lists against `test/probe.expected.txt`. It is not a substitute for the other tests -- they check the rules the language *claims*, this checks that nothing else moved. Both are needed: it has caught changes that every other test passed through. When a change is meant to alter the output, read the diff, confirm only the intended cases moved, and then regenerate:
+* **The grid.** `test/grid_test.dart` writes every pair of markup characters in every place a pair can be written -- nine contexts, 990 pairs -- and pins the shape of each resulting tree against `test/grid/<context>.txt`, listing the pairs that come out the same under one shape. The parser decides from the character it is on, the one after it, whether it stands at the start of a line, and a finite context, so pairs-in-context reach every decision it makes. When a change is meant to alter the output, read the diff, confirm only the intended pairs moved, and then regenerate:
 
   ```
-  UPDATE_PROBE=1 dart test test/probe_test.dart
+  dart run tool/update_grid.dart
   ```
 
   Regenerating without reading the diff makes it stop being a net.
-* **The grid.** `test/grid_test.dart` writes every pair of markup characters in every place a pair can be written -- nine contexts, 990 pairs -- and pins the shape of each resulting tree against `test/grid/<context>.txt`, listing the pairs that come out the same under one shape. The parser decides from the character it is on, the one after it, whether it stands at the start of a line, and a finite context, so pairs-in-context reach every decision it makes. Regenerate it the same way as the probe, and read the diff the same way:
 
-  ```
-  UPDATE_GRID=1 dart test test/grid_test.dart
-  ```
-
-  The shapes leave out alignment and decoration *values*, and `!` stands for every decoration character and `<` for every alignment marker. `test/representative_test.dart` is what makes that sound: it swaps each representative for the rest of its kind over the same 990 inputs and checks no shape changes, and it carries the table of which symbol sets which value.
+  The shapes leave out alignment and decoration *values*, and `!` stands for every decoration character and `<` for every alignment marker. `test/representative_test.dart` is what makes that sound: it swaps each representative for the rest of its kind over the same 990 inputs and checks no shape changes.
+* **The syntax.** `test/syntax_test.dart` holds the published syntax: a few representative sources per construct, each with its whole tree, values included. It is the one place a value is checked -- which symbol sets which alignment or decoration -- and the rules no pair of characters can show, such as a column taking its alignment from the first row.
 * **The property tests.** `test/property_test.dart` parses all 111,110 sources of up to five markup characters and checks only what must hold for any input at all: nothing throws, no node survives that should not exist (an empty run, a one-cell row), CRLF parses as LF, and escaping every symbol gives back exactly the text. It never says which tree is right, which is why the grid exists.
 * **Support:** We aim to respond to issues within a few days. Feel free to open a discussion for any usage questions.

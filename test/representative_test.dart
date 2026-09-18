@@ -5,10 +5,9 @@ import 'package:test/test.dart';
 import 'support/grid.dart';
 import 'support/show.dart';
 
-/// The grid writes one decoration character and one alignment marker, and
-/// leaves values out. This file is what makes that sound: the rest of each
-/// kind gives the same shapes, and a table says which symbol sets which
-/// value.
+/// The grid writes one decoration character and one alignment marker. This
+/// file is what makes that sound: the rest of each kind gives the same
+/// shapes. Which symbol sets which value is `syntax_test.dart`'s.
 const _decorationRepresentative = '!';
 const _alignRepresentative = '<';
 
@@ -61,32 +60,5 @@ void main() {
         }
       }
     }
-  });
-
-  const values = {
-    '<a': 'Col<["a"]',
-    '=a': 'Col=["a"]',
-    '>a': 'Col>["a"]',
-    '~<a': 'Col[Table[<["a"]]]',
-    ':+a': 'Col["a"{+1}]',
-    ':++a': 'Col["a"{+2}]',
-    ':-a': 'Col["a"{-1}]',
-    ':+-a': 'Col["a"]',
-    ':!a': 'Col["a"{negative}]',
-    ':%a': 'Col["a"{positive}]',
-    ':!!a': 'Col["a"]',
-    ':!%a': 'Col["a"{positive}]',
-    ':*a': 'Col["a"{*}]',
-    ':**a': 'Col["a"]',
-    ':@a': 'Col["a"{@}]',
-    ':@@a': 'Col["a"]',
-    ':+!*@a': 'Col["a"{+1 negative * @}]',
-    // `:` clears everything but the size.
-    ':+!*@:a': 'Col["a"{+1}]',
-  };
-  values.forEach((source, expected) {
-    test('value: $source', () {
-      expect(show(NaturalBlockParser.parse(source)), expected);
-    });
   });
 }
