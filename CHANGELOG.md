@@ -216,6 +216,13 @@ this repository, which is why the entries below describe changes freely.
   design discussions about headings and list items, both of which would need
   exactly that.
 - Every node declares the exact child type it can hold.
+- A node's constructor asserts the shape the parser promises, so a shape
+  the parser never makes cannot be built by hand either: a run, a raw
+  region, a `TextNode`, a table and a table row are never empty, a
+  `RowNode` has at least two cells, and a `DocumentNode` holds no empty
+  `ColumnNode`. The children of those nodes are required rather than
+  defaulting to an empty list. An empty `ColumnNode` stays legal -- it is
+  how a row keeps an empty cell -- and so does an empty `TableCellNode`.
 - All nodes implement `==` / `hashCode` structurally.
 
 ### API

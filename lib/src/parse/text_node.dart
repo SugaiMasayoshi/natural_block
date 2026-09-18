@@ -3,7 +3,7 @@ import '../source_cursor.dart';
 import '../span_decoration.dart';
 import 'inline_node.dart';
 
-TextNode parseTextNode(SourceCursor cursor) {
+TextNode? parseTextNode(SourceCursor cursor) {
   final children = <InlineNode>[];
   var style = const SpanDecoration();
 
@@ -15,5 +15,5 @@ TextNode parseTextNode(SourceCursor cursor) {
     if (node != null) children.add(node);
   } while (cursor.position > before);
 
-  return TextNode(children: children);
+  return children.isEmpty ? null : TextNode(children: children);
 }

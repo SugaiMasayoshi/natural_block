@@ -12,7 +12,11 @@ const _childrenEquality = ListEquality<NaturalBlockNode>();
 final class DocumentNode extends NaturalBlockNode {
   final List<LayoutNode> children;
 
-  DocumentNode({this.children = const []});
+  DocumentNode({this.children = const []})
+    : assert(
+        children.every((c) => c is! ColumnNode || c.children.isNotEmpty),
+        'an empty block contributes no node',
+      );
 
   @override
   String toString() => 'DocumentNode(children: $children)';
@@ -57,7 +61,8 @@ final class ColumnNode extends LayoutNode {
 final class RowNode extends LayoutNode {
   final List<ColumnNode> children;
 
-  RowNode({this.children = const []});
+  RowNode({required this.children})
+    : assert(children.length >= 2, 'a row has at least two cells');
 
   @override
   String toString() => 'RowNode(children: $children)';
@@ -81,7 +86,8 @@ sealed class FlatContentNode extends ContentNode {}
 final class TextNode extends FlatContentNode {
   final List<InlineNode> children;
 
-  TextNode({this.children = const []});
+  TextNode({required this.children})
+    : assert(children.isNotEmpty, 'a text node has at least one run');
 
   @override
   String toString() => 'TextNode(children: $children)';
@@ -101,7 +107,8 @@ final class TextNode extends FlatContentNode {
 final class RawNode extends FlatContentNode {
   final String text;
 
-  RawNode({required this.text});
+  RawNode({required this.text})
+    : assert(text.isNotEmpty, 'an empty raw region contributes no node');
 
   @override
   String toString() => 'RawNode(text: $text)';
@@ -121,7 +128,8 @@ final class TableNode extends ContentNode {
 
   late final List<HorizontalAlign> columns = _columns(children);
 
-  TableNode({this.children = const []});
+  TableNode({required this.children})
+    : assert(children.isNotEmpty, 'a table has at least one row');
 
   static List<HorizontalAlign> _columns(List<TableRowNode> rows) {
     final columns = <HorizontalAlign>[];
@@ -151,7 +159,8 @@ final class TableNode extends ContentNode {
 final class TableRowNode extends NaturalBlockNode {
   final List<TableCellNode> children;
 
-  TableRowNode({this.children = const []});
+  TableRowNode({required this.children})
+    : assert(children.isNotEmpty, 'a table row has at least one cell');
 
   @override
   String toString() => 'TableRowNode(children: $children)';
@@ -201,7 +210,8 @@ final class TextSpanNode extends InlineNode {
 
   final SpanDecoration decoration;
 
-  TextSpanNode({required this.text, this.decoration = const SpanDecoration()});
+  TextSpanNode({required this.text, this.decoration = const SpanDecoration()})
+    : assert(text.isNotEmpty, 'an empty run contributes no node');
 
   @override
   String toString() => 'TextSpanNode(text: $text, decoration: $decoration)';
@@ -221,7 +231,8 @@ final class TextSpanNode extends InlineNode {
 final class RawSpanNode extends InlineNode {
   final String text;
 
-  RawSpanNode({required this.text});
+  RawSpanNode({required this.text})
+    : assert(text.isNotEmpty, 'an empty raw region contributes no node');
 
   @override
   String toString() => 'RawSpanNode(text: $text)';
