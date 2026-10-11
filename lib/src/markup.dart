@@ -21,7 +21,7 @@ enum DecorationAction {
   negative('!'),
   positive('%'),
   emphasis('*'),
-  action('@'),
+  custom('@'),
   reset(clusterChar);
 
   final String char;

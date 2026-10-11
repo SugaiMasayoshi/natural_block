@@ -113,16 +113,16 @@ this repository, which is why the entries below describe changes freely.
 ### Decoration
 
 - `:`-led clusters: `:+` / `:-` size steps, `:!` negative, `:%` positive,
-  `:*` emphasis, `:@` actionable, `::` reset.
-- Size, tone, emphasis, and actionability are independent axes; only `|`,
+  `:*` emphasis, `:@` custom, `::` reset.
+- Size, tone, emphasis, and custom marking are independent axes; only `|`,
   `^` and `~` reset everything.
 - A bare `+ - ! % ? * @` is always literal, so `C++`, `100%`, `Really?!`,
   and `you@example.com` need no escaping. This is what the `:` prefix buys.
-- `:@...:@` marks a run actionable without saying what acting on it means.
+- `:@...:@` marks a run custom without saying what it means.
   The run's own text is the whole payload.
 - There are two tones, not three. `:?` (info) was dropped. It named
   nothing a writer means -- every sentence is information -- and it rendered
-  in the same colour as `:@`, so it was an action span without the underline.
+  in the same colour as `:@`, so it was a custom span without the underline.
   Three documents written against this spec by people seeing it for the first
   time used it once between them, and that once was to set an aside apart from
   the body, which is a block's job rather than a colour's. The other two stay

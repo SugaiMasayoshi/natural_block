@@ -9,11 +9,11 @@ extension SpanDecorationActions on SpanDecoration {
     DecorationAction.negative => _copy(tone: _toggle(Tone.negative)),
     DecorationAction.positive => _copy(tone: _toggle(Tone.positive)),
     DecorationAction.emphasis => _copy(emphasis: !emphasis),
-    DecorationAction.action => _copy(isAction: !isAction),
+    DecorationAction.custom => _copy(isCustom: !isCustom),
     DecorationAction.reset => _copy(
       tone: Tone.none,
       emphasis: false,
-      isAction: false,
+      isCustom: false,
     ),
   };
 
@@ -23,11 +23,11 @@ extension SpanDecorationActions on SpanDecoration {
     int? sizeOffset,
     Tone? tone,
     bool? emphasis,
-    bool? isAction,
+    bool? isCustom,
   }) => SpanDecoration(
     sizeOffset: sizeOffset ?? this.sizeOffset,
     tone: tone ?? this.tone,
     emphasis: emphasis ?? this.emphasis,
-    isAction: isAction ?? this.isAction,
+    isCustom: isCustom ?? this.isCustom,
   );
 }

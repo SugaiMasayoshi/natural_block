@@ -12,9 +12,9 @@ void main() {
 Bare punctuation is literal: C++, 10-20, 100%, Really?!, you@example.com
 ''');
 
-  _show('Actionable runs', r'''
+  _show('Custom runs', r'''
 :@https://example.com:@ is a URL, :@#getting-started:@ names a section.
-The parser records only that a run is actionable -- what acting on it
+The parser records only that a run is custom -- what it
 means is the app's decision. :@image(https://example.com/a.png):@ is one
 convention a renderer may recognise; anything that does not still reads
 as ordinary text.

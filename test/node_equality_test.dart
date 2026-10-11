@@ -135,7 +135,7 @@ void main() {
       SpanDecoration(sizeOffset: 1),
       SpanDecoration(tone: Tone.negative),
       SpanDecoration(emphasis: true),
-      SpanDecoration(isAction: true),
+      SpanDecoration(isCustom: true),
     ];
     for (final other in others) {
       expect(other, isNot(plain));

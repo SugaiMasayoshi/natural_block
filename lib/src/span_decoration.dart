@@ -4,19 +4,19 @@ class SpanDecoration {
   final int sizeOffset;
   final Tone tone;
   final bool emphasis;
-  final bool isAction;
+  final bool isCustom;
 
   const SpanDecoration({
     this.sizeOffset = 0,
     this.tone = Tone.none,
     this.emphasis = false,
-    this.isAction = false,
+    this.isCustom = false,
   });
 
   @override
   String toString() =>
       'SpanDecoration(sizeOffset: $sizeOffset, tone: $tone, '
-      'emphasis: $emphasis, isAction: $isAction)';
+      'emphasis: $emphasis, isCustom: $isCustom)';
 
   @override
   bool operator ==(Object other) =>
@@ -24,8 +24,8 @@ class SpanDecoration {
       sizeOffset == other.sizeOffset &&
       tone == other.tone &&
       emphasis == other.emphasis &&
-      isAction == other.isAction;
+      isCustom == other.isCustom;
 
   @override
-  int get hashCode => Object.hash(sizeOffset, tone, emphasis, isAction);
+  int get hashCode => Object.hash(sizeOffset, tone, emphasis, isCustom);
 }

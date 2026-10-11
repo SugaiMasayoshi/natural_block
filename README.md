@@ -10,17 +10,17 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
   Use the `|` (pipe) symbol to create column blocks. Spaces are content and are never trimmed; the one thing that disappears is a single blank line at each end of a block, so a block's symbol can sit on a line of its own.
 * **Horizontal Layout (Row)**
   Use the `^` (caret) symbol to split text into horizontal row nodes.
-  Layout symbols reset all decoration (size, tone, emphasis, actionability) at the block boundary they create -- each block starts from a clean style.
+  Layout symbols reset all decoration (size, tone, emphasis, custom marking) at the block boundary they create -- each block starts from a clean style.
 * **Decoration clusters (`:`-led)**
-  All decoration -- size, tone, emphasis, and actionability -- is triggered by a `:` immediately followed by one or more decoration characters, forming a *cluster*. Each character in the cluster applies in order:
+  All decoration -- size, tone, emphasis, and custom marking -- is triggered by a `:` immediately followed by one or more decoration characters, forming a *cluster*. Each character in the cluster applies in order:
   * `:+` one step larger, `:-` one step smaller -- repeat the character to stack without retyping the colon (`:+++` is +3).
   * `:!` negative, `:%` positive -- the two ends of one tone, so writing one replaces the other. Each **toggles**: typing it again turns it back off.
   * `:*` Emphasis / Bold -- also toggles.
-  * `:@` Actionable text -- also toggles. See below.
-  * `::` resets tone, emphasis, and actionability together (a cluster whose only character is `:`). It does **not** reset the size offset.
+  * `:@` Custom text -- also toggles. See below.
+  * `::` resets tone, emphasis, and custom marking together (a cluster whose only character is `:`). It does **not** reset the size offset.
   * Multiple characters can share one cluster to apply together, e.g. `:!*` applies the negative tone and Emphasis at the same time. Two clusters typed back-to-back are *not* the same as one combined cluster -- see [Combining decorations](#combining-decorations) below.
-* **Actionable text (`:@`)**
-  Text between `:@` and `:@` is marked actionable -- `TextSpanNode.decoration.isAction` is true for it. The parser records only *that* a run is actionable, never what acting on it should do; the run's own text is the entire payload, and interpreting it (a URL to open, a section to jump to, a mention to resolve, an image to draw) belongs to the consuming app.
+* **Custom text (`:@`)**
+  Text between `:@` and `:@` is marked custom -- `TextSpanNode.decoration.isCustom` is true for it. The parser records only *that* a run is custom, never what it should do; the run's own text is the entire payload, and interpreting it (a URL to open, a section to jump to, a mention to resolve, an image to draw) belongs to the consuming app.
 
   ```dart
   NaturalBlockParser.parse(':@https://example.com:@ を参照');
@@ -48,7 +48,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   Third, and noticed only after the first two had settled it: on a Japanese flick keyboard `<` `=` `>` share a single key, and the flick directions match the meanings -- left for left, right for right. `^` and `|` share a key too, so both layout separators are one key apart.
 
-* **Size, tone, emphasis, and actionability are independent axes**
+* **Size, tone, emphasis, and custom marking are independent axes**
   None of them resets another. A size change survives a following tone/emphasis symbol and vice versa; only `|`, `^`, or `~` resets everything.
 * **Bare punctuation is always literal -- no escaping needed**
   A `+`, `-`, `!`, `%`, `?`, `*`, or `@` with no `:` immediately before it is always ordinary text. This is the whole point of the `:` prefix: everyday prose like `C++`, `10-20`, `100%`, `well-known`, `Really?!`, or `you@example.com` renders completely unchanged, in both Japanese and English, with zero escaping.
