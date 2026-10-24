@@ -31,4 +31,47 @@ void main() {
       );
     }
   });
+
+  test('a line break written as CRLF or CR parses as LF', () {
+    for (final source in sources.where((s) => s.contains('\n'))) {
+      final expected = NaturalBlockParser.parse(source);
+      for (final lineBreak in ['\r\n', '\r']) {
+        expect(
+          NaturalBlockParser.parse(source.replaceAll('\n', lineBreak)),
+          expected,
+          reason: source,
+        );
+      }
+    }
+  });
+
+  // Every character that could be markup, escaped, leaves one plain run of
+  // exactly the text. Line breaks are left out: they cannot be escaped.
+  test('escaping every symbol gives back exactly the text', () {
+    final symbols = gridTokens.values.where((c) => c != '\n').toList();
+    for (final source in _strings(symbols, 5)) {
+      final escaped = StringBuffer();
+      for (var i = 0; i < source.length; i++) {
+        final char = source[i];
+        final live =
+            {'|', '^', '~', '`', ':', r'\'}.contains(char) ||
+            (i == 0 && char == '<');
+        escaped.write(live ? '\\$char' : char);
+      }
+
+      expect(
+        NaturalBlockParser.parse(escaped.toString()),
+        DocumentNode(
+          children: [
+            ColumnNode(
+              children: [
+                TextNode(children: [TextSpanNode(text: source)]),
+              ],
+            ),
+          ],
+        ),
+        reason: escaped.toString(),
+      );
+    }
+  });
 }
