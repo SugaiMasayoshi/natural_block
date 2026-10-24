@@ -111,7 +111,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   **A region can go anywhere**: inside a sentence, alone on a line, or in a table cell. It is one construct, and what it holds is what the tree records -- a region with a line break inside is a `RawNode`, a block sitting among the lines of its column, while one without is a `RawSpanNode` beside the styled runs. To quote a single line as a block, put its fences on their own lines. That is what lets a renderer draw the first as a boxed code block and the second as a run of monospaced text. `` ` `` is the price: it is the fifth character that is always active, so a literal backtick in prose is written `` \` ``. A marker built on `|` could never have been inline, since `|` always breaks a block.
 
-  The fence's run length sets the closing delimiter, so a region opened with ``` `` ``` ends at ``` `` ``` and may contain single backticks. That is how the language quotes its own syntax.
+  The fence's run length sets the closing delimiter, so a region opened with ``` `` ``` ends at the next run of exactly two backticks and may contain runs of any other length. That is how the language quotes its own syntax.
 
   The newline directly against each fence is treated as part of that fence, so a fence can sit on its own line. Written inline the content is exactly what was typed.
 

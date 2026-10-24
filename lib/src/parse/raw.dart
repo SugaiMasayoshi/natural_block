@@ -37,11 +37,24 @@ String _parseRegion(SourceCursor cursor) {
   }
 
   final contentStart = openStart + fence;
-  final closerStart = source.indexOf(rawChar * fence, contentStart);
-  return closerStart == -1
-      ? (content: source.substring(contentStart), end: source.length)
-      : (
-          content: source.substring(contentStart, closerStart),
-          end: closerStart + fence,
-        );
+  var search = contentStart;
+  while (true) {
+    final closerStart = source.indexOf(rawChar, search);
+    if (closerStart == -1) {
+      return (content: source.substring(contentStart), end: source.length);
+    }
+
+    var closerEnd = closerStart;
+    while (closerEnd < source.length && source[closerEnd] == rawChar) {
+      closerEnd += 1;
+    }
+    // Only a run exactly as long as the fence closes it; any other is content.
+    if (closerEnd - closerStart == fence) {
+      return (
+        content: source.substring(contentStart, closerStart),
+        end: closerEnd,
+      );
+    }
+    search = closerEnd;
+  }
 }

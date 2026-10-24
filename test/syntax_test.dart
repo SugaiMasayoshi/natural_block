@@ -66,6 +66,7 @@ void main() {
     '`\ncat a | grep b\n`': 'Col[Raw"cat a | grep b"]',
     '`\n\ncode\n\n`': r'Col[Raw"\ncode\n"]',
     '``a `b` c``': 'Col[raw"a `b` c"]',
+    'x `a``b` y': 'Col["x " raw"a``b" " y"]',
     'a `\nb\n` c': 'Col["a ", Raw"b", " c"]',
     ':!a`x\ny`b': r'Col["a"{negative}, Raw"x\ny", "b"]',
     'a `b | c': 'Col["a " raw"b | c"]',

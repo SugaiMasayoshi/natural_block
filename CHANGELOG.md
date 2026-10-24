@@ -147,8 +147,10 @@ this repository, which is why the entries below describe changes freely.
   four-cell row. Moving the separator to `^` retired that example.
 - One construct, usable anywhere: inside a sentence, alone on a line, or in
   a table cell. Where it is written is what decides how a renderer draws it.
-- The fence's run length sets the closer, so ``` `` ``` may contain single
-  backticks -- how the language quotes its own syntax.
+- The fence's run length sets the closer: a region ends at the next run of
+  exactly as many backticks, so ``` `` ``` may contain runs of any other
+  length -- how the language quotes its own syntax. A longer run used to
+  close it and leave its extra backticks to open a region of their own.
 - The newline directly against each fence belongs to that fence, so a fence
   can sit on its own line.
 - A region with nothing inside contributes no node, wherever it was written.
