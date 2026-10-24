@@ -147,7 +147,7 @@ this repository, which is why the entries below describe changes freely.
   further: while `=` separated cells, `final x = a == b ? 1 : 2;` was a
   four-cell row. Moving the separator to `^` retired that example.
 - One construct, usable anywhere: inside a sentence, alone on a line, or in
-  a table cell. Where it is written is what decides how a renderer draws it.
+  a table cell.
 - The fence's run length sets the closer: a region ends at the next run of
   exactly as many backticks, so ``` `` ``` may contain runs of any other
   length -- how the language quotes its own syntax. A longer run used to
@@ -163,8 +163,7 @@ this repository, which is why the entries below describe changes freely.
   the end of the document -- as a table with no closing `~` does. Whether a
   region opens is settled by the fence alone. The cost is that a stray backtick
   swallows the rest of the document, separators included; `` \` `` writes a
-  literal one. It used to stay ordinary text, which took a search to the
-  end of the document to find out.
+  literal one.
 - A region with a line break inside is a `RawNode`, a block that sits
   among the lines of its column; one without is a `RawSpanNode` beside the
   styled runs. Where it was written does not decide it, so a region in a
