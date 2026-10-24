@@ -117,7 +117,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   A region with nothing inside contributes no node, wherever it was written. An empty region quotes nothing, so there is nothing for the tree to record -- the same reading that drops an empty block and an empty run.
 
-  **An unclosed fence runs to the end of the document**, the same as a table with no closing `~`. Whether a region opens is settled by the fence alone -- nothing searches ahead for a closer -- so what has been read is always enough to know where you are. The cost is that a stray backtick swallows everything after it, separators included; write a literal one as `` \` ``. CRLF is normalized before parsing, so line endings do not round-trip.
+  **An unclosed fence runs to the end of the document**, the same as a table with no closing `~`. A fence always opens a region; reading the region to its closer then decides whether it is a block. The cost is that a stray backtick swallows everything after it, separators included; write a literal one as `` \` ``. CRLF is normalized before parsing, so line endings do not round-trip.
 * **Escape characters**
   A backslash escapes whatever would otherwise be markup *at that point*, and nothing else. Which characters those are depends on where you are:
 
@@ -144,7 +144,7 @@ dependencies:
 
 ## Usage
 
-Pass your markup text to `NaturalBlockParser.parse`. It will return a syntax tree (a `DocumentNode` holding `ColumnNode`, `RowNode`, `TableNode`, and the two kinds of line -- `TextNode` and `RawNode` -- where a `TextNode` holds `TextSpanNode`s and `RawSpanNode`s) that you can easily map to Flutter widgets like `Column`, `Row`, and `RichText`.
+Pass your markup text to `NaturalBlockParser.parse`. It will return a syntax tree (a `DocumentNode` holding `ColumnNode`, `RowNode`, `TableNode`, and the two kinds of content -- `TextNode` and `RawNode` -- where a `TextNode` holds `TextSpanNode`s and `RawSpanNode`s) that you can easily map to Flutter widgets like `Column`, `Row`, and `RichText`.
 
 ```dart
 import 'package:natural_block/natural_block.dart';
@@ -194,7 +194,7 @@ For more comprehensive and advanced usage, please check the `/example` folder in
 
 * **Source Code & Issues:** If you encounter any bugs, have feature requests, or want to contribute, please visit our [GitHub repository](https://github.com/SugaiMasayoshi/natural_block).
 * **Contributions:** We welcome pull requests! A change to the syntax shows up in the grid below: read its diff, and add an example to `test/syntax_test.dart` only for syntax that is published.
-* **The grid.** `test/grid_test.dart` writes every pair of markup characters in every place a pair can be written -- nine contexts, 990 pairs -- and pins the shape of each resulting tree against `test/grid/<context>.txt`, listing the pairs that come out the same under one shape. The parser decides from the character it is on, the one after it, whether it stands at the start of a line, and a finite context, so pairs-in-context reach every decision it makes. When a change is meant to alter the output, read the diff, confirm only the intended pairs moved, and then regenerate:
+* **The grid.** `test/grid_test.dart` writes every pair of markup characters in every place a pair can be written -- nine contexts, 990 pairs -- and pins the shape of each resulting tree against `test/grid/<context>.txt`, listing the pairs that come out the same under one shape. The parser decides from the character it is on, the one after it, and a finite context, so pairs-in-context reach every decision it makes. When a change is meant to alter the output, read the diff, confirm only the intended pairs moved, and then regenerate:
 
   ```
   dart run tool/update_grid.dart

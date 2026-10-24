@@ -161,8 +161,7 @@ this repository, which is why the entries below describe changes freely.
   an exception to the run case for no gain.
 - A fence with nothing to close it opens a region all the same, running to
   the end of the document -- as a table with no closing `~` does. Whether a
-  region opens is settled by the fence alone, so what has been read is
-  always enough to know where you are. The cost is that a stray backtick
+  region opens is settled by the fence alone. The cost is that a stray backtick
   swallows the rest of the document, separators included; `` \` `` writes a
   literal one. It used to stay ordinary text, which took a search to the
   end of the document to find out.
@@ -215,7 +214,7 @@ this repository, which is why the entries below describe changes freely.
 - **Nothing in the tree corresponds to a line.** A newline is a character, so
   a `TextNode` runs across as many of them as the author wrote -- a block of
   three lines is one node holding two `\n`s. What divides a column's children
-  is a raw region written on a line of its own, and nothing else. The
+  is a raw block or a table, and nothing else. The
   type was called `LineNode` and is now `ContentNode`, because the old name
   suggested a per-line structure that has never existed and quietly shaped
   design discussions about headings and list items, both of which would need
@@ -258,30 +257,21 @@ this repository, which is why the entries below describe changes freely.
   their children, a row eats the `^` between its cells. A delimiter belongs
   to what it wraps: a table eats both of its `~`, a raw region both of
   its fences. There is no assembly pass and no shared mutable state.
-- Nothing searches ahead. Whether something opens is settled by what has
-  been read and at most the character after it: a fence opens a region on
-  sight, and a `:` opens a cluster when a decoration character follows. An
-  earlier version opened a region only once its closing fence had been
-  found, so four levels searched ahead for the same fence.
-- What that cost and what it bought, measured rather than claimed. Counting
-  code lines only, blanks and comments excluded: of the sixteen functions
-  that do the parsing, fifteen are 22 lines or fewer, and the one outlier is
-  `parseTextSpanNode` at 27 -- the run of styled text, which is where
-  decoration, newlines and every symbol meet. The separated parser it
-  replaced did that same reading in one function of 90 lines, and its entry
-  point was 36. `lib` went from 581 code lines to 558.
+- Whether something opens is settled by what has been read and at most the
+  character after it: a fence opens a region on sight, and a `:` opens a
+  cluster when a decoration character follows. The one read further is a
+  region's content, to its closer, which decides whether it is a block.
 - `SourceCursor` is one position in the source, the normalizing of line
-  endings and the reading of escapes, and nothing else -- 34 lines,
-  importing none of the syntax. Which
+  endings and the reading of escapes, and nothing else, importing none of
+  the syntax. Which
   characters are markup is passed in, because it is a fact about the grammar
   and because it is not even constant: `%` is prose in a sentence and a
   symbol inside a decoration cluster. Escapes are the exception that stays,
   being the one rule that changes what a character *is*: past a backslash
   there is no symbol left for a node to see.
 - Everything else that reads the source is a node saying what it is.
-  Whether a raw region is a block or a run is settled by whoever dispatches
-  it, from `cursor.atLineStart` -- the same fence, told apart by whether it
-  was written on a line of its own. An alignment marker is read by `parseAlign` at the
+  Whether a raw region is a block or a run is read off its content: a line
+  break inside makes it a block. An alignment marker is read by `parseAlign` at the
   start of a column or a table cell, once whoever owns the symbol that
   opened the block has eaten it.
 - What counts as markup is stated in one place, `src/markup.dart`, grouped

@@ -12,8 +12,6 @@ class SourceCursor {
 
   String get peek => _position < source.length ? source[_position] : '';
 
-  bool get atLineStart => _position == 0 || source[_position - 1] == '\n';
-
   String peekAt(int offset) {
     final index = _position + offset;
     return index >= 0 && index < source.length ? source[index] : '';

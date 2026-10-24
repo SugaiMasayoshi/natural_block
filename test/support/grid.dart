@@ -37,9 +37,9 @@ const Map<String, String> gridTokens = {
 /// the prefix's; where the pair's first character is a backslash too, the
 /// two collapse into one and it is shown as `X`.
 ///
-/// `after_newline` is a line start past the start of its block: the pair
-/// still opens a raw block there, but the alignment marker slot and the one
-/// newline a block drops are both behind it. That is all that tells it apart
+/// `after_newline` is past the start of its block, right after a line break:
+/// the alignment marker slot and the one newline a block drops are both
+/// behind it. That is all that tells it apart
 /// from `document`.
 ///
 /// A prefix also puts the pair where a decision reads it as its *next*
