@@ -106,7 +106,7 @@ void main() {
       () => TextSpanNode(text: 'a'),
       [
         TextSpanNode(text: 'b'),
-        TextSpanNode(text: 'a', decoration: SpanDecoration(emphasis: true)),
+        TextSpanNode(text: 'a', decoration: SpanDecoration(isEmphasized: true)),
       ],
     ),
     'RawNode': (() => RawNode(text: 'a'), [RawNode(text: 'b')]),
@@ -134,7 +134,7 @@ void main() {
     const others = [
       SpanDecoration(sizeOffset: 1),
       SpanDecoration(tone: Tone.negative),
-      SpanDecoration(emphasis: true),
+      SpanDecoration(isEmphasized: true),
       SpanDecoration(isCustom: true),
     ];
     for (final other in others) {

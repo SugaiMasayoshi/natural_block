@@ -74,7 +74,7 @@ class _Show {
       if (d.sizeOffset > 0) '+${d.sizeOffset}',
       if (d.sizeOffset < 0) '${d.sizeOffset}',
       if (d.tone != Tone.none) d.tone.name,
-      if (d.emphasis) '*',
+      if (d.isEmphasized) '*',
       if (d.isCustom) '@',
     ];
     return '{${parts.join(' ')}}';

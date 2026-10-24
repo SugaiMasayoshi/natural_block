@@ -176,14 +176,14 @@ void main() {
 A single cluster can carry more than one decoration character, and each is applied in order -- `:!*` turns on the negative tone *and* Emphasis together:
 
 ```dart
-NaturalBlockParser.parse(":!*緊急対応"); // tone: negative, emphasis: true, in one span
+NaturalBlockParser.parse(":!*緊急対応"); // tone: negative, isEmphasized: true, in one span
 ```
 
 Writing two clusters back-to-back is *not* equivalent, because a `:` always continues extending the cluster it follows -- including a further `:`, which is read as a reset. `:!:*` opens the negative tone with `:!`, but the very next `:` is absorbed as a `::` reset before `*` opens Emphasis, so the tone is wiped out and only Emphasis survives:
 
 ```dart
-NaturalBlockParser.parse(":!*結果");  // -> tone: negative, emphasis: true
-NaturalBlockParser.parse(":!:*結果"); // -> tone: none,     emphasis: true  (negative was reset)
+NaturalBlockParser.parse(":!*結果");  // -> tone: negative, isEmphasized: true
+NaturalBlockParser.parse(":!:*結果"); // -> tone: none,     isEmphasized: true  (negative was reset)
 ```
 
 To combine symbols, always write them in one cluster.
