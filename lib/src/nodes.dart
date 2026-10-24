@@ -240,7 +240,8 @@ final class RawSpanNode extends InlineNode {
   final String text;
 
   RawSpanNode({required this.text})
-    : assert(text.isNotEmpty, 'an empty raw region contributes no node');
+    : assert(text.isNotEmpty, 'an empty raw region contributes no node'),
+      assert(!text.contains('\n'), 'a raw region with a line break is a block');
 
   @override
   String toString() => 'RawSpanNode(text: $text)';
