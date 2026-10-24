@@ -85,8 +85,9 @@ this repository, which is why the entries below describe changes freely.
   why a marker after the closing one is ordinary text and aligning what
   follows a table takes a `|`.
 - **A table ends at `~` or at the end of the document, and nowhere else.**
-  Everything between belongs to it: a short row does not end it, and a line
-  with no `^` becomes a one-cell row. The table is as wide as its widest row.
+  Everything between belongs to it: a short row does not end it, a row with no
+  `^` is a one-cell row, and rows are separated by `|` -- a line break on
+  its own stays inside the cell. The table is as wide as its widest row.
 - `TableNode.columns` holds what each column declared, and by its length how
   wide the table is. Rows keep exactly the cells the author wrote, each
   carrying only its own marker, so `unstated` keeps meaning "the source

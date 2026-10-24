@@ -79,7 +79,7 @@ It's perfect for chat applications, document editors, or anywhere you need a ric
 
   A table's columns are as wide as their content and line up across every row; plain rows, by contrast, split the available width evenly. That difference is why a table has to be *declared* rather than inferred -- `Left^^Right` is three cells with an empty middle, written that way to push `Right` to the far edge, and it only does that because plain rows divide the width.
 
-  **A table ends at `~` or at the end of the document, and nowhere else.** Everything in between belongs to it: a short row does not end it, and a line with no `^` becomes a one-cell row. The table is as wide as its widest row.
+  **A table ends at `~` or at the end of the document, and nowhere else.** Everything in between belongs to it: a short row does not end it, a row with no `^` is a one-cell row, and rows are separated by `|` -- a line break on its own stays inside the cell. The table is as wide as its widest row.
 
   A table has no alignment of its own. The block that holds it positions it, the way it positions everything else it holds: `|=~A^B~` centers the table. To center a table while the text around it stays put, give it a block of its own: `前文|=~A^B~|後文`. A marker written straight after the opening `~` is therefore the first cell's, as after any other symbol that starts a block: `~<Item^...` aligns the Item column, the same as `~|<Item^...`.
 
