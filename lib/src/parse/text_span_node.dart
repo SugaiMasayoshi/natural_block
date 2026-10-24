@@ -3,6 +3,7 @@ import '../nodes.dart';
 import '../source_cursor.dart';
 import '../span_decoration.dart';
 import 'decoration.dart';
+import 'raw.dart';
 
 (TextSpanNode?, SpanDecoration) parseTextSpanNode(
   SourceCursor cursor,
@@ -23,7 +24,13 @@ import 'decoration.dart';
     final next = cursor.peekAt(1);
     if (char.isEmpty || boundaryChars.contains(char)) break;
     if (char == clusterChar && DecorationAction.chars.contains(next)) break;
-    if (char == '\n' && (next.isEmpty || boundaryChars.contains(next))) break;
+    if (char == '\n' &&
+        (next.isEmpty ||
+            (boundaryChars.contains(next) &&
+                (next != rawChar ||
+                    rawBlockAt(cursor.source, cursor.position + 1))))) {
+      break;
+    }
 
     text.write(cursor.take());
     if (char == '\n' && decorated) break;

@@ -163,10 +163,12 @@ this repository, which is why the entries below describe changes freely.
   swallows the rest of the document, separators included; `` \` `` writes a
   literal one. It used to stay ordinary text, which took a search to the
   end of the document to find out.
-- A region that stands alone on its line is a `RawNode`, a block that
-  sits among the lines of its column; one written inside a sentence is a
-  `RawSpanNode` beside the styled runs. One syntax, and the tree
-  records which of the two places it was written in.
+- A region with a line break inside is a `RawNode`, a block that sits
+  among the lines of its column; one without is a `RawSpanNode` beside the
+  styled runs. Where it was written does not decide it, so a region in a
+  row's cell or after a `|` is a block as soon as it spans lines, and an
+  inline region never carries a line break that would have to end the
+  line's decoration.
 - `` ` `` is therefore an always-active character; a literal one in prose is
   written `` \` ``.
 

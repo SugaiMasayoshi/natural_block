@@ -2,6 +2,13 @@ import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
 
+/// Whether the region opening at [index] is a block: one that holds a line
+/// break.
+bool rawBlockAt(String source, int index) =>
+    index < source.length &&
+    source[index] == rawChar &&
+    _scanRegion(source, index).content.contains('\n');
+
 RawNode? parseRawNode(SourceCursor cursor) {
   final text = _parseRegion(cursor);
   return text.isEmpty ? null : RawNode(text: text);
@@ -13,26 +20,28 @@ RawSpanNode? parseRawSpanNode(SourceCursor cursor) {
 }
 
 String _parseRegion(SourceCursor cursor) {
-  final source = cursor.source;
-  final openIndex = cursor.position;
+  final (:content, :end) = _scanRegion(cursor.source, cursor.position);
+  cursor.jumpTo(end);
 
+  var text = content;
+  if (text.startsWith('\n')) text = text.substring(1);
+  if (text.endsWith('\n')) text = text.substring(0, text.length - 1);
+  return text;
+}
+
+({String content, int end}) _scanRegion(String source, int openStart) {
   var fence = 0;
-  while (openIndex + fence < source.length &&
-      source[openIndex + fence] == rawChar) {
+  while (openStart + fence < source.length &&
+      source[openStart + fence] == rawChar) {
     fence += 1;
   }
 
-  final contentStart = openIndex + fence;
+  final contentStart = openStart + fence;
   final closerStart = source.indexOf(rawChar * fence, contentStart);
-  final closed = closerStart != -1;
-
-  var text = source.substring(
-    contentStart,
-    closed ? closerStart : source.length,
-  );
-  if (text.startsWith('\n')) text = text.substring(1);
-  if (text.endsWith('\n')) text = text.substring(0, text.length - 1);
-
-  cursor.jumpTo(closed ? closerStart + fence : source.length);
-  return text;
+  return closerStart == -1
+      ? (content: source.substring(contentStart), end: source.length)
+      : (
+          content: source.substring(contentStart, closerStart),
+          end: closerStart + fence,
+        );
 }

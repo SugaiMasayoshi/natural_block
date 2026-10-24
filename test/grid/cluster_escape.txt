@@ -2,7 +2,7 @@
 Col["\\XX"]
     bb  <<
 Col["\\X"]
-    b|  b~  b`  bN  bE  NN  <|  <~  <`  <N  <E
+    b|  b~  b`  bN  bE  N`  NN  <|  <~  <`  <N  <E
 Row[Col["\\X"], Col[]]
     b^  <^
 Col["\\XY"]
@@ -20,7 +20,7 @@ Col["XX"]
 Col["\\X" "Y"]
     Nb  N:  N!  N<
 Col["\\"]
-    N|  N~  N`  NE
+    N|  N~  NE
 Row[Col["\\"], Col[]]
     N^
 Col["YX" "Y"]

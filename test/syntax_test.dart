@@ -65,7 +65,9 @@ void main() {
     '比較は`a == b`です': 'Col["比較は" raw"a == b" "です"]',
     '`\ncat a | grep b\n`': 'Col[Raw"cat a | grep b"]',
     '`\n\ncode\n\n`': r'Col[Raw"\ncode\n"]',
-    '``a `b` c``': 'Col[Raw"a `b` c"]',
+    '``a `b` c``': 'Col[raw"a `b` c"]',
+    'a `\nb\n` c': 'Col["a ", Raw"b", " c"]',
+    ':!a`x\ny`b': r'Col["a"{negative}, Raw"x\ny", "b"]',
     'a `b | c': 'Col["a " raw"b | c"]',
     r'a \` b': 'Col["a ` b"]',
   });

@@ -2,7 +2,7 @@
 Col["XX"]
     bb  <<
 Col["X"]
-    b|  b~  b`  bN  bE  \\  \N  \E  NN  <|  <~  <`  <N  <E
+    b|  b~  b`  bN  bE  \\  \N  \E  N`  NN  <|  <~  <`  <N  <E
 Row[Col["X"], Col[]]
     b^  <^
 Col["XY"]
@@ -10,7 +10,7 @@ Col["XY"]
 Col["Y"]
     |b  |:  |!  |\  :b  :\  :<  !b  !\  !<  \|  \^  \~  \`  \:  \!
 (empty)
-    ||  |~  |`  |N  |<  |E  ~|  ~~  ~`  ~N  ~<  ~E  ``  `N  `E  :|  :~  :`  ::  :!  :N  :E  !|  !~  !`  !:  !!  !N  !E  N|  N~  N`  NE
+    ||  |~  |`  |N  |<  |E  ~|  ~~  ~`  ~N  ~<  ~E  ``  `N  `E  :|  :~  :`  ::  :!  :N  :E  !|  !~  !`  !:  !!  !N  !E  N|  N~  NE
 Row[Col[], Col[]]
     |^  ^|  ^~  ^`  ^N  ^<  ^E  :^  !^  N^
 Row[Col[], Col["Y"]]
