@@ -12,8 +12,9 @@ const _childrenEquality = ListEquality<NaturalBlockNode>();
 final class DocumentNode extends NaturalBlockNode {
   final List<LayoutNode> children;
 
-  DocumentNode({this.children = const []})
-    : assert(
+  DocumentNode({List<LayoutNode> children = const []})
+    : children = List.unmodifiable(children),
+      assert(
         children.every((c) => c is! ColumnNode || c.children.isNotEmpty),
         'an empty block contributes no node',
       );
@@ -40,7 +41,10 @@ final class ColumnNode extends LayoutNode {
 
   final HorizontalAlign align;
 
-  ColumnNode({this.children = const [], this.align = HorizontalAlign.unstated});
+  ColumnNode({
+    List<ContentNode> children = const [],
+    this.align = HorizontalAlign.unstated,
+  }) : children = List.unmodifiable(children);
 
   @override
   String toString() => 'ColumnNode(children: $children, align: $align)';
@@ -61,8 +65,9 @@ final class ColumnNode extends LayoutNode {
 final class RowNode extends LayoutNode {
   final List<ColumnNode> children;
 
-  RowNode({required this.children})
-    : assert(children.length >= 2, 'a row has at least two cells');
+  RowNode({required List<ColumnNode> children})
+    : children = List.unmodifiable(children),
+      assert(children.length >= 2, 'a row has at least two cells');
 
   @override
   String toString() => 'RowNode(children: $children)';
@@ -86,8 +91,9 @@ sealed class FlatContentNode extends ContentNode {}
 final class TextNode extends FlatContentNode {
   final List<InlineNode> children;
 
-  TextNode({required this.children})
-    : assert(children.isNotEmpty, 'a text node has at least one run');
+  TextNode({required List<InlineNode> children})
+    : children = List.unmodifiable(children),
+      assert(children.isNotEmpty, 'a text node has at least one run');
 
   @override
   String toString() => 'TextNode(children: $children)';
@@ -128,8 +134,9 @@ final class TableNode extends ContentNode {
 
   late final List<HorizontalAlign> columns = _columns(children);
 
-  TableNode({required this.children})
-    : assert(children.isNotEmpty, 'a table has at least one row');
+  TableNode({required List<TableRowNode> children})
+    : children = List.unmodifiable(children),
+      assert(children.isNotEmpty, 'a table has at least one row');
 
   static List<HorizontalAlign> _columns(List<TableRowNode> rows) {
     final columns = <HorizontalAlign>[];
@@ -159,8 +166,9 @@ final class TableNode extends ContentNode {
 final class TableRowNode extends NaturalBlockNode {
   final List<TableCellNode> children;
 
-  TableRowNode({required this.children})
-    : assert(children.isNotEmpty, 'a table row has at least one cell');
+  TableRowNode({required List<TableCellNode> children})
+    : children = List.unmodifiable(children),
+      assert(children.isNotEmpty, 'a table row has at least one cell');
 
   @override
   String toString() => 'TableRowNode(children: $children)';
@@ -183,9 +191,9 @@ final class TableCellNode extends NaturalBlockNode {
   final HorizontalAlign align;
 
   TableCellNode({
-    this.children = const [],
+    List<FlatContentNode> children = const [],
     this.align = HorizontalAlign.unstated,
-  });
+  }) : children = List.unmodifiable(children);
 
   @override
   String toString() => 'TableCellNode(children: $children, align: $align)';

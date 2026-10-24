@@ -228,6 +228,9 @@ this repository, which is why the entries below describe changes freely.
   `ColumnNode`. The children of those nodes are required rather than
   defaulting to an empty list. An empty `ColumnNode` stays legal -- it is
   how a row keeps an empty cell -- and so does an empty `TableCellNode`.
+- A node keeps its children in an unmodifiable copy, so a tree cannot change
+  after it is built: its equality and hash stay fixed, and a table's
+  `columns`, worked out once, stay true to its rows.
 - All nodes implement `==` / `hashCode` structurally.
 
 ### API
