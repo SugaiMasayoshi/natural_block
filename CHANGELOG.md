@@ -1,4 +1,4 @@
-## 1.0.0
+## 0.1.0
 
 - Initial release.
 - Layout: `|` stacks blocks, `^` splits a block into a row, `~` wraps a
