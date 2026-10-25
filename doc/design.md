@@ -18,7 +18,8 @@ be. The README says what the syntax does; this says why.
   whatever came before. Without it nothing ends the preceding line, so that
   line joins the row's first cell, since a cell holds lines and nothing said
   the cell began at the row. `^` cannot stand in for it: it separates cells
-  within a block and has no authority to end one.
+  within a block and has no authority to end one. Nothing throws and
+  nothing is lost either way, so the difference only shows once rendered.
 - A newline is a character, not a boundary: a block is one `TextNode`
   however many lines it has. The one thing a newline does is reset
   decoration, so a cluster cannot leak past the end of its line -- a rule
@@ -140,7 +141,8 @@ be. The README says what the syntax does; this says why.
   region opens is settled by the fence alone. The cost is that a stray
   backtick swallows the rest of the document.
 - A region with a line break inside is a `RawNode`; one without is a
-  `RawSpanNode`. Where it was written does not decide it, so a region in a
+  `RawSpanNode`, which lets a renderer draw the first as a boxed code block
+  and the second as monospaced text. Where it was written does not decide it, so a region in a
   row's cell or after a `|` is a block as soon as it spans lines, and an
   inline region never carries a line break that would have to end the
   line's decoration.
@@ -228,3 +230,31 @@ be. The README says what the syntax does; this says why.
   cluster they are live, so a backslash in front of one there is the
   cluster's to eat. Whoever alone would have read a character as markup
   eats the backslash that cancels it.
+
+## Tests
+
+- **The grid.** `test/grid_test.dart` writes every pair of markup characters
+  in every place a pair can be written -- nine contexts, 990 pairs -- and
+  pins the shape of each resulting tree against `test/grid/<context>.txt`,
+  listing the pairs that come out the same under one shape. The parser
+  decides from the character it is on, the one after it, and a finite
+  context, so pairs-in-context reach every decision it makes. When a change
+  is meant to alter the output, read the diff, confirm only the intended
+  pairs moved, and then regenerate with `dart run tool/update_grid.dart`.
+  Regenerating without reading the diff makes it stop being a net.
+- The shapes leave out alignment and decoration *values*, and `!` stands for
+  every decoration character and `<` for every alignment marker.
+  `test/representative_test.dart` is what makes that sound: it swaps each
+  representative for the rest of its kind over the same 990 inputs and
+  checks no shape changes.
+- **The syntax.** `test/syntax_test.dart` holds the published syntax: a few
+  representative sources per construct, each with its whole tree, values
+  included. It is the one place a value is checked, and the place for rules
+  no pair of characters can show, such as a column taking its alignment
+  from the first row. Add an example there only for syntax that is
+  published.
+- **The properties.** `test/property_test.dart` parses all 111,110 sources
+  of up to five markup characters and checks only what must hold for any
+  input: nothing throws, no node survives that should not exist, CRLF and CR
+  parse as LF, and escaping every symbol gives back exactly the text. It
+  never says which tree is right, which is why the grid exists.
