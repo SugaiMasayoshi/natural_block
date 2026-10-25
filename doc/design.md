@@ -1,260 +1,153 @@
-# Design notes
+# 設計メモ
 
-Why the language and the tree are the way they are, and what they used to
-be. The README says what the syntax does; this says why.
+構文が何をするかは README に、なぜそうしたか・以前はどうだったかをここに書く。
 
-## Layout
+## レイアウト
 
-- A run of `^`-joined cells becomes one `RowNode`, so `a^b|c^d` is two rows
-  rather than one four-cell row.
-- An empty Column block contributes no node; an empty Row cell keeps its
-  position, which is what makes `左^^右` push `右` to the far edge. A `^` at
-  the very end of the source opens a cell like any other, so `左^右^` is
-  three cells wherever the row ends and appending a character never changes
-  the width of the row before it.
-- A `|` ends the block before it. Reading it as "a new block starts here"
-  agrees everywhere but one place: a row is properly written wrapped in
-  `|`, and the leading one is not part of the row -- it is the full stop on
-  whatever came before. Without it nothing ends the preceding line, so that
-  line joins the row's first cell, since a cell holds lines and nothing said
-  the cell began at the row. `^` cannot stand in for it: it separates cells
-  within a block and has no authority to end one. Nothing throws and
-  nothing is lost either way, so the difference only shows once rendered.
-- A newline is a character, not a boundary: a block is one `TextNode`
-  however many lines it has. The one thing a newline does is reset
-  decoration, so a cluster cannot leak past the end of its line -- a rule
-  the parser applies while reading rather than a division the tree records.
-  The newline that ends a decorated line belongs to that line's run and
-  carries its decoration: Flutter sizes a line by the newline that ends it
-  too. It used to open the next, undecorated run instead, which made a line
-  of small text as tall as the line after it.
-- Whitespace is content and is never trimmed, at the document's edges or
-  anywhere else. A space the author typed is one they can see and delete,
-  and trimming the ends would make the first and last line behave unlike
-  every other line. The one thing that does disappear is a single blank
-  line at each end of a *block*, which is what lets a block's symbol sit on
-  a line of its own.
+- `^` でつながったセルは1つの `RowNode` になる。`a^b|c^d` は4セルの1行ではなく
+  2つの行。
+- `|` で区切ったブロックは、空なら木に残らない（`左||右` は「左」と「右」の2つ）。
+  `^` で区切ったセルは空でも残る（`左^^右` は3セル）。行は幅を均等に分けるので、
+  空のセルも幅を取って `右` を右端に押し出す。末尾の `^` もセルを開くので、
+  `左^右^` は3セル。文字を書き足しても前の行の幅は変わらない。
+- `|` は前のブロックを終える記号だ。だから行は `|A^B|` と先頭にも `|` を書く。
+  省くと前の行が最初のセルに入る（`前\nA^B` の最初のセルは「前」と「A」の2行）。
+  `^` はセルを区切るだけで、ブロックは終えられない。どちらも例外にならないので、
+  違いは描いて初めて見える。
+- 改行は区切りではなく文字だ。何行あってもブロックは1つの `TextNode` になる。
+  改行がするのは装飾のリセットだけで、装飾は行末を越えない。
+- 装飾した行の末尾の改行は、その行の run に入れる。Flutter は行の高さを末尾の
+  改行も含めて決めるからだ。以前は改行が次の run に入り、小さい文字の行が次の
+  行と同じ高さになっていた。
+- 空白は削らない。打った空白は見えるし消せる。端だけ削ると最初と最後の行だけ
+  振る舞いが変わる。消えるのはブロックの両端の空行1つずつだけで、これは記号を
+  単独の行に置けるようにするため。
 
-## Alignment
+## 寄せ
 
-- A marker is read only at the start of a block, so `a > b`, `->`, and
-  `List<String>` need no escaping. The cost is the first character of a
-  document: `=>` there is a centered `>`. A backslash keeps a marker literal
-  wherever one would be read, and only there; in the middle of a sentence
-  there is nothing for it to cancel, so `a\<b` keeps its backslash.
-- One marker, not a run of them: `|<>a` is a start-aligned block whose text is
-  `>a`. Alignment is a single value on a single axis, so a second marker could
-  only contradict the first, and settling that would be a rule the language did
-  not need. A decoration cluster reads a run because it has several axes --
-  `:+!*` says three different things where `|<>` says one thing twice.
-- `align` is `HorizontalAlign.unstated` when the source wrote no marker,
-  which is not the same as `HorizontalAlign.start`. A theme is free to draw
-  an unstated block differently, and a block that wrote `<` opts out of
-  that. A value rather than `null`, because the tree records what the
-  source said and "nothing was written here" is something it said --
-  the same shape as `Tone.none`.
-- The cell separator is `^` and the center marker is `=`; they were once the
-  other way round. Three things argued for the swap. `<` `=` `>` is a set
-  that reads itself -- `<` leans left, `>` leans right, `=` is balanced --
-  where `^` means *up*, and had to be memorised. `=` is also too common to
-  spend on a symbol that is active everywhere: over 207,217 lines of real
-  documentation it appears on 3.17% of lines against `^`'s 0.40%, and as the
-  cell separator it turned 5,016 lines of ordinary prose into rows (`x = 1`,
-  `--flag=value`, every URL query string). Third, and noticed only after the
-  first two had settled it: on a Japanese flick keyboard `<` `=` `>` sit on
-  one key with the flick directions matching the meanings, and `^` shares a
-  key with `|`.
+- 寄せの記号はブロックの先頭でだけ読む。だから `a > b`、`->`、`List<String>` は
+  エスケープ不要。代償は文書の最初の文字で、そこの `=>` は中央寄せの `>` になる。
+- `\` で打ち消せるのは記号が読まれる位置だけ。文の途中の `a\<b` は `\` が残る。
+- 記号は1つだけ読む。`|<>a` は文字が `>a` の始端寄せ。寄せは値が1つなので、
+  2つ目は矛盾しか生まない。装飾が連続して読むのは軸が複数あるから
+  （`:+!*` は3つの違うこと、`|<>` は同じことを2回）。
+- 記号なしは `HorizontalAlign.unstated` で、`start` と区別する。テーマが指定なしを
+  別に描けるようにするため。`null` でなく値なのは、「書かれていない」もソースの
+  情報だから（`Tone.none` と同じ）。
+- セル区切りの `^` と中央寄せの `=` は、以前は逆だった。入れ替えた理由は3つ。
+  - `<` `=` `>` は見て分かる組。`^`（上）は覚えるしかなかった。
+  - `=` はありふれすぎる。実際の文書 207,217 行で `=` は 3.17%、`^` は 0.40% の行に
+    出る。`=` が区切りだったころは 5,016 行の普通の文が行に化けていた
+    （`x = 1`、`--flag=value`、URL のクエリ）。
+  - 後から気づいたこと：フリック入力で `<` `=` `>` は同じキーにあり、向きが意味と
+    一致する。`^` は `|` と同じキー。
 
-## Tables
+## 表
 
-- A table has to be declared rather than inferred. Its columns are as wide
-  as their content and line up across rows, while plain rows split the
-  width evenly -- and `Left^^Right` relies on that even split to push
-  `Right` to the far edge.
-- Both of a table's `~` belong to it, the way both fences belong to a raw
-  region. It opens no block of its own, which is why a marker after the
-  closing one is ordinary text and aligning what follows a table takes a
-  `|`.
-- A table ends at `~` or at the end of the document, and nowhere else. Rows
-  are separated by `|`, so a line break on its own stays inside the cell.
-- The tree records what was written, not what will be drawn.
-  `TableNode.columns` holds what each column declared, and rows keep exactly
-  the cells the author wrote, each carrying only its own marker, so
-  `unstated` keeps meaning "the source said nothing" inside a table too.
-  Resolving the two and squaring short rows off is the consumer's step.
-- Rows are written one per line with a leading `|`. That `|` opens an empty
-  block, which contributes nothing -- it is there so every line has the same
-  shape and every row's first cell has a marker slot of its own. With the
-  `|` at the end of each line instead, a marker would land after a newline
-  and stay literal.
-- A table has no alignment of its own. The block that holds it positions
-  it, the way it positions everything else it holds, and a marker straight
-  after the opening `~` is the first cell's, as after any symbol that starts
-  a block. An earlier version gave the table a marker there too, which put
-  two readers on one position and needed a rule for which of them a
-  backslash belonged to.
+- 表は推測せず宣言させる。表の列は中身の幅で揃い、普通の行は幅を均等に分ける。
+  `左^^右` はこの均等割りに頼っている。
+- 2つの `~` は両方とも表のもの（raw のフェンスと同じ）。表はブロックを開かない
+  ので、閉じる `~` の後の寄せ記号はただの文字。表の後を寄せるには `|` が要る。
+- 表は `~` か文書の終わりでだけ終わる。行は `|` で区切るので、改行だけならセルの
+  中に残る。
+- 木は書かれたことだけを記録する。`TableNode.columns` は各列の宣言、各セルは自分の
+  記号だけを持つ。だから表の中でも `unstated` は「書かれていない」の意味のまま。
+  列とセルの寄せの解決や、短い行を揃えるのは使う側の仕事。
+- 行は1行ずつ先頭に `|` を付けて書く。この `|` が開く空のブロックは何も作らない。
+  どの行も同じ形になり、最初のセルにも寄せ記号を書けるようにするため。行末に
+  書くと、記号が改行の後に来てただの文字になる。
+- 表は自分の寄せを持たず、含むブロックが配置する。開く `~` 直後の記号は最初の
+  セルのもの。以前は表もそこに記号を持ち、`\` がどちらのものかの規則が要った。
 
-## Decoration
+## 装飾
 
-- A bare `+ - ! % ? * @` is always literal, so `C++`, `100%`, `Really?!`,
-  and `you@example.com` need no escaping. This is what the `:` prefix buys.
-- `:@...:@` marks a run custom without saying what it means. The run's own
-  text is the whole payload, so an implementation that does not recognise
-  it still shows something a person can read.
-- There are two tones, not three. `:?` (info) was dropped. It named
-  nothing a writer means -- every sentence is information -- and it rendered
-  in the same colour as `:@`, so it was a custom span without the underline.
-  Three documents written against this spec by people seeing it for the first
-  time used it once between them, and that once was to set an aside apart from
-  the body, which is a block's job rather than a colour's. The other two stay
-  because "careful" and "done" are things a writer means. Dropping it also
-  frees `?`, one of the rarest characters left.
-- The two are the ends of one axis, and named that way: `Tone.negative` and
-  `Tone.positive`, with `Tone.none` between. They were `SemanticColor.danger`
-  and `.success`, which were not opposites -- a danger is a risk ahead, a
-  success an outcome behind -- although the parser already kept them in one
-  field, where writing one replaces the other. `Tone` rather than a colour,
-  because what a writer says is good or bad; red or green is the renderer's
-  choice.
+- `:` の付かない `+ - ! % ? * @` は常にただの文字。`C++`、`100%`、`Really?!`、
+  `you@example.com` がそのまま書けるのが `:` を前に置く理由。
+- `:@...:@` は印を付けるだけで意味は言わない。文字がそのまま中身なので、知らない
+  実装でも読める文字が残る。
+- トーンは2つ。`:?`（info）はなくした。
+  - 書き手が意図するものを表していなかった（どの文も情報だ）。
+  - `:@` と同じ色で、下線のないカスタムでしかなかった。
+  - 初見の人に書いてもらった3つの文書で使われたのは1回だけで、それも余談を
+    分けるためだった。それはブロックの仕事だ。
+  - なくして珍しい文字の `?` が空いた。
+- 2つは1つの軸の両端なので `Tone.negative` と `Tone.positive`（間に `Tone.none`）。
+  以前の `SemanticColor.danger` と `.success` は対になっていなかった。色ではなく
+  `Tone` なのは、書き手が言うのは良し悪しで、色は描く側が決めるから。
 
-## Raw regions
+## raw
 
-- Called raw rather than verbatim: nothing inside is a separator, a
-  decoration or an escape -- the promise a Dart raw string makes too.
-- They are what makes code writable: without them `cat a | grep b` parses
-  as three blocks. It used to reach further: while `=` separated cells,
-  `final x = a == b ? 1 : 2;` was a four-cell row. Moving the separator to
-  `^` retired that example. A marker built on `|` could never have been
-  inline, since `|` always breaks a block, so the price is a fifth
-  always-active character, `` ` ``.
-- The fence's run length sets the closer: a region ends at the next run of
-  exactly as many backticks -- how the language quotes its own syntax. A
-  longer run used to close it and leave its extra backticks to open a region
-  of their own.
-- A region with nothing inside contributes no node, wherever it was written.
-  An empty region quotes nothing, so there is nothing for the tree to
-  record -- the same reading that drops an empty block and an empty run. A
-  block-level one used to keep an empty `RawNode`, which made the block case
-  an exception to the run case for no gain.
-- A fence with nothing to close it opens a region all the same, running to
-  the end of the document -- as a table with no closing `~` does. Whether a
-  region opens is settled by the fence alone. The cost is that a stray
-  backtick swallows the rest of the document.
-- A region with a line break inside is a `RawNode`; one without is a
-  `RawSpanNode`, which lets a renderer draw the first as a boxed code block
-  and the second as monospaced text. Where it was written does not decide it, so a region in a
-  row's cell or after a `|` is a block as soon as it spans lines, and an
-  inline region never carries a line break that would have to end the
-  line's decoration.
+- verbatim でなく raw と呼ぶ。中では区切りも装飾もエスケープも効かない。Dart の
+  raw 文字列と同じ。
+- raw がないと `cat a | grep b` は3ブロックになり、コードが書けない。`|` を使う
+  記号では文中に書けないので、代わりに常に効く5つ目の文字 `` ` `` を足した。
+- 閉じるのは開いたときと同じ数のバッククォートの並びだけ。これで言語自身の構文を
+  引用できる。以前は長い並びでも閉じ、余りが新しい raw を開いていた。
+- 空の raw はノードを作らない。空のブロックや空の run と同じ。以前はブロックの
+  空 raw だけ空の `RawNode` を残していた。
+- 閉じていないフェンスも raw を開き、文書の終わりまで続く（閉じない表と同じ）。
+  開くかどうかはフェンスだけで決まる。代償は、迷子の `` ` `` が残りを飲み込むこと。
+- 中に改行があれば `RawNode`、なければ `RawSpanNode`。書いた場所では決めない。
+  描く側は前者を枠付きのコード、後者を等幅の文字として描ける。文中の raw は改行を
+  持たないので、行の装飾を終える改行が run の中に紛れない。
 
-## The tree
+## 構文木
 
-- **A table is content.** It is written between a pair of `~` and arrives
-  already formatted, exactly like a raw region, so it sits *inside* a
-  block rather than beside one. That is what lets one block hold text, a
-  table, and more text -- and what makes `|=` reach all of it. A table can
-  also go in a row's cell, which it could not when it was a block itself.
-- A table has its own rows and cells: `TableRowNode` and `TableCellNode`.
-  They are not `RowNode` and `ColumnNode`, which divide the width they are
-  given -- a table's line up with the rows above and below instead. Their
-  own types are also what keeps a table out of a table: a cell holds only
-  `FlatContentNode`s, so a table in a cell does not compile, and a cell is
-  read by the one content parse that has no branch for one. A `~` met
-  inside a table is therefore the one that ends it and never one that
-  opens another.
-- A `TextSpanNode` holds its text and one `SpanDecoration` rather than four
-  separate fields. It is the very object the parser carries while reading,
-  so a run's decoration and the reader's current decoration are not two
-  ideas that happen to match. Neither inline node is a `ContentNode` -- a
-  styled run only exists inside a line -- so misplacing one is a compile
-  error.
-- **Nothing in the tree corresponds to a line.** A block of three lines is
-  one `TextNode` holding two `\n`s; what divides a column's children is a raw
-  block or a table, and nothing else. The type was called `LineNode` and is
-  now `ContentNode`, because the old name suggested a per-line structure
-  that has never existed and quietly shaped design discussions about
-  headings and list items, both of which would need exactly that.
-- A node's constructor asserts the shape the parser promises, so a shape
-  the parser never makes cannot be built by hand either. An empty
-  `ColumnNode` stays legal -- it is how a row keeps an empty cell -- and so
-  does an empty `TableCellNode`.
-- A node keeps its children in an unmodifiable copy, so a tree cannot change
-  after it is built: its equality and hash stay fixed, and a table's
-  `columns`, worked out once, stay true to its rows.
+- **表は中身だ。** raw と同じく整形済みで現れるので、ブロックの中に入る。1つの
+  ブロックが文字・表・文字を持て、`|=` がすべてに効く。行のセルにも入れられる。
+- 表の行とセルは `TableRowNode` と `TableCellNode` で、`RowNode` と `ColumnNode`
+  とは別。後者は幅を分け、表の行は上下で揃うから。セルは `FlatContentNode` しか
+  持てないので、表の中の表はコンパイルが通らない。表の中の `~` は必ず閉じる側。
+- `TextSpanNode` は文字と1つの `SpanDecoration` を持つ。パーサーが読みながら
+  持つものと同じオブジェクトなので、run の装飾と読み手の装飾がずれない。
+  インラインのノードは `ContentNode` ではないので、置き場所を間違えると
+  コンパイルエラーになる。
+- **木には行に当たるものがない。** 3行のブロックは `\n` を2つ持つ1つの
+  `TextNode`。この型は以前 `LineNode` だった。存在しない行ごとの構造を思わせ、
+  見出しやリストの議論を歪めていたので `ContentNode` にした。
+- コンストラクタはパーサーが作る形を assert するので、作らない形は手でも作れない。
+  空の `ColumnNode`（空のセル）と空の `TableCellNode` は許す。
+- 子は変更不可のコピーで持つ。作った後の木は変わらず、等価性・ハッシュ・表の
+  `columns` が食い違わない。
 
-## Code layout
+## コードの構成
 
-- The tree and the reading of it are separate. `src/nodes.dart` holds every
-  node class and no parsing at all -- one file, because `sealed` requires
-  every subtype to live in the same library, which is the whole reason and
-  not privacy. `src/parse/` holds one library per node, plus the readings
-  several nodes share -- alignment markers, decoration clusters, raw
-  regions. Their top-level `parseColumnNode`-style functions are ordinary
-  public names inside `src/` and reach nobody outside it:
-  `NaturalBlockParser.parse` is the only door. Being ordinary libraries,
-  their imports say which nodes and which symbols each step of the reading
-  depends on -- something a set of `part` files cannot say, because parts
-  see everything.
-- Each node reads itself. Every node's parse consumes only what belongs to
-  it and stops in front of anything that is not its own. A separator belongs
-  to the parent of the things it separates: the document and a table eat the
-  `|` between their children, a row eats the `^` between its cells. A
-  delimiter belongs to what it wraps: a table eats both of its `~`, a raw
-  region both of its fences. There is no assembly pass and no shared mutable
-  state.
-- Whether something opens is settled by what has been read and at most the
-  character after it: a fence opens a region on sight, and a `:` opens a
-  cluster when a decoration character follows. The one read further is a
-  region's content, to its closer, which decides whether it is a block.
-- `SourceCursor` is one position in the source, the normalizing of line
-  endings and the reading of escapes, and nothing else, importing none of
-  the syntax. Which characters are markup is passed in, because it is a
-  fact about the grammar and because it is not even constant: `%` is prose
-  in a sentence and a symbol inside a decoration cluster. Escapes are the
-  exception that stays, being the one rule that changes what a character
-  *is*: past a backslash there is no symbol left for a node to see.
-- What counts as markup is stated in one place, `src/markup.dart`, grouped
-  by the node each symbol belongs to -- which is what decides who eats it.
-  A layout character (`|`, `^`, in `layoutChars`) sits between nodes and
-  belongs to none of them, so the parent that arranges them eats it. A
-  content character (`~`, `` ` ``, in `contentChars`) is part of its node,
-  which eats both ends -- it is sized to its own content, so it has to know
-  where it stops. Coming in a pair is the consequence, not the reason.
-- The characters are named for the construct each belongs to -- `columnChar`,
-  `rowChar`, `tableChar` -- rather than for what it does, which varies: `|`
-  begins a block as well as ending one, and `:` opens a cluster but resets
-  inside one. A construct name also survives swapping the character, as `=`
-  and `^` once were.
-- A run of text is read against `textMarkup`, and `+` and `%` are absent
-  from it -- which *is* the rule that `C++` and `100%` are prose. Inside a
-  cluster they are live, so a backslash in front of one there is the
-  cluster's to eat. Whoever alone would have read a character as markup
-  eats the backslash that cancels it.
+- `src/nodes.dart` はノードのクラスだけを持ち、読み取りは持たない。1ファイルなのは
+  `sealed` が派生型を同じライブラリに置くよう求めるから。
+- `src/parse/` はノードごとのライブラリと、共有する読み取り（寄せ、装飾、raw）を
+  持つ。`part` でなく普通のライブラリにして、import で依存が分かるようにしている。
+  外への入口は `NaturalBlockParser.parse` だけ。
+- 各ノードが自分を読み、自分のものだけを消費する。区切りは親が食べる（文書と表は
+  `|`、行は `^`）。囲む記号は囲まれるものが食べる（表は `~`、raw はフェンス）。
+  組み立て直す段階も、共有する可変の状態もない。
+- 開くかどうかは、今の文字と次の1文字で決まる。例外は raw で、ブロックかどうかを
+  決めるために閉じるところまで読む。
+- `SourceCursor` は位置、改行の正規化、エスケープだけを持ち、構文を知らない。
+  どの文字が記号かは引数で受け取る（`%` は文中では文字、装飾の中では記号）。
+  エスケープだけここに置くのは、`\` の後には記号が残らないから。
+- 記号は `src/markup.dart` の一か所に、属するノードごとにまとめる。それが誰が
+  食べるかを決める。`|` `^`（`layoutChars`）はノードの間にあるので親が食べる。
+  `~` `` ` ``（`contentChars`）はノードの一部なので、ノードが両端を食べる。
+- 記号の名前は働きでなく属する構文で付ける（`columnChar`、`rowChar`、`tableChar`）。
+  `|` は始めもし終えもするように、働きは場合で変わるから。文字を入れ替えても
+  名前は残る。
+- 文の run は `textMarkup` で読み、そこに `+` と `%` はない。これが「`C++` や
+  `100%` はただの文字」という規則そのもの。装飾の中の `\%` の `\` は装飾が食べる。
+  その文字を記号と読む者が `\` を食べる。
 
-## Tests
+## テスト
 
-- **The grid.** `test/grid_test.dart` writes every pair of markup characters
-  in every place a pair can be written -- nine contexts, 990 pairs -- and
-  pins the shape of each resulting tree against `test/grid/<context>.txt`,
-  listing the pairs that come out the same under one shape. The parser
-  decides from the character it is on, the one after it, and a finite
-  context, so pairs-in-context reach every decision it makes. When a change
-  is meant to alter the output, read the diff, confirm only the intended
-  pairs moved, and then regenerate with `dart run tool/update_grid.dart`.
-  Regenerating without reading the diff makes it stop being a net.
-- The shapes leave out alignment and decoration *values*, and `!` stands for
-  every decoration character and `<` for every alignment marker.
-  `test/representative_test.dart` is what makes that sound: it swaps each
-  representative for the rest of its kind over the same 990 inputs and
-  checks no shape changes.
-- **The syntax.** `test/syntax_test.dart` holds the published syntax: a few
-  representative sources per construct, each with its whole tree, values
-  included. It is the one place a value is checked, and the place for rules
-  no pair of characters can show, such as a column taking its alignment
-  from the first row. Add an example there only for syntax that is
-  published.
-- **The properties.** `test/property_test.dart` parses all 111,110 sources
-  of up to five markup characters and checks only what must hold for any
-  input: nothing throws, no node survives that should not exist, CRLF and CR
-  parse as LF, and escaping every symbol gives back exactly the text. It
-  never says which tree is right, which is why the grid exists.
+- **グリッド**（`test/grid_test.dart`）：記号の文字の組を9つの文脈に書き（990組）、
+  木の形を `test/grid/<文脈>.txt` と照合する。パーサーは今の文字・次の文字・
+  有限の文脈で判断するので、これで全部の判断に届く。出力を変えるときは、差分を
+  読んで意図した組だけが動いたのを確かめてから `dart run tool/update_grid.dart`
+  で作り直す。読まずに作り直すと網にならない。
+- 形には値を含めず、`!` が装飾の文字、`<` が寄せ記号を代表する。
+  `test/representative_test.dart` が代表をほかの文字に入れ替えても形が変わらない
+  ことを確かめる。
+- **構文**（`test/syntax_test.dart`）：公開する構文の代表例を、値を含めた木全体で
+  持つ。値を確かめるのはここだけ。文字の組で示せない規則（列が最初の行の寄せを
+  受け取るなど）もここ。
+- **性質**（`test/property_test.dart`）：記号5文字までの 111,110 通りをすべて読み、
+  例外を出さない、あってはいけないノードがない、CRLF と CR が LF と同じ、
+  エスケープで元の文字に戻る、を確かめる。どの木が正しいかは言わない。

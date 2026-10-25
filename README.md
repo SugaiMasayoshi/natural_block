@@ -133,6 +133,7 @@ doubled backslash still collapses to one: write `\\\\server` for
 
 - Bugs and feature requests:
   [GitHub issues](https://github.com/SugaiMasayoshi/natural_block/issues).
-- Why the syntax is the way it is: [doc/design.md](doc/design.md).
+- Why the syntax is the way it is: [doc/design.md](doc/design.md)
+  (in Japanese).
 - Contributing: a change to the syntax shows up in the grid tests; see
-  [Tests](doc/design.md#tests).
+  the tests section of [doc/design.md](doc/design.md#テスト).
