@@ -1,29 +1,25 @@
-# prefix: "a^"
+# prefix: "^a^"
 Row[Col["a"], Col["XX"]]
     bb  !!
 Row[Col["a"], Col["X"]]
-    b|  b~  b`  bN  bE  :|  :~  :`  :N  :E  !|  !~  !`  !N  !E  \\  \N  \E  <<
-Row[Col["a"], Col["X"], Col[]]
-    b^  :^  !^
+    b^  b~  b`  bN  bE  :^  :~  :`  :N  :E  !^  !~  !`  !N  !E  \\  \N  \E  <<
 Row[Col["a"], Col["XY"]]
     b:  b!  b\  b<  :b  :\  :<  !b  !:  !\  !<  \b  \!
-Row[Col["a"], Col[]], Col["Y"]
-    |b  |:  |!  |\
-Row[Col["a"], Col[]]
-    ||  |~  |`  |N  |<  |E  ~|  ~~  ~`  ~N  ~<  ~E  ``  `N  `E  ::  :!  N|  N~  N`  NN  NE  <|  <~  <`  <N  <E
-Row[Col["a"], Col[]], Row[Col[], Col[]]
-    |^
 Row[Col["a"], Col[], Col["Y"]]
     ^b  ^:  ^!  ^\
 Row[Col["a"], Col[], Col[]]
-    ^|  ^~  ^`  ^N  ^<  ^E  N^  <^
-Row[Col["a"], Col[], Col[], Col[]]
-    ^^
+    ^^  ^~  ^`  ^<
+Row[Col["a"], Col[]]
+    ^N  ^E  ~~  ~`  ~N  ~<  ~E  ``  `N  `E  ::  :!  <^  <~  <`  <N  <E
 Row[Col["a"], Col[Table[["Y"]]]]
     ~b  ~:  ~!  ~\
 Row[Col["a"], Col[Table[[] / []]]]
     ~^
 Row[Col["a"], Col[raw"Y"]]
-    `b  `|  `^  `~  `:  `!  `\  `<
+    `b  `^  `~  `:  `!  `\  `<
 Row[Col["a"], Col["Y"]]
-    \|  \^  \~  \`  \:  \<  Nb  N:  N!  N\  N<  <b  <:  <!  <\
+    \^  \~  \`  \:  \<  <b  <:  <!  <\
+Col["a"], Col["Y"]
+    Nb  N:  N!  N\
+Col["a"]
+    N^  N~  N`  NN  N<  NE

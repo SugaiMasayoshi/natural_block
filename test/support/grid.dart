@@ -15,7 +15,6 @@ import 'show.dart';
 /// `N` is the newline, and `E` the end of the document.
 const Map<String, String> gridTokens = {
   'b': 'b',
-  '|': '|',
   '^': '^',
   '~': '~',
   '`': '`',
@@ -28,19 +27,16 @@ const Map<String, String> gridTokens = {
 
 /// Where a pair is written, keyed by the name of its grid file.
 ///
-/// A prefix leaves at most the letter `a` in the tree, so the placeholder
-/// substitution below cannot mistake a prefix character for the pair's.
-/// `after_newline` is written `|\n` rather than `a\n` for that reason: the `|`
-/// ends the block before it and the newline is the one a block drops at its
-/// start, so nothing of the prefix reaches the tree. `cluster_escape` is the
-/// one exception -- its backslash can survive as text. A `\` in its shapes is
-/// the prefix's; where the pair's first character is a backslash too, the
-/// two collapse into one and it is shown as `X`.
+/// A prefix leaves at most the letter `a` and a newline in the tree, so the
+/// placeholder substitution below cannot mistake a prefix character for the
+/// pair's. `cluster_escape` is the one exception -- its backslash can survive
+/// as text. A `\` in its shapes is the prefix's; where the pair's first
+/// character is a backslash too, the two collapse into one and it is shown
+/// as `X`.
 ///
-/// `after_newline` is past the start of its block, right after a line break:
-/// the alignment marker slot and the one newline a block drops are both
-/// behind it. That is all that tells it apart
-/// from `document`.
+/// `after_newline` and `row_after_newline` put the pair at the start of a
+/// line, where a marker or a `^` opens a block; inside a row it does not, and
+/// a `^` there separates a cell instead.
 ///
 /// A prefix also puts the pair where a decision reads it as its *next*
 /// character: in `cluster_escape` the cluster is sitting on the backslash, so
@@ -48,13 +44,14 @@ const Map<String, String> gridTokens = {
 const Map<String, String> gridContexts = {
   'document': '',
   'text': 'a',
-  'row_cell': 'a^',
+  'row_cell': '^a^',
   'table_cell': '~',
   'decorated': ':!a',
   'cluster': ':!',
   'cluster_escape': r':!\',
-  'table_row': '~a|',
-  'after_newline': '|\n',
+  'table_row': '~a\n',
+  'after_newline': 'a\n',
+  'row_after_newline': '^a\n',
 };
 
 /// What the source ends with after the pair, so a decision that looks past

@@ -5,14 +5,14 @@ import 'table_row_node.dart';
 
 TableNode? parseTableNode(SourceCursor cursor) {
   cursor.take();
+  if (cursor.peek == '\n') cursor.take();
 
   final rows = <TableRowNode>[];
 
   while (!cursor.isEnd && cursor.peek != tableChar) {
     final before = cursor.position;
-    if (cursor.peek == columnChar) cursor.take();
-    final row = parseTableRowNode(cursor);
-    if (row != null) rows.add(row);
+    rows.add(parseTableRowNode(cursor));
+    if (cursor.peek == '\n') cursor.take();
     assert(
       cursor.position > before,
       'table row parse made no progress at ${cursor.position}',
@@ -20,6 +20,9 @@ TableNode? parseTableNode(SourceCursor cursor) {
   }
   if (cursor.peek == tableChar) cursor.take();
 
-  if (rows.isEmpty) return null;
+  if (rows.every(_isBlank)) return null;
   return TableNode(children: rows);
 }
+
+bool _isBlank(TableRowNode row) =>
+    row.children.length == 1 && row.children.single.children.isEmpty;

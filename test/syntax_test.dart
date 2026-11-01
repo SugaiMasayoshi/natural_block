@@ -19,38 +19,50 @@ void _table(String name, Map<String, String> cases) {
 
 void main() {
   _table('blocks and rows', {
-    '上|下': 'Col["上"], Col["下"]',
-    '左^右': 'Row[Col["左"], Col["右"]]',
-    '左^^右': 'Row[Col["左"], Col[], Col["右"]]',
-    '左||右': 'Col["左"], Col["右"]',
-    '左^右^': 'Row[Col["左"], Col["右"], Col[]]',
-    '|\n本文\n|': 'Col["本文"]',
-    '前の行\n|A^B|': 'Col["前の行"], Row[Col["A"], Col["B"]]',
-    '前の行\nA^B|': r'Row[Col["前の行\nA"], Col["B"]]',
+    '上\n下': r'Col["上\n下"]',
+    '上\n\n下': r'Col["上\n\n下"]',
+    '^左^右^': 'Row[Col["左"], Col["右"]]',
+    '^左^^右^': 'Row[Col["左"], Col[], Col["右"]]',
+    '^左^右^^': 'Row[Col["左"], Col["右"], Col[]]',
+    '^左\n2行目^右^': r'Row[Col["左\n2行目"], Col["右"]]',
+    '^左\n^右^': 'Row[Col["左"], Col["右"]]',
+    '^a^b': 'Row[Col["a"], Col["b"]]',
+    '^注意^': 'Col["注意"]',
+    '前の行\n^A^B^\n次の行': 'Col["前の行"], Row[Col["A"], Col["B"]], Col["次の行"]',
+    'a ^ b | c': 'Col["a ^ b | c"]',
   });
 
   _table('alignment', {
-    '|<品名^=数量^>価格|': 'Row[Col<["品名"], Col=["数量"], Col>["価格"]]',
-    '<見出し': 'Col<["見出し"]',
-    '|<>a': 'Col<[">a"]',
+    '=見出し\n本文': r'Col=["見出し\n本文"]',
+    '=見出し\n\n本文': r'Col=["見出し\n\n本文"]',
+    '=見出し\n\n<本文': r'Col=["見出し\n"], Col<["本文"]',
+    '本文\n=\n見出し': r'Col["本文"], Col=["\n見出し"]',
+    '本文\n\n=見出し': r'Col["本文\n"], Col=["見出し"]',
+    '=中央\n>右': 'Col=["中央"], Col>["右"]',
+    '^<品名^=数量^>価格^': 'Row[Col<["品名"], Col=["数量"], Col>["価格"]]',
+    '=^A^B^>C^': 'Row[Col=["A"], Col=["B"], Col>["C"]]',
+    '<>a': 'Col<[">a"]',
     r'\=> x': 'Col["=> x"]',
+    'a\n\\> b': r'Col["a\n> b"]',
     'a > b': 'Col["a > b"]',
   });
 
   group('tables', () {
     _table('structure', {
-      '~A^B|C^D~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
-      '~A^B|C^D~E^F':
+      '~A^B\nC^D~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
+      '~A^B\n\nC^D~': 'Col[Table[["A"] / ["B"]; []; ["C"] / ["D"]]]',
+      '~\n<品名^>価格\nりんご^150\n~':
+          'Col[Table[<["品名"] / >["価格"]; ["りんご"] / ["150"]]]',
+      '^~A^B\nC^D~E^F^':
           'Row[Col[Table[["A"] / ["B"]; ["C"] / ["D"]], "E"], Col["F"]]',
-      '~A^B|注記|C^D~': 'Col[Table[["A"] / ["B"]; ["注記"]; ["C"] / ["D"]]]',
       '~注意~': 'Col[Table[["注意"]]]',
-      '|=~A^B~': 'Col=[Table[["A"] / ["B"]]]',
-      '~A^>B|C^<D|E^F~':
+      '=~A^B~': 'Col=[Table[["A"] / ["B"]]]',
+      '~A^>B\nC^<D\nE^F~':
           'Col[Table[["A"] / >["B"]; ["C"] / <["D"]; ["E"] / ["F"]]]',
     });
 
     test('a column takes its alignment from the first row that has it', () {
-      final block = NaturalBlockParser.parse('~A^>B|C^<D|E^F^=G~').children;
+      final block = NaturalBlockParser.parse('~A^>B\nC^<D\nE^F^=G~').children;
       final table = (block.single as ColumnNode).children.single as TableNode;
 
       expect(table.columns, [
@@ -88,13 +100,15 @@ void main() {
     ':+!*@::a': 'Col["a"{+1}]',
     ':@https://example.com:@ を参照': 'Col["https://example.com"{@} " を参照"]',
     'C++ 10-20 100% you@example.com': 'Col["C++ 10-20 100% you@example.com"]',
-    ':++大^右': 'Row[Col["大"{+2}], Col["右"]]',
+    '^:++大^右^': 'Row[Col["大"{+2}], Col["右"]]',
     ':!赤\n黒': r'Col["赤\n"{negative} "黒"]',
   });
 
   _table('escapes', {
-    r'A\|B': 'Col["A|B"]',
-    r'\\^B': r'Row[Col["\\"], Col["B"]]',
+    r'\^B^': 'Col["^B^"]',
+    r'A\^B': r'Col["A\\^B"]',
+    r'^A\^B^': 'Col["A^B"]',
+    r'^\\^B^': r'Row[Col["\\"], Col["B"]]',
     r'C:\Users\you': r'Col["C:\\Users\\you"]',
     r':---\%off': 'Col["%off"{-3}]',
     r'100\%': r'Col["100\\%"]',
@@ -104,6 +118,7 @@ void main() {
     'a\nb': r'Col["a\nb"]',
     'a\r\nb': r'Col["a\nb"]',
     'text\n': 'Col["text"]',
+    'text\n\n': r'Col["text\n"]',
     '  text  ': 'Col["  text  "]',
   });
 }

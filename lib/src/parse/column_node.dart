@@ -1,24 +1,27 @@
+import '../horizontal_align.dart';
 import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
-import 'align.dart';
 import 'content_node.dart';
 
-ColumnNode parseColumnNode(SourceCursor cursor) {
-  final align = parseAlign(cursor);
+/// The lines up to one that opens a block of its own.
+ColumnNode? parseColumnNode(SourceCursor cursor, HorizontalAlign align) {
   final children = <ContentNode>[];
-  if (cursor.peek == '\n') cursor.take();
 
-  while (!cursor.isEnd && !layoutChars.contains(cursor.peek)) {
+  while (!cursor.isEnd) {
+    if (cursor.peek == '\n' && opensBlock(cursor.peekAt(1))) {
+      cursor.take();
+      break;
+    }
     final before = cursor.position;
-    final content = parseContentNode(cursor);
+    final content = parseContentNode(cursor, TextPlace.block);
     if (content != null) children.add(content);
-    if (cursor.peek == '\n') cursor.take();
+    if (cursor.peek == '\n' && !opensBlock(cursor.peekAt(1))) cursor.take();
     assert(
       cursor.position > before,
       'column content parse made no progress at ${cursor.position}',
     );
   }
 
-  return ColumnNode(children: children, align: align);
+  return children.isEmpty ? null : ColumnNode(children: children, align: align);
 }

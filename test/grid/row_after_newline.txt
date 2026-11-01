@@ -1,0 +1,33 @@
+# prefix: "^a\n"
+Col["a\nXX"]
+    bb  !!  <<
+Col["a\nX"]
+    b^  b~  b`  bE  :^  :~  :`  :E  !^  !~  !`  !E  \\  \E  <^  <~  <`  <E
+Col["a\nXY"]
+    b:  b!  b\  b<  :b  :\  :<  !b  !:  !\  !<  \b  \!  \<  <b  <:  <!  <\
+Col["aYX"]
+    bN  :N  !N  \N  <N
+Row[Col["a"], Col["Y"]]
+    ^b  ^:  ^!  ^\
+Row[Col["a"], Col[]]
+    ^^  ^~  ^`  ^<
+Col["a"]
+    ^N  ^E  ~~  ~`  ~N  ~<  ~E
+Col["a", Table[["Y"]]]
+    ~b  ~:  ~!  ~\
+Col["a", Table[[] / []]]
+    ~^
+Col["a\n" raw"Y"]
+    `b  `^  `~  `:  `!  `\  `<
+Col["a\n"]
+    ``  `E  ::  :!
+Col["aY"]
+    `N
+Col["a\nY"]
+    \^  \~  \`  \:
+Col["aXXY"]
+    Nb  N:  N!  N\  N<
+Col["aX"]
+    N^  N~  NE
+Col["aXX"]
+    N`  NN

@@ -1,27 +1,21 @@
 # prefix: ":!\"
 Col["\\XX"]
-    bb  <<
-Col["\\X"]
-    b|  b~  b`  bN  bE  N`  NN  <|  <~  <`  <N  <E
-Row[Col["\\X"], Col[]]
-    b^  <^
+    bb  ^^  <<
 Col["\\XY"]
-    b:  b!  b<  <b  <:  <!
+    b^  b:  b!  b<  ^b  ^:  ^!  ^<  <b  <^  <:  <!
+Col["\\X"]
+    b~  b`  bN  bE  ^~  ^`  ^N  ^E  N`  NN  <~  <`  <N  <E
 Col["YXY"]
-    b\  <\
+    b\  ^\  <\
 Col["XY"]
-    |b  |:  |!  |\  |<  ^b  ^:  ^!  ^\  ^<  ~b  ~:  ~!  ~\  ~<  `b  `:  `!  `\  `<  :b  :!  :\  :<  !b  !:  !\  !<  \b  \:  \!  \<
+    ~b  ~^  ~:  ~!  ~\  ~<  `b  `^  `:  `!  `\  `<  :b  :^  :!  :\  :<  !b  !^  !:  !\  !<  \b  \^  \:  \!  \<
 Col["X"]
-    ||  |~  |`  |N  |E  ^|  ^~  ^`  ^N  ^E  ~|  ~~  ~`  ~N  ~E  `|  `~  ``  `N  `E  :|  :~  :`  :N  :E  !|  !~  !`  !N  !E  \|  \~  \`  \N  \E
-Row[Col["X"], Col[]]
-    |^  ^^  ~^  `^  :^  !^  \^
+    ~~  ~`  ~N  ~E  `~  ``  `N  `E  :~  :`  :N  :E  !~  !`  !N  !E  \~  \`  \N  \E
 Col["XX"]
     ::  !!  \\
 Col["\\X" "Y"]
-    Nb  N:  N!  N<
+    Nb  N:  N!
 Col["\\"]
-    N|  N~  NE
-Row[Col["\\"], Col[]]
-    N^
+    N^  N~  N<  NE
 Col["YX" "Y"]
     N\

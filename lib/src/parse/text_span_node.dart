@@ -8,6 +8,7 @@ import 'raw.dart';
 (TextSpanNode?, SpanDecoration) parseTextSpanNode(
   SourceCursor cursor,
   SpanDecoration incoming,
+  TextPlace place,
 ) {
   var style = incoming;
   if (cursor.peek == clusterChar &&
@@ -15,31 +16,44 @@ import 'raw.dart';
     style = parseCluster(cursor, style);
   }
   final decorated = style != const SpanDecoration();
+  final markup = {...place.boundaries, clusterChar};
 
   final text = StringBuffer();
   while (true) {
-    text.write(cursor.read(textMarkup));
+    text.write(cursor.read(markup));
 
     final char = cursor.peek;
-    final next = cursor.peekAt(1);
-    if (char.isEmpty || boundaryChars.contains(char)) break;
-    if (char == clusterChar && DecorationAction.chars.contains(next)) break;
-    if (char == '\n' &&
-        (next.isEmpty ||
-            (boundaryChars.contains(next) &&
-                (next != rawChar ||
-                    rawBlockAt(cursor.source, cursor.position + 1))))) {
+    if (char.isEmpty || place.boundaries.contains(char)) break;
+    if (char == clusterChar &&
+        DecorationAction.chars.contains(cursor.peekAt(1))) {
       break;
     }
+    if (char == '\n' && _endsText(cursor, place)) break;
 
     text.write(cursor.take());
-    if (char == '\n' && decorated) break;
+    if (char != '\n') continue;
+
+    // A marker escaped at the start of a line is text.
+    if (place == TextPlace.block &&
+        cursor.peek == escapeChar &&
+        opensBlock(cursor.peekAt(1))) {
+      cursor.take();
+    }
+    if (decorated) break;
   }
 
   final content = text.toString();
-  final nextStyle = cursor.peek == '\n' || content.endsWith('\n')
-      ? const SpanDecoration()
-      : style;
+  final nextStyle = content.endsWith('\n') ? const SpanDecoration() : style;
   if (content.isEmpty) return (null, nextStyle);
   return (TextSpanNode(text: content, decoration: style), nextStyle);
+}
+
+/// Whether the newline at the cursor ends the text rather than being part of
+/// it: the next line belongs to something else.
+bool _endsText(SourceCursor cursor, TextPlace place) {
+  if (place.endsAtNewline) return true;
+  final next = cursor.peekAt(1);
+  if (place == TextPlace.block && opensBlock(next)) return true;
+  if (next == rawChar) return rawBlockAt(cursor.source, cursor.position + 1);
+  return place.boundaries.contains(next);
 }

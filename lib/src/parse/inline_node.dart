@@ -8,11 +8,12 @@ import 'text_span_node.dart';
 (InlineNode?, SpanDecoration) parseInlineNode(
   SourceCursor cursor,
   SpanDecoration style,
+  TextPlace place,
 ) {
   if (cursor.peek == rawChar) {
     // A block ends the text it interrupts; the column reads it next.
     if (rawBlockAt(cursor.source, cursor.position)) return (null, style);
     return (parseRawSpanNode(cursor), style);
   }
-  return parseTextSpanNode(cursor, style);
+  return parseTextSpanNode(cursor, style, place);
 }

@@ -54,8 +54,8 @@ void main() {
       for (var i = 0; i < source.length; i++) {
         final char = source[i];
         final live =
-            {'|', '^', '~', '`', ':', r'\'}.contains(char) ||
-            (i == 0 && char == '<');
+            {'~', '`', ':', r'\'}.contains(char) ||
+            (i == 0 && (char == '<' || char == '^'));
         escaped.write(live ? '\\$char' : char);
       }
 

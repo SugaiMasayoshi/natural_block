@@ -3,8 +3,12 @@ class SourceCursor {
 
   int _position = 0;
 
+  // The final newline is the one an editor adds when saving.
   SourceCursor(String source)
-    : source = source.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+    : source = switch (source.replaceAll('\r\n', '\n').replaceAll('\r', '\n')) {
+        final s when s.endsWith('\n') => s.substring(0, s.length - 1),
+        final s => s,
+      };
 
   int get position => _position;
 

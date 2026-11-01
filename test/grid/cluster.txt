@@ -1,27 +1,19 @@
 # prefix: ":!"
 Col["XX"]
-    bb  <<
-Col["X"]
-    b|  b~  b`  bN  bE  \\  \N  \E  N`  NN  <|  <~  <`  <N  <E
-Row[Col["X"], Col[]]
-    b^  <^
+    bb  ^^  <<
 Col["XY"]
-    b:  b!  b\  b<  \b  \<  <b  <:  <!  <\
-Col["Y"]
-    |b  |:  |!  |\  :b  :\  :<  !b  !\  !<  \|  \^  \~  \`  \:  \!
-(empty)
-    ||  |~  |`  |N  |<  |E  ~|  ~~  ~`  ~N  ~<  ~E  ``  `N  `E  :|  :~  :`  ::  :!  :N  :E  !|  !~  !`  !:  !!  !N  !E  N|  N~  NE
-Row[Col[], Col[]]
-    |^  ^|  ^~  ^`  ^N  ^<  ^E  :^  !^  N^
-Row[Col[], Col["Y"]]
-    ^b  ^:  ^!  ^\
-Row[Col[], Col[], Col[]]
-    ^^
+    b^  b:  b!  b\  b<  ^b  ^:  ^!  ^\  ^<  \b  \^  \<  <b  <^  <:  <!  <\
+Col["X"]
+    b~  b`  bN  bE  ^~  ^`  ^N  ^E  \\  \N  \E  N`  NN  <~  <`  <N  <E
 Col[Table[["Y"]]]
     ~b  ~:  ~!  ~\
 Col[Table[[] / []]]
     ~^
+(empty)
+    ~~  ~`  ~N  ~<  ~E  ``  `N  `E  :~  :`  ::  :!  :N  :E  !~  !`  !:  !!  !N  !E  N^  N~  N<  NE
 Col[raw"Y"]
-    `b  `|  `^  `~  `:  `!  `\  `<
+    `b  `^  `~  `:  `!  `\  `<
+Col["Y"]
+    :b  :^  :\  :<  !b  !^  !\  !<  \~  \`  \:  \!
 Col["X" "Y"]
-    Nb  N:  N!  N\  N<
+    Nb  N:  N!  N\
