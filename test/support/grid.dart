@@ -34,9 +34,10 @@ const Map<String, String> gridTokens = {
 /// character is a backslash too, the two collapse into one and it is shown
 /// as `X`.
 ///
-/// `after_newline` and `row_after_newline` put the pair at the start of a
-/// line, where a marker or a `^` opens a block; inside a row it does not, and
-/// a `^` there separates a cell instead.
+/// `after_newline`, `row_after_newline` and `table_after_newline` put the
+/// pair at the start of a line, where a marker or a `^` opens a block; inside
+/// a row or a table's row it does not, and a `^` there separates a cell
+/// instead. `table_row` puts it where a table's next row starts.
 ///
 /// A prefix also puts the pair where a decision reads it as its *next*
 /// character: in `cluster_escape` the cluster is sitting on the backslash, so
@@ -49,9 +50,10 @@ const Map<String, String> gridContexts = {
   'decorated': ':!a',
   'cluster': ':!',
   'cluster_escape': r':!\',
-  'table_row': '~a\n',
+  'table_row': '~a^\n',
   'after_newline': 'a\n',
   'row_after_newline': '^a\n',
+  'table_after_newline': '~a\n',
 };
 
 /// What the source ends with after the pair, so a decision that looks past

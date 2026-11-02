@@ -1,23 +1,15 @@
 # prefix: "~"
 Col[Table[["XX"]]]
     bb  !!
-Col[Table[["X"] / []]]
-    b^  :^  !^
 Col[Table[["X"]]]
-    b~  b`  bN  bE  :~  :`  :N  :E  !~  !`  !N  !E  \\  \N  \E  <<
+    b^  b~  b`  bN  bE  :^  :~  :`  :N  :E  !^  !~  !`  !N  !E  \\  \N  \E  <<
 Col[Table[["XY"]]]
     b:  b!  b\  b<  :b  :\  :<  !b  !:  !\  !<  \b  \!
-Col[Table[[] / ["Y"]]]
-    ^b  ^:  ^!  ^\
-Col[Table[[] / [] / []]]
-    ^^
-Col[Table[[] / []]]
-    ^~  ^`  ^N  ^<  ^E  N^  <^
+Col[Table[["Y"]]]
+    ^b  ^:  ^!  ^\  \^  \~  \`  \:  \<  Nb  N:  N!  N\  <b  <:  <!  <\
+(empty)
+    ^^  ^~  ^`  ^N  ^<  ^E  ~~  ~`  ~N  ~E  ``  `N  `E  ::  :!  N^  N~  N`  NN  N<  NE  <^  <~  <`  <N  <E
 Col["Y"]
     ~b  ~^  ~:  ~!  ~\  ~<
-(empty)
-    ~~  ~`  ~N  ~E  ``  `N  `E  ::  :!  N~  N`  NN  N<  NE  <~  <`  <N  <E
 Col[Table[[raw"Y"]]]
     `b  `^  `~  `:  `!  `\  `<
-Col[Table[["Y"]]]
-    \^  \~  \`  \:  \<  Nb  N:  N!  N\  <b  <:  <!  <\

@@ -49,7 +49,6 @@ bool _clusterAt(SourceCursor cursor) =>
 /// Whether the newline at the cursor ends the text rather than being part of
 /// it: the next line belongs to something else.
 bool _endsText(SourceCursor cursor, TextPlace place) {
-  if (place == TextPlace.tableCell) return true;
   final next = cursor.peekAt(1);
   if (place == TextPlace.block && opensBlock(next)) return true;
   if (next == rawChar) return rawBlockAt(cursor.source, cursor.position + 1);

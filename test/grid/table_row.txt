@@ -1,31 +1,17 @@
-# prefix: "~a\n"
+# prefix: "~a^\n"
 Col[Table[["a"]; ["XX"]]]
     bb  !!
-Col[Table[["a"]; ["X"] / []]]
-    b^  :^  !^
 Col[Table[["a"]; ["X"]]]
-    b~  b`  bN  bE  :~  :`  :N  :E  !~  !`  !N  !E  \\  \N  \E  <<
+    b^  b~  b`  bN  bE  :^  :~  :`  :N  :E  !^  !~  !`  !N  !E  \\  \N  \E  <<
 Col[Table[["a"]; ["XY"]]]
     b:  b!  b\  b<  :b  :\  :<  !b  !:  !\  !<  \b  \!
-Col[Table[["a"]; [] / ["Y"]]]
-    ^b  ^:  ^!  ^\
-Col[Table[["a"]; [] / [] / []]]
-    ^^
-Col[Table[["a"]; [] / []]]
-    ^~  ^`  ^N  ^<  ^E  <^
+Col[Table[["a"]; ["Y"]]]
+    ^b  ^:  ^!  ^\  \^  \~  \`  \:  \<  Nb  N:  N!  N\  <b  <:  <!  <\
+Col[Table[["a"]; []]]
+    ^^  ^~  ^`  ^N  ^<  ^E  ``  `N  `E  ::  :!  N^  N`  N<  <^  <~  <`  <N  <E
 Col[Table[["a"]], "Y"]
     ~b  ~^  ~:  ~!  ~\  ~<
 Col[Table[["a"]]]
-    ~~  ~`  ~N  ~E  NE
+    ~~  ~`  ~N  ~E  N~  NN  NE
 Col[Table[["a"]; [raw"Y"]]]
     `b  `^  `~  `:  `!  `\  `<
-Col[Table[["a"]; []]]
-    ``  `N  `E  ::  :!  N~  NN  <~  <`  <N  <E
-Col[Table[["a"]; ["Y"]]]
-    \^  \~  \`  \:  \<  <b  <:  <!  <\
-Col[Table[["a"]; []; ["Y"]]]
-    Nb  N:  N!  N\
-Col[Table[["a"]; []; [] / []]]
-    N^
-Col[Table[["a"]; []; []]]
-    N`  N<

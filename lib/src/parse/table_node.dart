@@ -5,14 +5,17 @@ import 'table_row_node.dart';
 
 TableNode? parseTableNode(SourceCursor cursor) {
   cursor.take();
-  if (cursor.peek == '\n') cursor.take();
 
   final rows = <TableRowNode>[];
 
   while (!cursor.isEnd && cursor.peek != tableChar) {
     final before = cursor.position;
-    rows.add(parseTableRowNode(cursor));
-    if (cursor.peek == '\n') cursor.take();
+    // A line break between rows, a blank line included, makes nothing.
+    if (cursor.peek == '\n') {
+      cursor.take();
+    } else {
+      rows.add(parseTableRowNode(cursor));
+    }
     assert(
       cursor.position > before,
       'table row parse made no progress at ${cursor.position}',

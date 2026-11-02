@@ -49,20 +49,25 @@ void main() {
 
   group('tables', () {
     _table('structure', {
-      '~A^B\nC^D~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
-      '~A^B\n\nC^D~': 'Col[Table[["A"] / ["B"]; []; ["C"] / ["D"]]]',
-      '~\n<品名^>価格\nりんご^150\n~':
+      '~^A^B^\n^C^D^~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
+      '~A^B^\nC^D^~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
+      '~^A^B^\n\n^C^D^~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
+      '~^^\n^A^~': 'Col[Table[[]; ["A"]]]',
+      '~^A\n2行目^B^~': r'Col[Table[["A\n2行目"] / ["B"]]]',
+      '~A^B\nC^D~': r'Col[Table[["A"] / ["B\nC"] / ["D"]]]',
+      '~\n<品名^>価格^\nりんご^150^\n~':
           'Col[Table[<["品名"] / >["価格"]; ["りんご"] / ["150"]]]',
-      '^~A^B\nC^D~E^F^':
+      '^~A^B^\nC^D^~E^F^':
           'Row[Col[Table[["A"] / ["B"]; ["C"] / ["D"]], "E"], Col["F"]]',
       '~注意~': 'Col[Table[["注意"]]]',
       '=~A^B~': 'Col=[Table[["A"] / ["B"]]]',
-      '~A^>B\nC^<D\nE^F~':
+      '~A^>B^\nC^<D^\nE^F^~':
           'Col[Table[["A"] / >["B"]; ["C"] / <["D"]; ["E"] / ["F"]]]',
     });
 
     test('a column takes its alignment from the first row that has it', () {
-      final block = NaturalBlockParser.parse('~A^>B\nC^<D\nE^F^=G~').children;
+      final block = NaturalBlockParser.parse('~A^>B^\nC^<D^\nE^F^=G^~')
+          .children;
       final table = (block.single as ColumnNode).children.single as TableNode;
 
       expect(table.columns, [

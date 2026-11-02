@@ -12,11 +12,9 @@ Row[Col["a"], Col["Y"]]
 Row[Col["a"], Col[]]
     ^^  ^~  ^`  ^<
 Col["a"]
-    ^N  ^E  ~~  ~`  ~N  ~<  ~E
+    ^N  ^E  ~^  ~~  ~`  ~N  ~<  ~E
 Col["a", Table[["Y"]]]
     ~b  ~:  ~!  ~\
-Col["a", Table[[] / []]]
-    ~^
 Col["a\n" raw"Y"]
     `b  `^  `~  `:  `!  `\  `<
 Col["a\n"]

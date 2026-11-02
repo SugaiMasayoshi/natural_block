@@ -4,16 +4,15 @@ import '../source_cursor.dart';
 import 'align.dart';
 import 'flat_content_node.dart';
 
-const _endsCell = {rowChar, tableChar, '\n'};
-
 TableCellNode parseTableCellNode(SourceCursor cursor) {
   final align = parseAlign(cursor);
   final children = <FlatContentNode>[];
 
-  while (!cursor.isEnd && !_endsCell.contains(cursor.peek)) {
+  while (!cursor.isEnd && cursor.peek != rowChar && cursor.peek != tableChar) {
     final before = cursor.position;
-    final content = parseFlatContentNode(cursor, TextPlace.tableCell);
+    final content = parseFlatContentNode(cursor, TextPlace.cell);
     if (content != null) children.add(content);
+    if (cursor.peek == '\n') cursor.take();
     assert(
       cursor.position > before,
       'cell content parse made no progress at ${cursor.position}',

@@ -45,7 +45,7 @@ compares structurally:
 |---|---|---|
 | `<` `=` `>` | At the start of a line: a new block, aligned start, center, end | `=Title` |
 | `^` | At the start of a line: a row, cells split by `^`, closed by a `^` | `^Left^Right^` |
-| `~` | Wraps a table; one row per line, cells split by `^` | `~Item^Price~` |
+| `~` | Wraps a table of `^...^` rows | `~^Item^Price^~` |
 
 - A block runs until a line that starts with `<`, `=`, `>` or `^`. Every
   other line stays in it, blank lines included. A newline is part of the
@@ -59,15 +59,18 @@ compares structurally:
 - A marker at the start of a line aligns the block it opens; one after a `^`
   aligns that cell. `=^A^B^>C^` centers every cell that does not say
   otherwise. Only one marker is read: `<>a` is a start-aligned `>a`.
-- A table ends at its closing `~` or at the end of the document. Each line is
-  a row, and a blank line is an empty row. A column takes its alignment from
-  the first row that has it; a marker on a cell overrides just that cell:
+- A table ends at its closing `~` or at the end of the document. Its rows are
+  read like rows outside it, so a cell can hold several lines, and a row also
+  ends at the table's `~`. A row may leave out its opening `^`, but not its
+  closing one. A blank line between rows is nothing; write an empty row as
+  `^^`. A column takes its alignment from the first row that has it; a
+  marker on a cell overrides just that cell:
 
   ```
   ~
-  <Item  ^>Price
-  apple  ^   100
-  orange ^    80
+  <Item  ^>Price^
+  apple  ^   100^
+  orange ^    80^
   ~
   ```
 

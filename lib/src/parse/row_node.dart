@@ -38,7 +38,7 @@ List<ContentNode> _parseCell(SourceCursor cursor) {
   final children = <ContentNode>[];
   while (!cursor.isEnd && cursor.peek != rowChar) {
     final before = cursor.position;
-    final content = parseContentNode(cursor, TextPlace.rowCell);
+    final content = parseContentNode(cursor, TextPlace.cell);
     if (content != null) children.add(content);
     if (cursor.peek == '\n') cursor.take();
     assert(

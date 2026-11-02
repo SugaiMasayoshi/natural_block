@@ -38,8 +38,7 @@ enum DecorationAction {
 /// of a line and is text everywhere else.
 enum TextPlace {
   block({tableChar, rawChar}),
-  rowCell({rowChar, tableChar, rawChar}),
-  tableCell({rowChar, tableChar, rawChar});
+  cell({rowChar, tableChar, rawChar});
 
   /// The characters that end a run, so the node they belong to can read them.
   final Set<String> boundaries;
