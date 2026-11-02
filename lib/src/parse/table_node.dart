@@ -10,7 +10,6 @@ TableNode? parseTableNode(SourceCursor cursor) {
 
   while (!cursor.isEnd && cursor.peek != tableChar) {
     final before = cursor.position;
-    // A line break between rows, a blank line included, makes nothing.
     if (cursor.peek == '\n') {
       cursor.take();
     } else {
