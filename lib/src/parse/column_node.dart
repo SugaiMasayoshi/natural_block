@@ -8,14 +8,13 @@ ColumnNode? parseColumnNode(SourceCursor cursor, HorizontalAlign align) {
   final children = <ContentNode>[];
 
   while (!cursor.isEnd) {
-    if (cursor.peek == '\n' && opensBlock(cursor.peekAt(1))) {
-      cursor.take();
-      break;
-    }
     final before = cursor.position;
     final content = parseContentNode(cursor, TextPlace.block);
     if (content != null) children.add(content);
-    if (cursor.peek == '\n' && !opensBlock(cursor.peekAt(1))) cursor.take();
+    if (cursor.peek == '\n') {
+      cursor.take();
+      if (opensBlock(cursor.peek)) break;
+    }
     assert(
       cursor.position > before,
       'column content parse made no progress at ${cursor.position}',
