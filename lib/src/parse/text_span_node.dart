@@ -11,10 +11,7 @@ import 'raw.dart';
   TextPlace place,
 ) {
   var style = incoming;
-  if (cursor.peek == clusterChar &&
-      DecorationAction.chars.contains(cursor.peekAt(1))) {
-    style = parseCluster(cursor, style);
-  }
+  if (_clusterAt(cursor)) style = parseCluster(cursor, style);
   final decorated = style != const SpanDecoration();
   final markup = {...place.boundaries, clusterChar};
 
@@ -24,10 +21,7 @@ import 'raw.dart';
 
     final char = cursor.peek;
     if (char.isEmpty || place.boundaries.contains(char)) break;
-    if (char == clusterChar &&
-        DecorationAction.chars.contains(cursor.peekAt(1))) {
-      break;
-    }
+    if (_clusterAt(cursor)) break;
     if (char == '\n' && _endsText(cursor, place)) break;
 
     text.write(cursor.take());
@@ -47,6 +41,10 @@ import 'raw.dart';
   if (content.isEmpty) return (null, nextStyle);
   return (TextSpanNode(text: content, decoration: style), nextStyle);
 }
+
+bool _clusterAt(SourceCursor cursor) =>
+    cursor.peek == clusterChar &&
+    DecorationAction.chars.contains(cursor.peekAt(1));
 
 /// Whether the newline at the cursor ends the text rather than being part of
 /// it: the next line belongs to something else.
