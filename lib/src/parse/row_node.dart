@@ -6,8 +6,8 @@ import 'align.dart';
 import 'content_node.dart';
 
 /// A row from its opening `^` to the `^` that ends a line, or to the end of
-/// the document. A row of one cell is that cell, as a block.
-LayoutNode? parseRowNode(SourceCursor cursor, HorizontalAlign align) {
+/// the document.
+RowNode parseRowNode(SourceCursor cursor, HorizontalAlign align) {
   cursor.take();
 
   final cells = <ColumnNode>[];
@@ -29,9 +29,7 @@ LayoutNode? parseRowNode(SourceCursor cursor, HorizontalAlign align) {
     }
   }
 
-  if (cells.length > 1) return RowNode(children: cells);
-  final cell = cells.single;
-  return cell.children.isEmpty ? null : cell;
+  return RowNode(children: cells);
 }
 
 List<ContentNode> _parseCell(SourceCursor cursor) {

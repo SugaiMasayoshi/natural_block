@@ -10,10 +10,12 @@ Col["a", Table[["Y"]]]
 Col["a", Table[[]]]
     ~^  ~`  ~<
 Col["a"]
-    ~~  ~N  ~E  ``  `N  `E  ::  :!  N^  N~  N<  NE
+    ~~  ~N  ~E  ``  `N  `E  ::  :!  N~  N<  NE
 Col["a" raw"Y"]
     `b  `^  `~  `:  `!  `\  `<
 Col["aY"]
     \~  \`  \:
 Col["aX" "Y"]
     Nb  N:  N!  N\
+Col["a"], Row[Col[]]
+    N^

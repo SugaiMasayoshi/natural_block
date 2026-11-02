@@ -67,7 +67,7 @@ final class RowNode extends LayoutNode {
 
   RowNode({required List<ColumnNode> children})
     : children = List.unmodifiable(children),
-      assert(children.length >= 2, 'a row has at least two cells');
+      assert(children.isNotEmpty, 'a row has at least one cell');
 
   @override
   String toString() => 'RowNode(children: $children)';

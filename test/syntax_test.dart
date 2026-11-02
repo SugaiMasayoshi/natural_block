@@ -27,7 +27,8 @@ void main() {
     '^左\n2行目^右^': r'Row[Col["左\n2行目"], Col["右"]]',
     '^左\n^右^': 'Row[Col["左"], Col["右"]]',
     '^a^b': 'Row[Col["a"], Col["b"]]',
-    '^注意^': 'Col["注意"]',
+    '^注意^': 'Row[Col["注意"]]',
+    '^^': 'Row[Col[]]',
     '前の行\n^A^B^\n次の行': 'Col["前の行"], Row[Col["A"], Col["B"]], Col["次の行"]',
     'a ^ b | c': 'Col["a ^ b | c"]',
   });
@@ -112,7 +113,7 @@ void main() {
   _table('escapes', {
     r'\^B^': 'Col["^B^"]',
     r'A\^B': r'Col["A\\^B"]',
-    r'^A\^B^': 'Col["A^B"]',
+    r'^A\^B^': 'Row[Col["A^B"]]',
     r'^\\^B^': r'Row[Col["\\"], Col["B"]]',
     r'C:\Users\you': r'Col["C:\\Users\\you"]',
     r':---\%off': 'Col["%off"{-3}]',

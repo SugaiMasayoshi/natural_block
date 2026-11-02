@@ -1,33 +1,33 @@
 # prefix: "^a\n"
-Col["a\nXX"]
+Row[Col["a\nXX"]]
     bb  !!  <<
-Col["a\nX"]
+Row[Col["a\nX"]]
     b^  b~  b`  bE  :^  :~  :`  :E  !^  !~  !`  !E  \\  \E  <^  <~  <`  <E
-Col["a\nXY"]
+Row[Col["a\nXY"]]
     b:  b!  b\  b<  :b  :\  :<  !b  !:  !\  !<  \b  \!  \<  <b  <:  <!  <\
-Col["aYX"]
+Row[Col["aYX"]]
     bN  :N  !N  \N  <N
 Row[Col["a"], Col["Y"]]
     ^b  ^:  ^!  ^\
 Row[Col["a"], Col[]]
     ^^  ^~  ^`  ^<
-Col["a"]
+Row[Col["a"]]
     ^N  ^E  ~~  ~N  ~E
-Col["a", Table[["Y"]]]
+Row[Col["a", Table[["Y"]]]]
     ~b  ~:  ~!  ~\
-Col["a", Table[[]]]
+Row[Col["a", Table[[]]]]
     ~^  ~`  ~<
-Col["a\n" raw"Y"]
+Row[Col["a\n" raw"Y"]]
     `b  `^  `~  `:  `!  `\  `<
-Col["a\n"]
+Row[Col["a\n"]]
     ``  `E  ::  :!
-Col["aY"]
+Row[Col["aY"]]
     `N
-Col["a\nY"]
+Row[Col["a\nY"]]
     \^  \~  \`  \:
-Col["aXXY"]
+Row[Col["aXXY"]]
     Nb  N:  N!  N\  N<
-Col["aX"]
+Row[Col["aX"]]
     N^  N~  NE
-Col["aXX"]
+Row[Col["aXX"]]
     N`  NN

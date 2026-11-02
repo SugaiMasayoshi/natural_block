@@ -7,14 +7,16 @@ Col["a\nX"]
     b~  b`  bE  :~  :`  :E  !~  !`  !E  \\  \E
 Col["aYX"]
     bN  :N  !N  \N
-Col["a"], Col["Y"]
-    ^b  ^:  ^!  ^\  <b  <:  <!  <\
-Col["a"]
-    ^^  ^~  ^`  ^N  ^<  ^E  ~~  ~N  ~E  <^  <~  <`  <N  <E
+Col["a"], Row[Col["Y"]]
+    ^b  ^:  ^!  ^\
+Col["a"], Row[Col[]]
+    ^^  ^~  ^`  ^N  ^<  ^E  <^
 Col["a", Table[["Y"]]]
     ~b  ~:  ~!  ~\
 Col["a", Table[[]]]
     ~^  ~`  ~<
+Col["a"]
+    ~~  ~N  ~E  <~  <`  <N  <E
 Col["a\n" raw"Y"]
     `b  `^  `~  `:  `!  `\  `<
 Col["a\n"]
@@ -25,9 +27,13 @@ Col["a\nY"]
     \^  \~  \`  \:  \<
 Col["aXXY"]
     Nb  N:  N!  N\
+Col["aX"], Row[Col[]]
+    N^
 Col["aX"]
-    N^  N~  N<  NE
+    N~  N<  NE
 Col["aXX"]
     N`  NN
+Col["a"], Col["Y"]
+    <b  <:  <!  <\
 Col["a"], Col["X"]
     <<

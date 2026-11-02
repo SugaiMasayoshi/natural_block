@@ -5,13 +5,17 @@ Col["XY"]
     b^  b:  b!  b\  b<  :b  :^  :\  :<  !b  !^  !:  !\  !<  \b  \!  Nb  N:  N!  N\
 Col["X"]
     b~  b`  bN  bE  :~  :`  :N  :E  !~  !`  !N  !E  \\  \N  \E  N`  NN  <<
-Col["Y"]
-    ^b  ^:  ^!  ^\  \^  \~  \`  \:  \<  <b  <:  <!  <\
-(empty)
-    ^^  ^~  ^`  ^N  ^<  ^E  ~~  ~N  ~E  ``  `N  `E  ::  :!  N^  N~  N<  NE  <^  <~  <`  <N  <E
+Row[Col["Y"]]
+    ^b  ^:  ^!  ^\
+Row[Col[]]
+    ^^  ^~  ^`  ^N  ^<  ^E  N^  <^
 Col[Table[["Y"]]]
     ~b  ~:  ~!  ~\
 Col[Table[[]]]
     ~^  ~`  ~<
+(empty)
+    ~~  ~N  ~E  ``  `N  `E  ::  :!  N~  N<  NE  <~  <`  <N  <E
 Col[raw"Y"]
     `b  `^  `~  `:  `!  `\  `<
+Col["Y"]
+    \^  \~  \`  \:  \<  <b  <:  <!  <\

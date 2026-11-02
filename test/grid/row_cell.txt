@@ -19,7 +19,9 @@ Row[Col["a"], Col[raw"Y"]]
     `b  `^  `~  `:  `!  `\  `<
 Row[Col["a"], Col["Y"]]
     \^  \~  \`  \:  \<  <b  <:  <!  <\
-Col["a"], Col["Y"]
+Row[Col["a"]], Col["Y"]
     Nb  N:  N!  N\
-Col["a"]
-    N^  N~  N`  NN  N<  NE
+Row[Col["a"]], Row[Col[]]
+    N^
+Row[Col["a"]]
+    N~  N`  NN  N<  NE

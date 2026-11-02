@@ -15,7 +15,9 @@ Col["XX"]
     ::  !!  \\
 Col["\\X" "Y"]
     Nb  N:  N!
+Col["\\"], Row[Col[]]
+    N^
 Col["\\"]
-    N^  N~  N<  NE
+    N~  N<  NE
 Col["YX" "Y"]
     N\
