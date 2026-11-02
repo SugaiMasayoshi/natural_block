@@ -12,11 +12,11 @@ LayoutNode? parseRowNode(SourceCursor cursor, HorizontalAlign align) {
 
   final cells = <ColumnNode>[];
   while (true) {
-    final own = parseAlign(cursor);
+    final cellAlign = parseAlign(cursor);
     cells.add(
       ColumnNode(
         children: _parseCell(cursor),
-        align: own == HorizontalAlign.unstated ? align : own,
+        align: cellAlign == HorizontalAlign.unstated ? align : cellAlign,
       ),
     );
     if (cursor.isEnd) break;
