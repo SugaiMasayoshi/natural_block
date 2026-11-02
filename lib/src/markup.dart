@@ -37,15 +37,14 @@ enum DecorationAction {
 /// cells only inside a row or a table; in a block it opens a row at the start
 /// of a line and is text everywhere else.
 enum TextPlace {
-  block({tableChar, rawChar}, endsAtNewline: false),
-  rowCell({rowChar, tableChar, rawChar}, endsAtNewline: false),
-  tableCell({rowChar, tableChar, rawChar}, endsAtNewline: true);
+  block({tableChar, rawChar}),
+  rowCell({rowChar, tableChar, rawChar}),
+  tableCell({rowChar, tableChar, rawChar});
 
   /// The characters that end a run, so the node they belong to can read them.
   final Set<String> boundaries;
-  final bool endsAtNewline;
 
-  const TextPlace(this.boundaries, {required this.endsAtNewline});
+  const TextPlace(this.boundaries);
 }
 
 /// Whether a line starting with [first] opens a block of its own.
