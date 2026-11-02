@@ -21,7 +21,7 @@ dart pub add natural_block
 import 'package:natural_block/natural_block.dart';
 
 void main() {
-  final document = NaturalBlockParser.parse('|:!Danger Zone^:%Safe Zone|');
+  final document = NaturalBlockParser.parse('^:!Danger Zone^:%Safe Zone^');
   print(document);
 }
 ```
@@ -43,32 +43,36 @@ compares structurally:
 
 | Symbol | Meaning | Example |
 |---|---|---|
-| `\|` | Starts a new block, stacked vertically | `Title\|Body` |
-| `^` | Splits a block into the cells of a row | `Left^Right` |
-| `~` | Wraps a table; rows separated by `\|`, cells by `^` | `~Item^Price\|apple^100~` |
-| `<` `=` `>` | At the start of a block: start, center, end | `\|<Item^=Qty^>Price` |
+| `<` `=` `>` | At the start of a line: a new block, aligned start, center, end | `=Title` |
+| `^` | At the start of a line: a row, cells split by `^`, closed by a `^` | `^Left^Right^` |
+| `~` | Wraps a table; one row per line, cells split by `^` | `~Item^Price~` |
 
-- An empty block contributes nothing; an empty cell keeps its place, so
-  `Left^^Right` pushes `Right` to the far edge.
-- A newline is part of the text, and spaces are never trimmed. A single blank
-  line at each end of a block is dropped, so a block's symbol can sit on a
-  line of its own.
-- A `|` ends the block before it. Write a row as `|A^B|`: without the
-  leading `|`, the line before joins the row's first cell.
-- Alignment markers count only at the start of a block -- directly after
-  `|`, `^`, a table's opening `~`, or the start of the document. Anywhere
-  else they are text.
-- A table ends at its closing `~` or at the end of the document. A column
-  takes its alignment from the first row that has it; a marker on a cell
-  overrides just that cell. Write one row per line with a leading `|`:
+- A block runs until a line that starts with `<`, `=`, `>` or `^`. Every
+  other line stays in it, blank lines included. A newline is part of the
+  text, and spaces are never trimmed.
+- `|` is ordinary text, and so is `^` in the middle of a block's line:
+  `a | b` and `2^10` need no escaping.
+- A row ends at a `^` that ends a line, or at the end of the document. A cell
+  can hold several lines (`^Left\nsecond line^Right^`). An empty cell keeps
+  its place, so `^Left^^Right^` pushes `Right` to the far edge. A row of one
+  cell, `^Note^`, is just a block.
+- A marker at the start of a line aligns the block it opens; one after a `^`
+  aligns that cell. `=^A^B^>C^` centers every cell that does not say
+  otherwise. Only one marker is read: `<>a` is a start-aligned `>a`.
+- A table ends at its closing `~` or at the end of the document. Each line is
+  a row, and a blank line is an empty row. A column takes its alignment from
+  the first row that has it; a marker on a cell overrides just that cell:
 
   ```
   ~
-  |<Item  ^>Price
-  |apple  ^   100
-  |orange ^    80
+  <Item  ^>Price
+  apple  ^   100
+  orange ^    80
   ~
   ```
+
+- The last line break of the source, the one an editor adds when saving, is
+  ignored.
 
 ### Decoration
 
@@ -120,10 +124,11 @@ cat file.txt | grep foo | wc -l
 
 A backslash escapes only what would otherwise be markup at that point:
 
-- Anywhere: `\|`, `\^`, `\~`, `\:`, `` \` ``, and `\\`.
+- Anywhere: `\~`, `\:`, `` \` ``, and `\\`.
+- Inside a row or a table: `\^`.
 - Inside a cluster: any decoration character. The escape also ends the
   cluster, so `:---\%%%` is `%%%` at -3.
-- At the start of a block: `\<`, `\=`, `\>`.
+- At the start of a line: `\<`, `\=`, `\>`, `\^`.
 
 Everywhere else a backslash is kept, so `C:\Users\you` needs no escaping. A
 doubled backslash still collapses to one: write `\\\\server` for
