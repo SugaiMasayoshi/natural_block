@@ -4,7 +4,6 @@ import '../nodes.dart';
 import '../source_cursor.dart';
 import 'content_node.dart';
 
-/// The lines up to one that opens a block of its own.
 ColumnNode? parseColumnNode(SourceCursor cursor, HorizontalAlign align) {
   final children = <ContentNode>[];
 
