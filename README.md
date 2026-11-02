@@ -1,5 +1,7 @@
 # natural_block
 
+[日本語](README.ja.md)
+
 A lightweight markup language for Dart that leaves ordinary prose alone.
 `natural_block` parses layout (blocks, rows, tables, alignment), semantic
 decoration (size, tone, emphasis), and raw code regions into a syntax tree
@@ -50,12 +52,9 @@ compares structurally:
 - A block runs until a line that starts with `<`, `=`, `>` or `^`. Every
   other line stays in it, blank lines included. A newline is part of the
   text, and spaces are never trimmed.
-- `|` is ordinary text, and so is `^` in the middle of a block's line:
-  `a | b` and `2^10` need no escaping.
 - A row ends at a `^` that ends a line, or at the end of the document. A cell
   can hold several lines (`^Left\nsecond line^Right^`). An empty cell keeps
-  its place, so `^Left^^Right^` pushes `Right` to the far edge. A row of one
-  cell, `^Note^`, is just a block.
+  its place, so `^Left^^Right^` pushes `Right` to the far edge.
 - A marker at the start of a line aligns the block it opens; one after a `^`
   aligns that cell. `=^A^B^>C^` centers every cell that does not say
   otherwise. Only one marker is read: `<>a` is a start-aligned `>a`.
@@ -95,7 +94,7 @@ Combine characters in one cluster: `:!*` is negative and emphasized. Two
 clusters back to back are different, because a following `:` is read as a
 reset -- `:!:*` leaves only emphasis.
 
-Without a `:` in front, `+ - ! % ? * @` are ordinary text.
+Without a `:` in front, `+ - ! % * @` are ordinary text.
 
 A custom run's text is its whole payload, such as a URL or an image path:
 
