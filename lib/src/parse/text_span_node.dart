@@ -29,7 +29,9 @@ import 'raw.dart';
     // At a newline.
     if (_endsText(cursor, place)) break;
     text.write(cursor.take());
-    if (place == TextPlace.block) _skipEscapeAtLineStart(cursor);
+    final escapedMarker =
+        cursor.peek == escapeChar && opensBlock(cursor.peekAt(1));
+    if (place == TextPlace.block && escapedMarker) cursor.take();
     if (decorated) break;
   }
 
@@ -42,12 +44,6 @@ import 'raw.dart';
 bool _clusterAt(SourceCursor cursor) =>
     cursor.peek == clusterChar &&
     DecorationAction.chars.contains(cursor.peekAt(1));
-
-/// Drops the backslash before a marker at the start of a line, so the marker
-/// is text.
-void _skipEscapeAtLineStart(SourceCursor cursor) {
-  if (cursor.peek == escapeChar && opensBlock(cursor.peekAt(1))) cursor.take();
-}
 
 /// Whether the newline at the cursor ends the text rather than being part of
 /// it: the next line belongs to something else.
