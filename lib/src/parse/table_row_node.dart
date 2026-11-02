@@ -8,20 +8,17 @@ import 'table_cell_node.dart';
 TableRowNode parseTableRowNode(SourceCursor cursor) {
   if (cursor.peek == rowChar) cursor.take();
 
-  final cells = [parseTableCellNode(cursor)];
-  while (_takeSeparator(cursor)) {
+  final cells = <TableCellNode>[];
+  while (true) {
     cells.add(parseTableCellNode(cursor));
+    if (cursor.peek != rowChar) break;
+
+    cursor.take();
+    if (cursor.isEnd || cursor.peek == tableChar) break;
+    if (cursor.peek == '\n') {
+      cursor.take();
+      break;
+    }
   }
   return TableRowNode(children: cells);
-}
-
-/// Reads the `^` after a cell, and whether another cell follows it.
-bool _takeSeparator(SourceCursor cursor) {
-  if (cursor.peek != rowChar) return false;
-  cursor.take();
-  if (cursor.peek == '\n') {
-    cursor.take();
-    return false;
-  }
-  return !cursor.isEnd && cursor.peek != tableChar;
 }
