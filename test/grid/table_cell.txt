@@ -7,9 +7,11 @@ Col[Table[["XY"]]]
     b:  b!  b\  b<  :b  :\  :<  !b  !:  !\  !<  \b  \!
 Col[Table[["Y"]]]
     ^b  ^:  ^!  ^\  \^  \~  \`  \:  \<  Nb  N:  N!  N\  <b  <:  <!  <\
-(empty)
-    ^^  ^~  ^`  ^N  ^<  ^E  ~~  ~`  ~N  ~E  ``  `N  `E  ::  :!  N^  N~  N`  NN  N<  NE  <^  <~  <`  <N  <E
+Col[Table[[]]]
+    ^^  ^~  ^`  ^N  ^<  ^E  ``  `N  `E  ::  :!  N^  N`  N<  <^  <~  <`  <N  <E
 Col["Y"]
     ~b  ~^  ~:  ~!  ~\  ~<
+(empty)
+    ~~  ~`  ~N  ~E  N~  NN  NE
 Col[Table[[raw"Y"]]]
     `b  `^  `~  `:  `!  `\  `<

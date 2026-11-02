@@ -7,8 +7,10 @@ Col["aX"]
     b~  b`  bN  bE  ^~  ^`  ^N  ^E  :~  :`  :N  :E  !~  !`  !N  !E  \\  \N  \E  N`  NN  <~  <`  <N  <E
 Col["a", Table[["Y"]]]
     ~b  ~:  ~!  ~\
+Col["a", Table[[]]]
+    ~^  ~`  ~<
 Col["a"]
-    ~^  ~~  ~`  ~N  ~<  ~E  ``  `N  `E  ::  :!  N^  N~  N<  NE
+    ~~  ~N  ~E  ``  `N  `E  ::  :!  N^  N~  N<  NE
 Col["a" raw"Y"]
     `b  `^  `~  `:  `!  `\  `<
 Col["aY"]

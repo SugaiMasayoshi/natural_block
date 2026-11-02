@@ -23,9 +23,6 @@ TableNode? parseTableNode(SourceCursor cursor) {
   }
   if (cursor.peek == tableChar) cursor.take();
 
-  if (rows.every(_isBlank)) return null;
+  if (rows.isEmpty) return null;
   return TableNode(children: rows);
 }
-
-bool _isBlank(TableRowNode row) =>
-    row.children.length == 1 && row.children.single.children.isEmpty;
