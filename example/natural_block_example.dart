@@ -21,18 +21,20 @@ as ordinary text.
 ''');
 
   _show('Layout and alignment', r'''
-|A vertical block
-|<start^=center^>end|
-Left^^Right
+A block with no marker
+=A marker opens a new block
+and its alignment holds until the next one.
+^<start^=center^>end^
+>Outside a row, a ^ is plain text.
 ''');
 
   _show('Tables', r'''
 ~
-|<Item  ^>Price^Stock
-|Apple  ^150^12
-|Banana ^98^3
+^<Item  ^>Price^Stock^
+^Apple  ^150^12^
+^Banana ^98^3^
 ~
-|>:*Total 248
+>:*Total 248
 ''');
 
   _show('Raw regions', r'''
@@ -43,8 +45,9 @@ cat file.txt | grep foo | wc -l
 ''');
 
   _show('Escaping', r'''
-\=> at the start of a block is literal text.
-\| and \^ and \~ and \: are literal, \\ is one backslash.
+\=> at the start of a line is literal text.
+\^ too.
+\~ and \: are literal, \\ is one backslash.
 Inside a cluster a decoration character escapes too: :---\%off
 A path needs nothing: C:\Users\you\a.png -- but prefer C:/Users/you/a.png
 ''');
