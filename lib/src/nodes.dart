@@ -5,10 +5,13 @@ import 'package:collection/collection.dart';
 import 'horizontal_align.dart';
 import 'span_decoration.dart';
 
+/// A node of the tree the parser returns. Nodes are immutable and compare by
+/// value.
 sealed class NaturalBlockNode {}
 
 const _childrenEquality = ListEquality<NaturalBlockNode>();
 
+/// The whole document: its blocks and rows, top to bottom.
 final class DocumentNode extends NaturalBlockNode {
   final List<LayoutNode> children;
 
@@ -34,11 +37,15 @@ final class DocumentNode extends NaturalBlockNode {
       Object.hash(runtimeType, _childrenEquality.hash(children));
 }
 
+/// What a document stacks: a block or a row.
 sealed class LayoutNode extends NaturalBlockNode {}
 
+/// A block, or one cell of a [RowNode]: its content, top to bottom.
 final class ColumnNode extends LayoutNode {
   final List<ContentNode> children;
 
+  /// The marker at the start of the block, or of the cell. A cell that wrote
+  /// none takes the one before its row's opening `^`.
   final HorizontalAlign align;
 
   ColumnNode({
@@ -62,6 +69,7 @@ final class ColumnNode extends LayoutNode {
       Object.hash(runtimeType, align, _childrenEquality.hash(children));
 }
 
+/// A row written `^…^`: cells side by side, sharing the width equally.
 final class RowNode extends LayoutNode {
   final List<ColumnNode> children;
 
@@ -84,10 +92,13 @@ final class RowNode extends LayoutNode {
       Object.hash(runtimeType, _childrenEquality.hash(children));
 }
 
+/// What a block holds: text, a raw block or a table.
 sealed class ContentNode extends NaturalBlockNode {}
 
+/// Content that holds no table: all a table's cell can hold.
 sealed class FlatContentNode extends ContentNode {}
 
+/// Text over any number of lines, as runs. Its newlines are in the runs.
 final class TextNode extends FlatContentNode {
   final List<InlineNode> children;
 
@@ -110,6 +121,8 @@ final class TextNode extends FlatContentNode {
       Object.hash(runtimeType, _childrenEquality.hash(children));
 }
 
+/// A raw region with a line break inside: text taken exactly as written,
+/// drawn as a block.
 final class RawNode extends FlatContentNode {
   final String text;
 
@@ -129,9 +142,15 @@ final class RawNode extends FlatContentNode {
   int get hashCode => Object.hash(runtimeType, text);
 }
 
+/// A table written between `~`: rows whose columns line up.
+///
+/// Rows keep the cells they were written with, so they may differ in length.
 final class TableNode extends ContentNode {
   final List<TableRowNode> children;
 
+  /// Each column's alignment, taken from the first row that has the column.
+  /// Its length is the table's width. A cell that states its own overrides
+  /// it.
   late final List<HorizontalAlign> columns = _columns(children);
 
   TableNode({required List<TableRowNode> children})
@@ -163,6 +182,7 @@ final class TableNode extends ContentNode {
       Object.hash(runtimeType, _childrenEquality.hash(children));
 }
 
+/// One row of a [TableNode].
 final class TableRowNode extends NaturalBlockNode {
   final List<TableCellNode> children;
 
@@ -185,9 +205,12 @@ final class TableRowNode extends NaturalBlockNode {
       Object.hash(runtimeType, _childrenEquality.hash(children));
 }
 
+/// One cell of a [TableRowNode].
 final class TableCellNode extends NaturalBlockNode {
   final List<FlatContentNode> children;
 
+  /// The marker at the start of this cell. [HorizontalAlign.unstated] means
+  /// the column's, from [TableNode.columns].
   final HorizontalAlign align;
 
   TableCellNode({
@@ -211,8 +234,10 @@ final class TableCellNode extends NaturalBlockNode {
       Object.hash(runtimeType, align, _childrenEquality.hash(children));
 }
 
+/// A run inside a [TextNode].
 sealed class InlineNode extends NaturalBlockNode {}
 
+/// A run of text with one decoration.
 final class TextSpanNode extends InlineNode {
   final String text;
 
@@ -236,6 +261,8 @@ final class TextSpanNode extends InlineNode {
   int get hashCode => Object.hash(text, decoration);
 }
 
+/// A raw region without a line break: text taken exactly as written, inside
+/// a line.
 final class RawSpanNode extends InlineNode {
   final String text;
 

@@ -5,6 +5,7 @@ import '../source_cursor.dart';
 import 'layout_node.dart';
 
 abstract final class NaturalBlockParser {
+  /// The tree [source] describes. Never throws: any text is a document.
   static DocumentNode parse(String source) {
     final cursor = SourceCursor(source);
     final children = <LayoutNode>[];

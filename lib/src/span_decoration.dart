@@ -1,9 +1,17 @@
 import 'tone.dart';
 
+/// What the source said about a run of text.
 class SpanDecoration {
+  /// Size steps: one per `:+`, minus one per `:-`.
   final int sizeOffset;
+
   final Tone tone;
+
+  /// `:*`
   final bool isEmphasized;
+
+  /// Between `:@` marks. The run's text is the payload; what it means is the
+  /// app's to decide.
   final bool isCustom;
 
   const SpanDecoration({
