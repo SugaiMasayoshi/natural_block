@@ -1,3 +1,10 @@
+## 0.2.0
+
+- Breaking: `~` opens a table only at the start of a line or of a row's
+  cell, and closes it only at the start of a line. Elsewhere `~` is text, so
+  `10~20` needs no escaping, and `\~` escapes only where a `~` would open or
+  close a table.
+
 ## 0.1.0
 
 - Initial release.

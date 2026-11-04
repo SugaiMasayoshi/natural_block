@@ -50,24 +50,25 @@ void main() {
 
   group('tables', () {
     _table('structure', {
-      '~^A^B^\n^C^D^~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
-      '~A^B^\nC^D^~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
-      '~^A^B^\n\n^C^D^~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
-      '~^^\n^A^~': 'Col[Table[[]; ["A"]]]',
-      '~^A\n2行目^B^~': r'Col[Table[["A\n2行目"] / ["B"]]]',
-      '~A^B\nC^D~': r'Col[Table[["A"] / ["B\nC"] / ["D"]]]',
+      '~\n^A^B^\n^C^D^\n~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
+      '~\nA^B^\nC^D^\n~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
+      '~^A^B^\n~': 'Col[Table[["A"] / ["B"]]]',
+      '~\n^A^B^\n\n^C^D^\n~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
+      '~\n^^\n^A^\n~': 'Col[Table[[]; ["A"]]]',
+      '~\n^A\n2行目^B^\n~': r'Col[Table[["A\n2行目"] / ["B"]]]',
+      '~\nA^B\nC^D\n~': r'Col[Table[["A"] / ["B\nC"] / ["D"]]]',
       '~\n<品名^>価格^\nりんご^150^\n~':
           'Col[Table[<["品名"] / >["価格"]; ["りんご"] / ["150"]]]',
-      '^~A^B^\nC^D^~E^F^':
-          'Row[Col[Table[["A"] / ["B"]; ["C"] / ["D"]], "E"], Col["F"]]',
-      '~注意~': 'Col[Table[["注意"]]]',
-      '=~A^B~': 'Col=[Table[["A"] / ["B"]]]',
-      '~A^>B^\nC^<D^\nE^F^~':
-          'Col[Table[["A"] / >["B"]; ["C"] / <["D"]; ["E"] / ["F"]]]',
+      '前の行\n~\n^A^B^\n~\n次の行': 'Col["前の行", Table[["A"] / ["B"]], "次の行"]',
+      '^~\n^A^B^\n~^右^': 'Row[Col[Table[["A"] / ["B"]]], Col["右"]]',
+      '^左\n~\n^A^B^\n~\n^右^': 'Row[Col["左", Table[["A"] / ["B"]]], Col["右"]]',
+      '=~\n^A^B^\n~': 'Col=[Table[["A"] / ["B"]]]',
+      '~\n^10~20^人^\n~': 'Col[Table[["10~20"] / ["人"]]]',
+      '~\n注意': 'Col[Table[["注意"]]]',
     });
 
     test('a column takes its alignment from the first row that has it', () {
-      final block = NaturalBlockParser.parse('~A^>B^\nC^<D^\nE^F^=G^~')
+      final block = NaturalBlockParser.parse('~\nA^>B^\nC^<D^\nE^F^=G^\n~')
           .children;
       final table = (block.single as ColumnNode).children.single as TableNode;
 
@@ -106,6 +107,7 @@ void main() {
     ':+!*@::a': 'Col["a"{+1}]',
     ':@https://example.com:@ を参照': 'Col["https://example.com"{@} " を参照"]',
     'C++ 10-20 100% you@example.com': 'Col["C++ 10-20 100% you@example.com"]',
+    '10~20人、月~金': 'Col["10~20人、月~金"]',
     '^:++大^右^': 'Row[Col["大"{+2}], Col["右"]]',
     ':!赤\n黒': r'Col["赤\n"{negative} "黒"]',
   });
@@ -115,6 +117,8 @@ void main() {
     r'A\^B': r'Col["A\\^B"]',
     r'^A\^B^': 'Row[Col["A^B"]]',
     r'^\\^B^': r'Row[Col["\\"], Col["B"]]',
+    r'\~/.bashrc': 'Col["~/.bashrc"]',
+    r'10\~20': r'Col["10\\~20"]',
     r'C:\Users\you': r'Col["C:\\Users\\you"]',
     r':---\%off': 'Col["%off"{-3}]',
     r'100\%': r'Col["100\\%"]',

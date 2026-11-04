@@ -9,7 +9,7 @@ void main() {
 :!Negative:! and :%Positive:% and :*Emphasis:*
 :!*Negative and bold at once::back to plain
 :+++Three steps larger:--- back to base
-Bare punctuation is literal: C++, 10-20, 100%, Really?!, you@example.com
+Bare punctuation is literal: C++, 10-20, 10~20, 2^10, 100%, Really?!, you@example.com
 ''');
 
   _show('Custom runs', r'''
@@ -25,7 +25,7 @@ A block with no marker
 =A marker opens a new block
 and its alignment holds until the next one.
 ^<start^=center^>end^
->Outside a row, a ^ is plain text.
+>This block is end-aligned.
 ''');
 
   _show('Tables', r'''
@@ -46,8 +46,9 @@ cat file.txt | grep foo | wc -l
 
   _show('Escaping', r'''
 \=> at the start of a line is literal text.
-\^ too.
-\~ and \: are literal, \\ is one backslash.
+\^ too, and
+\~ as well.
+\: is literal anywhere, and \\ is one backslash.
 Inside a cluster a decoration character escapes too: :---\%off
 A path needs nothing: C:\Users\you\a.png -- but prefer C:/Users/you/a.png
 ''');

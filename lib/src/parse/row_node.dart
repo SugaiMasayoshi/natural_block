@@ -34,11 +34,17 @@ RowNode parseRowNode(SourceCursor cursor, HorizontalAlign align) {
 
 List<ContentNode> _parseCell(SourceCursor cursor) {
   final children = <ContentNode>[];
+  var atLineStart = true;
   while (!cursor.isEnd && cursor.peek != rowChar) {
     final before = cursor.position;
-    final content = parseContentNode(cursor, TextPlace.cell);
+    final content = parseContentNode(
+      cursor,
+      TextPlace.cell,
+      atLineStart: atLineStart,
+    );
     if (content != null) children.add(content);
-    if (cursor.peek == '\n') cursor.take();
+    atLineStart = cursor.peek == '\n';
+    if (atLineStart) cursor.take();
     assert(
       cursor.position > before,
       'cell content parse made no progress at ${cursor.position}',

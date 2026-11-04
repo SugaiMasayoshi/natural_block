@@ -29,9 +29,11 @@ import 'raw.dart';
     // At a newline.
     if (_endsText(cursor, place)) break;
     text.write(cursor.take());
+    final next = cursor.peekAt(1);
     final escapedMarker =
-        cursor.peek == escapeChar && opensBlock(cursor.peekAt(1));
-    if (place == TextPlace.block && escapedMarker) cursor.take();
+        cursor.peek == escapeChar &&
+        (next == tableChar || place == TextPlace.block && opensBlock(next));
+    if (escapedMarker) cursor.take();
     if (decorated) break;
   }
 
@@ -49,6 +51,7 @@ bool _clusterAt(SourceCursor cursor) =>
 /// it: the next line belongs to something else.
 bool _endsText(SourceCursor cursor, TextPlace place) {
   final next = cursor.peekAt(1);
+  if (next == tableChar) return true;
   if (place == TextPlace.block && opensBlock(next)) return true;
   if (next == rawChar) return rawBlockAt(cursor.source, cursor.position + 1);
   return place.boundaries.contains(next);

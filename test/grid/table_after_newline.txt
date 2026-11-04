@@ -2,19 +2,21 @@
 Col[Table[["a\nXX"]]]
     bb  !!  <<
 Col[Table[["a\nX"]]]
-    b^  b~  b`  bE  :^  :~  :`  :E  !^  !~  !`  !E  \\  \E  <^  <~  <`  <E
+    b^  b`  bE  :^  :`  :E  !^  !`  !E  \\  \E  <^  <`  <E
 Col[Table[["a\nXY"]]]
-    b:  b!  b\  b<  :b  :\  :<  !b  !:  !\  !<  \b  \!  \<  <b  <:  <!  <\
+    b~  b:  b!  b\  b<  :b  :~  :\  :<  !b  !~  !:  !\  !<  \b  \!  \<  <b  <~  <:  <!  <\
 Col[Table[["aYX"]]]
     bN  :N  !N  \N  <N
 Col[Table[["a"] / ["Y"]]]
-    ^b  ^:  ^!  ^\
+    ^b  ^~  ^:  ^!  ^\
 Col[Table[["a"] / []]]
     ^^  ^`  ^<
 Col[Table[["a"]]]
-    ^~  ^N  ^E  ~~  ~`  ~N  ~E
+    ^N  ^E  ~`  ~N  ~E
 Col[Table[["a"]], "Y"]
     ~b  ~^  ~:  ~!  ~\  ~<
+Col[Table[["a"]], "X"]
+    ~~
 Col[Table[["a\n" raw"Y"]]]
     `b  `^  `~  `:  `!  `\  `<
 Col[Table[["a\n"]]]

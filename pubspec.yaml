@@ -1,6 +1,6 @@
 name: natural_block
 description: A lightweight markup language parser for structured text layout with semantic decoration.
-version: 0.1.0
+version: 0.2.0
 homepage: https://github.com/SugaiMasayoshi/natural_block
 repository: https://github.com/SugaiMasayoshi/natural_block
 issue_tracker: https://github.com/SugaiMasayoshi/natural_block/issues

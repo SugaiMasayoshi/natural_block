@@ -1,20 +1,16 @@
 # prefix: ":!a"
 Col["aXX"]
-    bb  ^^  !!  <<
+    bb  ^^  ~~  !!  <<
 Col["aXY"]
-    b^  b:  b!  b\  b<  ^b  ^:  ^!  ^\  ^<  :b  :^  :\  :<  !b  !^  !:  !\  !<  \b  \^  \!  \<  <b  <^  <:  <!  <\
+    b^  b~  b:  b!  b\  b<  ^b  ^~  ^:  ^!  ^\  ^<  ~b  ~^  ~:  ~!  ~\  ~<  :b  :^  :~  :\  :<  !b  !^  !~  !:  !\  !<  \b  \^  \~  \!  \<  <b  <^  <~  <:  <!  <\
 Col["aX"]
-    b~  b`  bN  bE  ^~  ^`  ^N  ^E  :~  :`  :N  :E  !~  !`  !N  !E  \\  \N  \E  N`  NN  <~  <`  <N  <E
-Col["a", Table[["Y"]]]
-    ~b  ~:  ~!  ~\
-Col["a", Table[[]]]
-    ~^  ~`  ~<
-Col["a"]
-    ~~  ~N  ~E  ``  `N  `E  ::  :!  N~  N<  NE
+    b`  bN  bE  ^`  ^N  ^E  ~`  ~N  ~E  :`  :N  :E  !`  !N  !E  \\  \N  \E  N`  NN  <`  <N  <E
 Col["a" raw"Y"]
     `b  `^  `~  `:  `!  `\  `<
+Col["a"]
+    ``  `N  `E  ::  :!  N~  N<  NE
 Col["aY"]
-    \~  \`  \:
+    \`  \:
 Col["aX" "Y"]
     Nb  N:  N!  N\
 Col["a"], Row[Col[]]

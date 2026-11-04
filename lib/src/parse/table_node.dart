@@ -8,13 +8,22 @@ TableNode? parseTableNode(SourceCursor cursor) {
 
   final rows = <TableRowNode>[];
 
-  while (!cursor.isEnd && cursor.peek != tableChar) {
+  // Every row ends at the start of a line, so only the first can start
+  // elsewhere: on the line of the opening `~`.
+  var atLineStart = false;
+  while (!cursor.isEnd && !(atLineStart && cursor.peek == tableChar)) {
     final before = cursor.position;
     if (cursor.peek == '\n') {
       cursor.take();
     } else {
+      if (atLineStart &&
+          cursor.peek == escapeChar &&
+          cursor.peekAt(1) == tableChar) {
+        cursor.take();
+      }
       rows.add(parseTableRowNode(cursor));
     }
+    atLineStart = true;
     assert(
       cursor.position > before,
       'table row parse made no progress at ${cursor.position}',

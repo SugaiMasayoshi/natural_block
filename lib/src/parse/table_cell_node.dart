@@ -8,11 +8,15 @@ TableCellNode parseTableCellNode(SourceCursor cursor) {
   final align = parseAlign(cursor);
   final children = <FlatContentNode>[];
 
-  while (!cursor.isEnd && cursor.peek != rowChar && cursor.peek != tableChar) {
+  var atLineStart = false;
+  while (!cursor.isEnd &&
+      cursor.peek != rowChar &&
+      !(atLineStart && cursor.peek == tableChar)) {
     final before = cursor.position;
     final content = parseFlatContentNode(cursor, TextPlace.cell);
     if (content != null) children.add(content);
-    if (cursor.peek == '\n') cursor.take();
+    atLineStart = cursor.peek == '\n';
+    if (atLineStart) cursor.take();
     assert(
       cursor.position > before,
       'cell content parse made no progress at ${cursor.position}',

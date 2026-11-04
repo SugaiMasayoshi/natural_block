@@ -2,16 +2,18 @@
 Col[Table[["a"]; ["XX"]]]
     bb  !!
 Col[Table[["a"]; ["X"]]]
-    b^  b~  b`  bN  bE  :^  :~  :`  :N  :E  !^  !~  !`  !N  !E  \\  \N  \E  <<
+    b^  b`  bN  bE  :^  :`  :N  :E  !^  !`  !N  !E  \\  \N  \E  <<
 Col[Table[["a"]; ["XY"]]]
-    b:  b!  b\  b<  :b  :\  :<  !b  !:  !\  !<  \b  \!
+    b~  b:  b!  b\  b<  :b  :~  :\  :<  !b  !~  !:  !\  !<  \b  \!
 Col[Table[["a"]; ["Y"]]]
-    ^b  ^:  ^!  ^\  \^  \~  \`  \:  \<  Nb  N:  N!  N\  <b  <:  <!  <\
+    ^b  ^~  ^:  ^!  ^\  \^  \~  \`  \:  \<  Nb  N:  N!  N\  <b  <~  <:  <!  <\
 Col[Table[["a"]; []]]
-    ^^  ^~  ^`  ^N  ^<  ^E  ``  `N  `E  ::  :!  N^  N`  N<  <^  <~  <`  <N  <E
+    ^^  ^`  ^N  ^<  ^E  ``  `N  `E  ::  :!  N^  N`  N<  <^  <`  <N  <E
 Col[Table[["a"]], "Y"]
     ~b  ~^  ~:  ~!  ~\  ~<
+Col[Table[["a"]], "X"]
+    ~~
 Col[Table[["a"]]]
-    ~~  ~`  ~N  ~E  N~  NN  NE
+    ~`  ~N  ~E  N~  NN  NE
 Col[Table[["a"]; [raw"Y"]]]
     `b  `^  `~  `:  `!  `\  `<

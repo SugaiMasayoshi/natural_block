@@ -37,10 +37,11 @@ enum DecorationAction {
 /// cells only inside a row or a table; in a block it opens a row at the start
 /// of a line and is text everywhere else.
 enum TextPlace {
-  block({tableChar, rawChar}),
-  cell({rowChar, tableChar, rawChar});
+  block({rawChar}),
+  cell({rowChar, rawChar});
 
-  /// The characters that end a run, so the node they belong to can read them.
+  /// The characters that end a run wherever they are, so the node they
+  /// belong to can read them. A `~` ends one only at the start of a line.
   final Set<String> boundaries;
 
   const TextPlace(this.boundaries);
