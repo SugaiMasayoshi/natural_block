@@ -8,7 +8,8 @@ import 'row_node.dart';
 LayoutNode? parseLayoutNode(SourceCursor cursor) {
   final align = parseAlign(cursor);
   if (cursor.peek == rowChar) return parseRowNode(cursor, align);
-  if (cursor.peek == escapeChar && cursor.peekAt(1) == rowChar) cursor.take();
+  final escapedRow = cursor.peek == escapeChar && cursor.peekAt(1) == rowChar;
+  if (escapedRow) cursor.take();
 
   return parseColumnNode(cursor, align);
 }

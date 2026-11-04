@@ -3,7 +3,9 @@ import '../markup.dart';
 import '../source_cursor.dart';
 
 HorizontalAlign parseAlign(SourceCursor cursor) {
-  if (cursor.peek == escapeChar && alignMarkers.containsKey(cursor.peekAt(1))) {
+  final escapedMarker =
+      cursor.peek == escapeChar && alignMarkers.containsKey(cursor.peekAt(1));
+  if (escapedMarker) {
     cursor.take();
     return HorizontalAlign.unstated;
   }

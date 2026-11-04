@@ -33,7 +33,8 @@ class SourceCursor {
       final char = source[_position];
       final next = peekAt(1);
 
-      if (char == r'\' && (next == r'\' || markup.contains(next))) {
+      final escapes = char == r'\' && (next == r'\' || markup.contains(next));
+      if (escapes) {
         buffer.write(source.substring(literalStart, _position));
         literalStart = _position + 1;
         _position += 2;

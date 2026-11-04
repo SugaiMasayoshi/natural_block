@@ -13,9 +13,9 @@ ContentNode? parseContentNode(
 }) {
   if (atLineStart) {
     if (cursor.peek == tableChar) return parseTableNode(cursor);
-    if (cursor.peek == escapeChar && cursor.peekAt(1) == tableChar) {
-      cursor.take();
-    }
+    final escapedTable =
+        cursor.peek == escapeChar && cursor.peekAt(1) == tableChar;
+    if (escapedTable) cursor.take();
   }
   return parseFlatContentNode(cursor, place);
 }

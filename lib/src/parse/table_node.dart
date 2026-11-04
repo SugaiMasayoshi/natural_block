@@ -11,16 +11,18 @@ TableNode? parseTableNode(SourceCursor cursor) {
   // Every row ends at the start of a line, so only the first can start
   // elsewhere: on the line of the opening `~`.
   var atLineStart = false;
-  while (!cursor.isEnd && !(atLineStart && cursor.peek == tableChar)) {
+  bool closesTable() => atLineStart && cursor.peek == tableChar;
+
+  while (!cursor.isEnd && !closesTable()) {
     final before = cursor.position;
     if (cursor.peek == '\n') {
       cursor.take();
     } else {
-      if (atLineStart &&
+      final escapedClose =
+          atLineStart &&
           cursor.peek == escapeChar &&
-          cursor.peekAt(1) == tableChar) {
-        cursor.take();
-      }
+          cursor.peekAt(1) == tableChar;
+      if (escapedClose) cursor.take();
       rows.add(parseTableRowNode(cursor));
     }
     atLineStart = true;

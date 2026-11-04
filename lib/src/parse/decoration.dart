@@ -12,9 +12,9 @@ SpanDecoration parseCluster(SourceCursor cursor, SpanDecoration style) {
 
     if (char == escapeChar) {
       final next = cursor.peekAt(1);
-      if (DecorationAction.chars.contains(next) && next != clusterChar) {
-        cursor.take();
-      }
+      final escapedDecoration =
+          DecorationAction.chars.contains(next) && next != clusterChar;
+      if (escapedDecoration) cursor.take();
       return result;
     }
 

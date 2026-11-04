@@ -9,9 +9,9 @@ TableCellNode parseTableCellNode(SourceCursor cursor) {
   final children = <FlatContentNode>[];
 
   var atLineStart = false;
-  while (!cursor.isEnd &&
-      cursor.peek != rowChar &&
-      !(atLineStart && cursor.peek == tableChar)) {
+  bool closesTable() => atLineStart && cursor.peek == tableChar;
+
+  while (!cursor.isEnd && cursor.peek != rowChar && !closesTable()) {
     final before = cursor.position;
     final content = parseFlatContentNode(cursor, TextPlace.cell);
     if (content != null) children.add(content);
