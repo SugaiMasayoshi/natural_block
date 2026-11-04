@@ -2,13 +2,7 @@
 enum HorizontalAlign {
   /// No marker was written.
   unstated,
-
-  /// `<`
   start,
-
-  /// `=`
   center,
-
-  /// `>`
   end,
 }

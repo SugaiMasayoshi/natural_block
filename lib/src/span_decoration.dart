@@ -6,8 +6,6 @@ class SpanDecoration {
   final int sizeOffset;
 
   final Tone tone;
-
-  /// `:*`
   final bool isEmphasized;
 
   /// Between `:@` marks. The run's text is the payload; what it means is the
