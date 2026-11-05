@@ -17,6 +17,10 @@ To draw the tree in Flutter, use
 dart pub add natural_block
 ```
 
+natural_block files use the extension `.nblk`. For syntax highlighting in
+VS Code and Open VSX editors, see the
+[natural_block extension](https://github.com/SugaiMasayoshi/natural_block_editors).
+
 ## Usage
 
 ```dart

@@ -18,6 +18,9 @@
 dart pub add natural_block
 ```
 
+natural_block のファイルの拡張子は `.nblk` です。VS Code と Open VSX には、色付けの拡張
+[natural_block](https://github.com/SugaiMasayoshi/natural_block_editors) があります。
+
 ## 使い方
 
 ```dart
