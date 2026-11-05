@@ -89,7 +89,7 @@ next block.
 | `:!` `:%` | Negative or positive tone; toggles, and one replaces the other |
 | `:*` | Emphasis; toggles |
 | `:@` | Custom run; toggles. The app decides what the text means |
-| `::` | Resets tone, emphasis, and custom marking (not size) |
+| `::` | Resets tone, emphasis, and custom marking, but not size |
 
 Combine characters in one cluster: `:!*` is negative and emphasized. Two
 clusters back to back are different, because a following `:` is read as a
