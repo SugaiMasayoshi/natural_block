@@ -21,4 +21,16 @@ void main() {
       );
     });
   }
+
+  test('grid: markup', () {
+    expect(
+      markupText(),
+      File(markupPath).readAsStringSync().replaceAll('\r\n', '\n').trimRight(),
+      reason:
+          'the parser reads a character as markup differently than it used '
+          'to. If intended, read the diff, then regenerate with: '
+          'dart run tool/update_grid.dart, and copy test/grid/markup.txt to '
+          'natural_block_editors',
+    );
+  });
 }

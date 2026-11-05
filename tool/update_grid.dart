@@ -13,4 +13,6 @@ void main() {
     file.writeAsStringSync('${gridText(name)}\n');
     stdout.writeln('wrote ${file.path}');
   }
+  File(markupPath).writeAsStringSync('${markupText()}\n');
+  stdout.writeln('wrote $markupPath');
 }

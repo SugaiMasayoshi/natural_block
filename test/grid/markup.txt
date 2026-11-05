@@ -1,0 +1,276 @@
+# tokens: b ^ ~ ` : ! \ N <
+# context: document ""
+..
+    bb  b^  b~  b:  b!  b\  b<  :b  :^  :~  :\  :<  !b  !^  !~  !:  !!  !\  !<  \b  \!
+.m
+    b`  :`  !`
+._
+    bN  :N  !N  \N
+.
+    bE  :E  !E  \E
+m.
+    ^b  ^:  ^!  ^\  ~b  ~~  ~:  ~!  ~\  `b  `^  `~  `:  `!  `\  `<  <b  <:  <!  <\  <<
+mm
+    ^^  ^~  ^`  ^<  ~^  ~`  ~<  ``  ::  :!  \^  \~  \`  \:  \\  \<  <^  <~  <`
+m_
+    ^N  ~N  `N  <N
+m
+    ^E  ~E  `E  <E
+_.
+    Nb  N:  N!  N\
+_m
+    N^  N~  N`  N<
+__
+    NN
+_
+    NE
+# context: text "a"
+...
+    bb  b^  b~  b:  b!  b\  b<  ^b  ^^  ^~  ^:  ^!  ^\  ^<  ~b  ~^  ~~  ~:  ~!  ~\  ~<  :b  :^  :~  :\  :<  !b  !^  !~  !:  !!  !\  !<  \b  \^  \~  \!  \<  <b  <^  <~  <:  <!  <\  <<
+..m
+    b`  ^`  ~`  :`  !`  <`
+.._
+    bN  ^N  ~N  :N  !N  \N  <N
+..
+    bE  ^E  ~E  :E  !E  \E  <E
+.m.
+    `b  `^  `~  `:  `!  `\  `<
+.mm
+    ``  ::  :!  \`  \:  \\
+.m_
+    `N
+.m
+    `E
+._.
+    Nb  N:  N!  N\
+._m
+    N^  N~  N`  N<
+.__
+    NN
+._
+    NE
+# context: row_cell "^a^"
+m.m..
+    bb  b~  b:  b!  b\  b<  :b  :~  :\  :<  !b  !~  !:  !!  !\  !<  \b  \!
+m.m.m
+    b^  b`  :^  :`  !^  !`
+m.m._
+    bN  :N  !N  \N
+m.m.
+    bE  :E  !E  \E
+m.mm.
+    ^b  ^:  ^!  ^\  ~b  ~~  ~:  ~!  ~\  `b  `^  `~  `:  `!  `\  `<  <b  <:  <!  <\  <<
+m.mmm
+    ^^  ^~  ^`  ^<  ~^  ~`  ~<  ``  ::  :!  \^  \~  \`  \:  \\  \<  <^  <~  <`
+m.mm_
+    ^N  ~N  `N  <N
+m.mm
+    ^E  ~E  `E  <E
+m.m_.
+    Nb  N:  N!  N\
+m.m_m
+    N^  N~  N`  N<
+m.m__
+    NN
+m.m_
+    NE
+# context: table_cell "~"
+m..
+    bb  b~  b:  b!  b\  b<  ~b  ~~  ~:  ~!  ~\  ~<  :b  :~  :\  :<  !b  !~  !:  !!  !\  !<  \b  \~  \!
+m.m
+    b^  b`  ~^  ~`  :^  :`  !^  !`
+m._
+    bN  ~N  :N  !N  \N
+m.
+    bE  ~E  :E  !E  \E
+mm.
+    ^b  ^~  ^:  ^!  ^\  `b  `^  `~  `:  `!  `\  `<  <b  <~  <:  <!  <\  <<
+mmm
+    ^^  ^`  ^<  ``  ::  :!  \^  \`  \:  \\  \<  <^  <`
+mm_
+    ^N  `N  <N
+mm
+    ^E  `E  <E
+m_.
+    Nb  N:  N!  N\
+m_m
+    N^  N~  N`  N<
+m__
+    NN
+m_
+    NE
+# context: decorated ":!a"
+mm...
+    bb  b^  b~  b:  b!  b\  b<  ^b  ^^  ^~  ^:  ^!  ^\  ^<  ~b  ~^  ~~  ~:  ~!  ~\  ~<  :b  :^  :~  :\  :<  !b  !^  !~  !:  !!  !\  !<  \b  \^  \~  \!  \<  <b  <^  <~  <:  <!  <\  <<
+mm..m
+    b`  ^`  ~`  :`  !`  <`
+mm.._
+    bN  ^N  ~N  :N  !N  \N  <N
+mm..
+    bE  ^E  ~E  :E  !E  \E  <E
+mm.m.
+    `b  `^  `~  `:  `!  `\  `<
+mm.mm
+    ``  ::  :!  \`  \:  \\
+mm.m_
+    `N
+mm.m
+    `E
+mm._.
+    Nb  N:  N!  N\
+mm._m
+    N^  N~  N`  N<
+mm.__
+    NN
+mm._
+    NE
+# context: cluster ":!"
+mm..
+    bb  b^  b~  b:  b!  b\  b<  ^b  ^^  ^~  ^:  ^!  ^\  ^<  ~b  ~^  ~~  ~:  ~!  ~\  ~<  \b  \^  \~  \<  <b  <^  <~  <:  <!  <\  <<
+mm.m
+    b`  ^`  ~`  <`
+mm._
+    bN  ^N  ~N  \N  <N
+mm.
+    bE  ^E  ~E  \E  <E
+mmm.
+    `b  `^  `~  `:  `!  `\  `<  :b  :^  :~  :\  :<  !b  !^  !~  !\  !<
+mmmm
+    ``  :`  ::  :!  !`  !:  !!  \`  \:  \!  \\
+mmm_
+    `N  :N  !N
+mmm
+    `E  :E  !E
+mm_.
+    Nb  N:  N!  N\
+mm_m
+    N^  N~  N`  N<
+mm__
+    NN
+mm_
+    NE
+# context: cluster_escape ":!\\"
+mm...
+    bb  b^  b~  b:  b!  b\  b<  ^b  ^^  ^~  ^:  ^!  ^\  ^<  ~b  ~^  ~~  ~:  ~!  ~\  ~<  <b  <^  <~  <:  <!  <\  <<
+mm..m
+    b`  ^`  ~`  <`
+mm.._
+    bN  ^N  ~N  <N
+mm..
+    bE  ^E  ~E  <E
+mmmm.
+    `b  `^  `~  `:  `!  `\  `<  :b  :^  :~  ::  :!  :\  :<  !b  !^  !~  !:  !!  !\  !<  \b  \^  \~  \:  \!  \\  \<
+mmmmm
+    ``  :`  !`  \`
+mmmm_
+    `N  :N  !N  \N
+mmmm
+    `E  :E  !E  \E
+mm._.
+    Nb  N:  N!  N\
+mm._m
+    N^  N~  N`  N<
+mm.__
+    NN
+mm._
+    NE
+# context: table_row "~a^\n"
+m.m_..
+    bb  b~  b:  b!  b\  b<  :b  :~  :\  :<  !b  !~  !:  !!  !\  !<  \b  \!
+m.m_.m
+    b^  b`  :^  :`  !^  !`
+m.m_._
+    bN  :N  !N  \N
+m.m_.
+    bE  :E  !E  \E
+m.m_m.
+    ^b  ^~  ^:  ^!  ^\  ~b  ~^  ~~  ~:  ~!  ~\  ~<  `b  `^  `~  `:  `!  `\  `<  <b  <~  <:  <!  <\  <<
+m.m_mm
+    ^^  ^`  ^<  ~`  ``  ::  :!  \^  \~  \`  \:  \\  \<  <^  <`
+m.m_m_
+    ^N  ~N  `N  <N
+m.m_m
+    ^E  ~E  `E  <E
+m.m__.
+    Nb  N:  N!  N\
+m.m__m
+    N^  N~  N`  N<
+m.m___
+    NN
+m.m__
+    NE
+# context: after_newline "a\n"
+._..
+    bb  b^  b~  b:  b!  b\  b<  :b  :^  :~  :\  :<  !b  !^  !~  !:  !!  !\  !<  \b  \!
+._.m
+    b`  :`  !`
+._._
+    bN  :N  !N  \N
+._.
+    bE  :E  !E  \E
+._m.
+    ^b  ^:  ^!  ^\  ~b  ~~  ~:  ~!  ~\  `b  `^  `~  `:  `!  `\  `<  <b  <:  <!  <\  <<
+._mm
+    ^^  ^~  ^`  ^<  ~^  ~`  ~<  ``  ::  :!  \^  \~  \`  \:  \\  \<  <^  <~  <`
+._m_
+    ^N  ~N  `N  <N
+._m
+    ^E  ~E  `E  <E
+.__.
+    Nb  N:  N!  N\
+.__m
+    N^  N~  N`  N<
+.___
+    NN
+.__
+    NE
+# context: row_after_newline "^a\n"
+m._..
+    bb  b~  b:  b!  b\  b<  :b  :~  :\  :<  !b  !~  !:  !!  !\  !<  \b  \!  \<  <b  <~  <:  <!  <\  <<
+m._.m
+    b^  b`  :^  :`  !^  !`  <^  <`
+m._._
+    bN  :N  !N  \N  <N
+m._.
+    bE  :E  !E  \E  <E
+m._m.
+    ^b  ^:  ^!  ^\  ~b  ~~  ~:  ~!  ~\  `b  `^  `~  `:  `!  `\  `<
+m._mm
+    ^^  ^~  ^`  ^<  ~^  ~`  ~<  ``  ::  :!  \^  \~  \`  \:  \\
+m._m_
+    ^N  ~N  `N
+m._m
+    ^E  ~E  `E
+m.__.
+    Nb  N:  N!  N\  N<
+m.__m
+    N^  N~  N`
+m.___
+    NN
+m.__
+    NE
+# context: table_after_newline "~a\n"
+m._..
+    bb  b~  b:  b!  b\  b<  :b  :~  :\  :<  !b  !~  !:  !!  !\  !<  \b  \!  \<  <b  <~  <:  <!  <\  <<
+m._.m
+    b^  b`  :^  :`  !^  !`  <^  <`
+m._._
+    bN  :N  !N  \N  <N
+m._.
+    bE  :E  !E  \E  <E
+m._m.
+    ^b  ^~  ^:  ^!  ^\  ~b  ~^  ~~  ~:  ~!  ~\  ~<  `b  `^  `~  `:  `!  `\  `<
+m._mm
+    ^^  ^`  ^<  ~`  ``  ::  :!  \^  \~  \`  \:  \\
+m._m_
+    ^N  ~N  `N
+m._m
+    ^E  ~E  `E
+m.__.
+    Nb  N:  N!  N\  N<
+m.__m
+    N^  N~  N`
+m.___
+    NN
+m.__
+    NE

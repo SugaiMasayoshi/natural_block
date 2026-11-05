@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:natural_block/natural_block.dart';
 
 import 'show.dart';
@@ -105,4 +107,63 @@ Map<String, String> _shapes(String prefix) {
     }
   }
   return shapes;
+}
+
+/// Where the markup file lives, relative to the package root.
+const markupPath = 'test/grid/markup.txt';
+
+/// Which characters of every grid source the parser reads as markup, the
+/// answer an editor's highlighting is checked against.
+///
+/// Under each context, a line such as `m..m_` marks each character of a
+/// source: `m` markup, `.` text and `_` a line break, which is text but
+/// cannot be tried. The pairs that share a line are listed under it. The
+/// file names its tokens and prefixes, so it can be read on its own.
+String markupText() {
+  final out = StringBuffer('# tokens: ${gridTokens.keys.join(' ')}');
+  for (final MapEntry(key: name, value: prefix) in gridContexts.entries) {
+    out.write('\n# context: $name ${jsonEncode(prefix)}');
+    final groups = <String, List<String>>{};
+    for (final x in gridTokens.entries) {
+      for (final y in [...gridTokens.entries, _end]) {
+        final mask = _mask('$prefix${x.value}${y.value}');
+        groups.putIfAbsent(mask, () => []).add('${x.key}${y.key}');
+      }
+    }
+    for (final MapEntry(key: mask, value: pairs) in groups.entries) {
+      out.write('\n$mask\n    ${pairs.join('  ')}');
+    }
+  }
+  return out.toString();
+}
+
+/// A letter no grid source holds, written where a character is tried.
+const _probe = 'Z';
+
+/// A character is text when writing [_probe] in its place, then the
+/// character back over the probe in the tree, gives the same tree. Comparing
+/// whole trees, text included, keeps a coincidence such as `\`` and `b``
+/// both leaving one character of text from passing for plain text.
+String _mask(String source) {
+  final tree = NaturalBlockParser.parse(source).toString();
+  final marks = <String>[];
+  for (var i = 0; i < source.length; i++) {
+    if (source[i] == '\n') {
+      marks.add('_');
+      continue;
+    }
+    final tried = NaturalBlockParser.parse(
+      source.replaceRange(i, i + 1, _probe),
+    ).toString();
+    final isText = tried.replaceAll(_probe, source[i]) == tree;
+    marks.add(isText ? '.' : 'm');
+  }
+  // Trying the first backslash of `\\` leaves a backslash either way, so only
+  // the second is found; the pair is one escape.
+  for (var i = 1; i < source.length; i++) {
+    if (marks[i] == 'm' && source[i] == r'\' && source[i - 1] == r'\') {
+      marks[i - 1] = 'm';
+    }
+  }
+  return marks.join();
 }
