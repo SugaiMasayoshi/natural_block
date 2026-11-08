@@ -123,6 +123,10 @@ A custom run's text is its whole payload, such as a URL or an image path:
 NaturalBlockParser.parse(':@https://example.com:@ を参照');
 ```
 
+A payload that takes an argument is written `name(<argument>)`, as
+`image(<source>)` is. `payloadArgument(text, 'note')` gives what is inside
+`note(...)`, or null when the text is not one.
+
 ### Raw regions
 
 Text between `` ` `` fences is taken exactly as written: no separators,

@@ -5,6 +5,8 @@
   part in equality.
 - `descendants` returns every node below a node, in the order they were
   written.
+- `payloadArgument(payload, name)` reads a `name(<argument>)` payload, the
+  shape `image(<source>)` has, from a custom run's text.
 
 ## 0.2.0
 

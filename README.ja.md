@@ -118,6 +118,10 @@ for (final node in document.descendants) {
 NaturalBlockParser.parse(':@https://example.com:@ を参照');
 ```
 
+引数を取る中身は、`image(<source>)` と同じく `name(<引数>)` と書きます。
+`payloadArgument(text, 'note')` は `note(...)` の括弧の中を返し、そうでない文字
+なら null を返します。
+
 ### raw の区間
 
 `` ` `` のフェンスで囲んだ文字は、書いたとおりに読みます。区切り、装飾、
