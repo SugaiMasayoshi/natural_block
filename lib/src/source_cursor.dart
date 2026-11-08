@@ -1,14 +1,11 @@
+import 'normalize_source.dart';
+
 class SourceCursor {
   final String source;
 
   int _position = 0;
 
-  // The final newline is the one an editor adds when saving.
-  SourceCursor(String source)
-    : source = switch (source.replaceAll('\r\n', '\n').replaceAll('\r', '\n')) {
-        final s when s.endsWith('\n') => s.substring(0, s.length - 1),
-        final s => s,
-      };
+  SourceCursor(String source) : source = normalizeSource(source);
 
   int get position => _position;
 
