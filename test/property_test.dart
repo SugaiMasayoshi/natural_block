@@ -32,6 +32,30 @@ void main() {
     }
   });
 
+  // Siblings are made of leaves, so siblings that overlapped would have
+  // leaves that overlap.
+  test('each node lies within the one above it, and leaves do not overlap', () {
+    for (final source in sources) {
+      final document = NaturalBlockParser.parse(source);
+      final nodes = [document, ...document.descendants];
+
+      final nested = nodes.every(
+        (node) =>
+            node.start! <= node.end! &&
+            node.descendants.every(
+              (below) => node.start! <= below.start! && below.end! <= node.end!,
+            ),
+      );
+      expect(nested, isTrue, reason: source);
+
+      var previousEnd = 0;
+      for (final leaf in nodes.where((node) => node.descendants.isEmpty)) {
+        expect(leaf.start! >= previousEnd, isTrue, reason: source);
+        previousEnd = leaf.end!;
+      }
+    }
+  });
+
   test('a line break written as CRLF or CR parses as LF', () {
     for (final source in sources.where((s) => s.contains('\n'))) {
       final expected = NaturalBlockParser.parse(source);

@@ -5,6 +5,7 @@ import 'align.dart';
 import 'flat_content_node.dart';
 
 TableCellNode parseTableCellNode(SourceCursor cursor) {
+  final start = cursor.position;
   final align = parseAlign(cursor);
   final children = <FlatContentNode>[];
 
@@ -23,5 +24,10 @@ TableCellNode parseTableCellNode(SourceCursor cursor) {
     );
   }
 
-  return TableCellNode(children: children, align: align);
+  return TableCellNode(
+    children: children,
+    align: align,
+    start: start,
+    end: cursor.position,
+  );
 }

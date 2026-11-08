@@ -1,3 +1,11 @@
+## Unreleased
+
+- Every node records the span it was read from in `start` and `end`,
+  counted in the source as `normalizeSource` returns it. Positions take no
+  part in equality.
+- `descendants` returns every node below a node, in the order they were
+  written.
+
 ## 0.2.0
 
 - Breaking: `~` opens a table only at the start of a line or of a row's

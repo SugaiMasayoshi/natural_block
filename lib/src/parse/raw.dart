@@ -10,13 +10,17 @@ bool rawBlockAt(String source, int index) =>
     _scanRegion(source, index).content.contains('\n');
 
 RawNode? parseRawNode(SourceCursor cursor) {
+  final start = cursor.position;
   final text = _parseRegion(cursor);
-  return text.isEmpty ? null : RawNode(text: text);
+  if (text.isEmpty) return null;
+  return RawNode(text: text, start: start, end: cursor.position);
 }
 
 RawSpanNode? parseRawSpanNode(SourceCursor cursor) {
+  final start = cursor.position;
   final text = _parseRegion(cursor);
-  return text.isEmpty ? null : RawSpanNode(text: text);
+  if (text.isEmpty) return null;
+  return RawSpanNode(text: text, start: start, end: cursor.position);
 }
 
 String _parseRegion(SourceCursor cursor) {

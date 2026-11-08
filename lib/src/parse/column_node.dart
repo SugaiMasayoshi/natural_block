@@ -4,7 +4,12 @@ import '../nodes.dart';
 import '../source_cursor.dart';
 import 'content_node.dart';
 
-ColumnNode? parseColumnNode(SourceCursor cursor, HorizontalAlign align) {
+/// [start] is where the block began, before its alignment marker.
+ColumnNode? parseColumnNode(
+  SourceCursor cursor,
+  HorizontalAlign align,
+  int start,
+) {
   final children = <ContentNode>[];
 
   var atLineStart = true;
@@ -27,5 +32,11 @@ ColumnNode? parseColumnNode(SourceCursor cursor, HorizontalAlign align) {
     );
   }
 
-  return children.isEmpty ? null : ColumnNode(children: children, align: align);
+  if (children.isEmpty) return null;
+  return ColumnNode(
+    children: children,
+    align: align,
+    start: start,
+    end: cursor.position,
+  );
 }

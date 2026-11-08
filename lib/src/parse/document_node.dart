@@ -20,6 +20,10 @@ abstract final class NaturalBlockParser {
       );
     }
 
-    return DocumentNode(children: children);
+    return DocumentNode(
+      children: children,
+      start: 0,
+      end: cursor.source.length,
+    );
   }
 }

@@ -43,6 +43,22 @@ compares structurally:
 - A `TableNode` holds `TableRowNode`s of `TableCellNode`s, and `columns`
   holds each column's alignment.
 
+Every node records where it was read from in `start` and `end`. The offsets
+count in the source with its line breaks written as `\n` and its final line
+break dropped, which `normalizeSource` returns. Positions take no part in
+equality. `descendants` returns every node below a node, in the order they
+were written.
+
+```dart
+final source = ':@page:@';
+final document = NaturalBlockParser.parse(source);
+for (final node in document.descendants) {
+  if (node case TextSpanNode(:final start?, :final end?)) {
+    print(normalizeSource(source).substring(start, end));
+  }
+}
+```
+
 ## Syntax
 
 ### Layout

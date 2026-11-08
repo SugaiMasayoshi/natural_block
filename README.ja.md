@@ -43,6 +43,21 @@ void main() {
 - `TableNode` は `TableCellNode` からなる `TableRowNode` を持ち、`columns` に各列
   の寄せを持ちます。
 
+どのノードも、読み取った箇所を `start` と `end` に持ちます。位置は、改行を
+`\n` にそろえ、最後の改行を除いたソースで数えます。このソースは
+`normalizeSource` で得られます。比較に位置は含みません。`descendants` は、その
+ノードより下にあるすべてのノードを、書かれた順に返します。
+
+```dart
+final source = ':@page:@';
+final document = NaturalBlockParser.parse(source);
+for (final node in document.descendants) {
+  if (node case TextSpanNode(:final start?, :final end?)) {
+    print(normalizeSource(source).substring(start, end));
+  }
+}
+```
+
 ## 構文
 
 ### レイアウト

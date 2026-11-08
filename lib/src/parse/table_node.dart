@@ -4,6 +4,7 @@ import '../source_cursor.dart';
 import 'table_row_node.dart';
 
 TableNode? parseTableNode(SourceCursor cursor) {
+  final start = cursor.position;
   cursor.take();
 
   final rows = <TableRowNode>[];
@@ -34,5 +35,5 @@ TableNode? parseTableNode(SourceCursor cursor) {
   if (cursor.peek == tableChar) cursor.take();
 
   if (rows.isEmpty) return null;
-  return TableNode(children: rows);
+  return TableNode(children: rows, start: start, end: cursor.position);
 }

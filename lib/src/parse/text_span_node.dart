@@ -10,6 +10,7 @@ import 'raw.dart';
   SpanDecoration incoming,
   TextPlace place,
 ) {
+  final start = cursor.position;
   var style = incoming;
   if (_clusterAt(cursor)) style = parseCluster(cursor, style);
   final decorated = style != const SpanDecoration();
@@ -40,7 +41,13 @@ import 'raw.dart';
   final content = text.toString();
   final nextStyle = content.endsWith('\n') ? const SpanDecoration() : style;
   if (content.isEmpty) return (null, nextStyle);
-  return (TextSpanNode(text: content, decoration: style), nextStyle);
+  final span = TextSpanNode(
+    text: content,
+    decoration: style,
+    start: start,
+    end: cursor.position,
+  );
+  return (span, nextStyle);
 }
 
 bool _clusterAt(SourceCursor cursor) =>

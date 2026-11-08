@@ -7,6 +7,7 @@ import 'table_cell_node.dart';
 /// ends a line, or to the line that closes the table, or to the end of the
 /// document.
 TableRowNode parseTableRowNode(SourceCursor cursor) {
+  final start = cursor.position;
   if (cursor.peek == rowChar) cursor.take();
 
   final cells = <TableCellNode>[];
@@ -21,5 +22,5 @@ TableRowNode parseTableRowNode(SourceCursor cursor) {
       break;
     }
   }
-  return TableRowNode(children: cells);
+  return TableRowNode(children: cells, start: start, end: cursor.position);
 }

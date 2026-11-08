@@ -3,11 +3,43 @@ library;
 import 'package:collection/collection.dart';
 
 import 'horizontal_align.dart';
+import 'normalize_source.dart';
 import 'span_decoration.dart';
 
 /// A node of the tree the parser returns. Nodes are immutable and compare by
 /// value.
-sealed class NaturalBlockNode {}
+sealed class NaturalBlockNode {
+  /// Where in the source the parser read this node from, [start] inclusive
+  /// and [end] exclusive; null for a node built by hand. The offsets count
+  /// in the source with its line breaks written as `\n` and its final line
+  /// break dropped, as [normalizeSource] gives it, so each `\r\n` before a
+  /// node shifts it back by one from the source as saved. Lines and columns
+  /// are the same in both. Neither takes part in equality.
+  final int? start;
+  final int? end;
+
+  NaturalBlockNode({this.start, this.end});
+
+  /// Every node below this one, in the order they were written.
+  Iterable<NaturalBlockNode> get descendants sync* {
+    final children = switch (this) {
+      DocumentNode(:final children) => children,
+      ColumnNode(:final children) => children,
+      RowNode(:final children) => children,
+      TextNode(:final children) => children,
+      TableNode(:final children) => children,
+      TableRowNode(:final children) => children,
+      TableCellNode(:final children) => children,
+      RawNode() ||
+      TextSpanNode() ||
+      RawSpanNode() => const <NaturalBlockNode>[],
+    };
+    for (final child in children) {
+      yield child;
+      yield* child.descendants;
+    }
+  }
+}
 
 const _childrenEquality = ListEquality<NaturalBlockNode>();
 
@@ -15,7 +47,7 @@ const _childrenEquality = ListEquality<NaturalBlockNode>();
 final class DocumentNode extends NaturalBlockNode {
   final List<LayoutNode> children;
 
-  DocumentNode({List<LayoutNode> children = const []})
+  DocumentNode({List<LayoutNode> children = const [], super.start, super.end})
     : children = List.unmodifiable(children),
       assert(
         children.every((c) => c is! ColumnNode || c.children.isNotEmpty),
@@ -38,7 +70,9 @@ final class DocumentNode extends NaturalBlockNode {
 }
 
 /// What a document stacks: a block or a row.
-sealed class LayoutNode extends NaturalBlockNode {}
+sealed class LayoutNode extends NaturalBlockNode {
+  LayoutNode({super.start, super.end});
+}
 
 /// A block, or one cell of a [RowNode]: its content, top to bottom.
 final class ColumnNode extends LayoutNode {
@@ -51,6 +85,8 @@ final class ColumnNode extends LayoutNode {
   ColumnNode({
     List<ContentNode> children = const [],
     this.align = HorizontalAlign.unstated,
+    super.start,
+    super.end,
   }) : children = List.unmodifiable(children);
 
   @override
@@ -73,7 +109,7 @@ final class ColumnNode extends LayoutNode {
 final class RowNode extends LayoutNode {
   final List<ColumnNode> children;
 
-  RowNode({required List<ColumnNode> children})
+  RowNode({required List<ColumnNode> children, super.start, super.end})
     : children = List.unmodifiable(children),
       assert(children.isNotEmpty, 'a row has at least one cell');
 
@@ -93,16 +129,20 @@ final class RowNode extends LayoutNode {
 }
 
 /// What a block holds: text, a raw block or a table.
-sealed class ContentNode extends NaturalBlockNode {}
+sealed class ContentNode extends NaturalBlockNode {
+  ContentNode({super.start, super.end});
+}
 
 /// Content that holds no table: all a table's cell can hold.
-sealed class FlatContentNode extends ContentNode {}
+sealed class FlatContentNode extends ContentNode {
+  FlatContentNode({super.start, super.end});
+}
 
 /// Text over any number of lines, as runs. Its newlines are in the runs.
 final class TextNode extends FlatContentNode {
   final List<InlineNode> children;
 
-  TextNode({required List<InlineNode> children})
+  TextNode({required List<InlineNode> children, super.start, super.end})
     : children = List.unmodifiable(children),
       assert(children.isNotEmpty, 'a text node has at least one run');
 
@@ -126,7 +166,7 @@ final class TextNode extends FlatContentNode {
 final class RawNode extends FlatContentNode {
   final String text;
 
-  RawNode({required this.text})
+  RawNode({required this.text, super.start, super.end})
     : assert(text.isNotEmpty, 'an empty raw region contributes no node');
 
   @override
@@ -153,7 +193,7 @@ final class TableNode extends ContentNode {
   /// it.
   late final List<HorizontalAlign> columns = _columns(children);
 
-  TableNode({required List<TableRowNode> children})
+  TableNode({required List<TableRowNode> children, super.start, super.end})
     : children = List.unmodifiable(children),
       assert(children.isNotEmpty, 'a table has at least one row');
 
@@ -186,7 +226,7 @@ final class TableNode extends ContentNode {
 final class TableRowNode extends NaturalBlockNode {
   final List<TableCellNode> children;
 
-  TableRowNode({required List<TableCellNode> children})
+  TableRowNode({required List<TableCellNode> children, super.start, super.end})
     : children = List.unmodifiable(children),
       assert(children.isNotEmpty, 'a table row has at least one cell');
 
@@ -216,6 +256,8 @@ final class TableCellNode extends NaturalBlockNode {
   TableCellNode({
     List<FlatContentNode> children = const [],
     this.align = HorizontalAlign.unstated,
+    super.start,
+    super.end,
   }) : children = List.unmodifiable(children);
 
   @override
@@ -235,7 +277,9 @@ final class TableCellNode extends NaturalBlockNode {
 }
 
 /// A run inside a [TextNode].
-sealed class InlineNode extends NaturalBlockNode {}
+sealed class InlineNode extends NaturalBlockNode {
+  InlineNode({super.start, super.end});
+}
 
 /// A run of text with one decoration.
 final class TextSpanNode extends InlineNode {
@@ -243,8 +287,12 @@ final class TextSpanNode extends InlineNode {
 
   final SpanDecoration decoration;
 
-  TextSpanNode({required this.text, this.decoration = const SpanDecoration()})
-    : assert(text.isNotEmpty, 'an empty run contributes no node');
+  TextSpanNode({
+    required this.text,
+    this.decoration = const SpanDecoration(),
+    super.start,
+    super.end,
+  }) : assert(text.isNotEmpty, 'an empty run contributes no node');
 
   @override
   String toString() => 'TextSpanNode(text: $text, decoration: $decoration)';
@@ -266,7 +314,7 @@ final class TextSpanNode extends InlineNode {
 final class RawSpanNode extends InlineNode {
   final String text;
 
-  RawSpanNode({required this.text})
+  RawSpanNode({required this.text, super.start, super.end})
     : assert(text.isNotEmpty, 'an empty raw region contributes no node'),
       assert(!text.contains('\n'), 'a raw region with a line break is a block');
 

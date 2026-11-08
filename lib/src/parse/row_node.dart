@@ -7,16 +7,21 @@ import 'content_node.dart';
 
 /// A row from its opening `^` to the `^` that ends a line, or to the end of
 /// the document.
-RowNode parseRowNode(SourceCursor cursor, HorizontalAlign align) {
+///
+/// [start] is where the row began, before its alignment marker.
+RowNode parseRowNode(SourceCursor cursor, HorizontalAlign align, int start) {
   cursor.take();
 
   final cells = <ColumnNode>[];
   while (true) {
+    final cellStart = cursor.position;
     final cellAlign = parseAlign(cursor);
     cells.add(
       ColumnNode(
         children: _parseCell(cursor),
         align: cellAlign == HorizontalAlign.unstated ? align : cellAlign,
+        start: cellStart,
+        end: cursor.position,
       ),
     );
     if (cursor.isEnd) break;
@@ -29,7 +34,7 @@ RowNode parseRowNode(SourceCursor cursor, HorizontalAlign align) {
     }
   }
 
-  return RowNode(children: cells);
+  return RowNode(children: cells, start: start, end: cursor.position);
 }
 
 List<ContentNode> _parseCell(SourceCursor cursor) {
