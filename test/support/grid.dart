@@ -25,6 +25,7 @@ const Map<String, String> gridTokens = {
   r'\': r'\',
   'N': '\n',
   '<': '<',
+  '|': '|',
 };
 
 /// Where a pair is written, keyed by the name of its grid file.

@@ -22,15 +22,29 @@ void main() {
     '上\n下': r'Col["上\n下"]',
     '上\n\n下': r'Col["上\n\n下"]',
     '^左^右^': 'Row[Col["左"], Col["右"]]',
-    '^左^^右^': 'Row[Col["左"], Col[], Col["右"]]',
-    '^左^右^^': 'Row[Col["左"], Col["右"], Col[]]',
+    '^左^^右^': 'Row[Col["左"], Cell[], Col["右"]]',
+    '^左^右^^': 'Row[Col["左"], Col["右"], Cell[]]',
     '^左\n2行目^右^': r'Row[Col["左\n2行目"], Col["右"]]',
     '^左\n^右^': 'Row[Col["左"], Col["右"]]',
     '^a^b': 'Row[Col["a"], Col["b"]]',
     '^注意^': 'Row[Col["注意"]]',
-    '^^': 'Row[Col[]]',
+    '^^': 'Row[Cell[]]',
     '前の行\n^A^B^\n次の行': 'Col["前の行"], Row[Col["A"], Col["B"]], Col["次の行"]',
     'a ^ b | c': 'Col["a ^ b | c"]',
+  });
+
+  _table('spacers', {
+    '|\n=タイトル\n|': 'Space1, Col=["タイトル"], Space1',
+    '本文\n|\n>出典': 'Col["本文"], Space1, Col>["出典"]',
+    '||\n=タイトル\n|': 'Space2, Col=["タイトル"], Space1',
+    '|  \n本文': 'Space1, Col["本文"]',
+    '本文\n\n|\n\n出典': r'Col["本文\n"], Space1, Col["\n出典"]',
+    '^画像^|\n説明\n|^': 'Row[Col["画像"], Cell[Space1, Col["説明"], Space1]]',
+    '^=上\n|\n下^': 'Row[Cell[Col=["上"], Space1, Col=["下"]]]',
+    '|本文': 'Col["|本文"]',
+    '^画像^|説明|^': 'Row[Col["画像"], Col["|説明|"]]',
+    '~\n^|^\n~': 'Col[Table[["|"]]]',
+    r'\|': 'Col["|"]',
   });
 
   _table('alignment', {
@@ -109,7 +123,8 @@ void main() {
     'C++ 10-20 100% you@example.com': 'Col["C++ 10-20 100% you@example.com"]',
     '10~20人、月~金': 'Col["10~20人、月~金"]',
     '^:++大^右^': 'Row[Col["大"{+2}], Col["右"]]',
-    ':!赤\n黒': r'Col["赤\n"{negative} "黒"]',
+    ':!赤\n黒': r'Col["赤"{negative} "\n黒"]',
+    ':++見出し\n\n=本文': r'Col["見出し"{+2} "\n"], Col=["本文"]',
   });
 
   _table('escapes', {

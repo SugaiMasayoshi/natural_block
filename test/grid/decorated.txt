@@ -1,17 +1,21 @@
 # prefix: ":!a"
 Col["aXX"]
-    bb  ^^  ~~  !!  <<
+    bb  ^^  ~~  !!  <<  ||
 Col["aXY"]
-    b^  b~  b:  b!  b\  b<  ^b  ^~  ^:  ^!  ^\  ^<  ~b  ~^  ~:  ~!  ~\  ~<  :b  :^  :~  :\  :<  !b  !^  !~  !:  !\  !<  \b  \^  \~  \!  \<  <b  <^  <~  <:  <!  <\
+    b^  b~  b:  b!  b\  b<  b|  ^b  ^~  ^:  ^!  ^\  ^<  ^|  ~b  ~^  ~:  ~!  ~\  ~<  ~|  :b  :^  :~  :\  :<  :|  !b  !^  !~  !:  !\  !<  !|  \b  \^  \~  \!  \<  \|  <b  <^  <~  <:  <!  <\  <|  |b  |^  |~  |:  |!  |\  |<
 Col["aX"]
-    b`  bN  bE  ^`  ^N  ^E  ~`  ~N  ~E  :`  :N  :E  !`  !N  !E  \\  \N  \E  N`  NN  <`  <N  <E
+    b`  bN  bE  ^`  ^N  ^E  ~`  ~N  ~E  :`  :N  :E  !`  !N  !E  \\  \N  \E  <`  <N  <E  |`  |N  |E
 Col["a" raw"Y"]
-    `b  `^  `~  `:  `!  `\  `<
+    `b  `^  `~  `:  `!  `\  `<  `|
 Col["a"]
     ``  `N  `E  ::  :!  N~  N<  NE
 Col["aY"]
     \`  \:
-Col["aX" "Y"]
+Col["a" "XY"]
     Nb  N:  N!  N\
-Col["a"], Row[Col[]]
+Col["a"], Row[Cell[]]
     N^
+Col["a" "X"]
+    N`  NN
+Col["a"], Space1
+    N|

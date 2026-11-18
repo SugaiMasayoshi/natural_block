@@ -2,34 +2,42 @@
 Row[Col["a\nXX"]]
     bb  !!  <<
 Row[Col["a\nX"]]
-    b^  b`  bE  :^  :`  :E  !^  !`  !E  \\  \E  <^  <`  <E
+    b^  b`  bE  :^  :`  :E  !^  !`  !E  \\  \E  <^  <`  <E  |`
 Row[Col["a\nXY"]]
-    b~  b:  b!  b\  b<  :b  :~  :\  :<  !b  !~  !:  !\  !<  \b  \!  \<  <b  <~  <:  <!  <\
+    b~  b:  b!  b\  b<  b|  :b  :~  :\  :<  :|  !b  !~  !:  !\  !<  !|  \b  \!  \<  <b  <~  <:  <!  <\  <|  |b  |~  |:  |!  |\  |<
 Row[Col["aYX"]]
     bN  :N  !N  \N  <N
 Row[Col["a"], Col["Y"]]
     ^b  ^:  ^!  ^\
-Row[Col["a"], Col[]]
+Row[Col["a"], Cell[]]
     ^^  ^~  ^`  ^<
 Row[Col["a"]]
     ^N  ^E  ~N  ~E
+Row[Col["a"], Cell[Space1]]
+    ^|
 Row[Col["a", Table[["Y"]]]]
-    ~b  ~:  ~!  ~\
+    ~b  ~:  ~!  ~\  ~|
 Row[Col["a", Table[[]]]]
     ~^  ~`  ~<
 Row[Col["a", Table[["X"]]]]
     ~~
 Row[Col["a\n" raw"Y"]]
-    `b  `^  `~  `:  `!  `\  `<
+    `b  `^  `~  `:  `!  `\  `<  `|
 Row[Col["a\n"]]
     ``  `E  ::  :!
 Row[Col["aY"]]
     `N
 Row[Col["a\nY"]]
-    \^  \~  \`  \:
+    \^  \~  \`  \:  \|
 Row[Col["aXXY"]]
     Nb  N:  N!  N\  N<
 Row[Col["aX"]]
     N^  N~  NE
 Row[Col["aXX"]]
     N`  NN
+Row[Cell[Col["aX"], Space1]]
+    N|
+Row[Cell[Col["a"], Space1]]
+    |^  |N  |E
+Row[Cell[Col["a"], Space2]]
+    ||

@@ -26,11 +26,13 @@ sealed class NaturalBlockNode {
       DocumentNode(:final children) => children,
       ColumnNode(:final children) => children,
       RowNode(:final children) => children,
+      CellNode(:final children) => children,
       TextNode(:final children) => children,
       TableNode(:final children) => children,
       TableRowNode(:final children) => children,
       TableCellNode(:final children) => children,
       RawNode() ||
+      SpacerNode() ||
       TextSpanNode() ||
       RawSpanNode() => const <NaturalBlockNode>[],
     };
@@ -43,7 +45,7 @@ sealed class NaturalBlockNode {
 
 const _childrenEquality = ListEquality<NaturalBlockNode>();
 
-/// The whole document: its blocks and rows, top to bottom.
+/// The whole document: its blocks, rows and spacers, top to bottom.
 final class DocumentNode extends NaturalBlockNode {
   final List<LayoutNode> children;
 
@@ -69,17 +71,23 @@ final class DocumentNode extends NaturalBlockNode {
       Object.hash(runtimeType, _childrenEquality.hash(children));
 }
 
-/// What a document stacks: a block or a row.
+/// What a document stacks: a block, a row or a spacer.
 sealed class LayoutNode extends NaturalBlockNode {
   LayoutNode({super.start, super.end});
 }
 
-/// A block, or one cell of a [RowNode]: its content, top to bottom.
-final class ColumnNode extends LayoutNode {
+/// Layout that holds no row: all a row's cell can stack.
+sealed class FlatLayoutNode extends LayoutNode {
+  FlatLayoutNode({super.start, super.end});
+}
+
+/// A block: its content, top to bottom.
+final class ColumnNode extends FlatLayoutNode {
   final List<ContentNode> children;
 
-  /// The marker at the start of the block, or of the cell. A cell that wrote
-  /// none takes the one before its row's opening `^`.
+  /// The marker at the start of the block. A block in a row's cell takes the
+  /// cell's, and a cell that wrote none takes the one before its row's
+  /// opening `^`.
   final HorizontalAlign align;
 
   ColumnNode({
@@ -107,9 +115,9 @@ final class ColumnNode extends LayoutNode {
 
 /// A row written `^…^`: cells side by side, sharing the width equally.
 final class RowNode extends LayoutNode {
-  final List<ColumnNode> children;
+  final List<CellNode> children;
 
-  RowNode({required List<ColumnNode> children, super.start, super.end})
+  RowNode({required List<CellNode> children, super.start, super.end})
     : children = List.unmodifiable(children),
       assert(children.isNotEmpty, 'a row has at least one cell');
 
@@ -128,9 +136,59 @@ final class RowNode extends LayoutNode {
       Object.hash(runtimeType, _childrenEquality.hash(children));
 }
 
+/// One cell of a [RowNode]: its blocks and spacers, top to bottom. An empty
+/// cell holds none, and still takes its share of the row.
+final class CellNode extends NaturalBlockNode {
+  final List<FlatLayoutNode> children;
+
+  CellNode({List<FlatLayoutNode> children = const [], super.start, super.end})
+    : children = List.unmodifiable(children),
+      assert(
+        children.every((c) => c is! ColumnNode || c.children.isNotEmpty),
+        'an empty block contributes no node',
+      );
+
+  @override
+  String toString() => 'CellNode(children: $children)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is CellNode &&
+        _childrenEquality.equals(children, other.children);
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, _childrenEquality.hash(children));
+}
+
 /// What a block holds: text, a raw block or a table.
 sealed class ContentNode extends NaturalBlockNode {
   ContentNode({super.start, super.end});
+}
+
+/// A line of `|` alone: space that takes a share of the height left over
+/// where the height is set, and none where it is not. It stands between the
+/// blocks of a document, or of a row's cell, whose height is the row's.
+final class SpacerNode extends FlatLayoutNode {
+  /// The share it takes: how many `|` it was written with.
+  final int flex;
+
+  SpacerNode({this.flex = 1, super.start, super.end})
+    : assert(flex > 0, 'a spacer is at least one `|`');
+
+  @override
+  String toString() => 'SpacerNode(flex: $flex)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is SpacerNode && flex == other.flex;
+  }
+
+  @override
+  int get hashCode => Object.hash(runtimeType, flex);
 }
 
 /// Content that holds no table: all a table's cell can hold.

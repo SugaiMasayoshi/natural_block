@@ -14,7 +14,7 @@ TableCellNode parseTableCellNode(SourceCursor cursor) {
 
   while (!cursor.isEnd && cursor.peek != rowChar && !closesTable()) {
     final before = cursor.position;
-    final content = parseFlatContentNode(cursor, TextPlace.cell);
+    final content = parseFlatContentNode(cursor, TextPlace.tableCell);
     if (content != null) children.add(content);
     atLineStart = cursor.peek == '\n';
     if (atLineStart) cursor.take();

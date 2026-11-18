@@ -3,6 +3,7 @@ import '../nodes.dart';
 import '../source_cursor.dart';
 import '../span_decoration.dart';
 import 'decoration.dart';
+import 'line_start.dart';
 import 'raw.dart';
 
 (TextSpanNode?, SpanDecoration) parseTextSpanNode(
@@ -13,7 +14,6 @@ import 'raw.dart';
   final start = cursor.position;
   var style = incoming;
   if (_clusterAt(cursor)) style = parseCluster(cursor, style);
-  final decorated = style != const SpanDecoration();
   final markup = {...place.boundaries, clusterChar};
 
   final text = StringBuffer();
@@ -27,19 +27,23 @@ import 'raw.dart';
       continue;
     }
 
-    // At a newline.
+    // At a newline, which ends the decoration and is never decorated itself.
     if (_endsText(cursor, place)) break;
+    if (style != const SpanDecoration()) {
+      if (text.isNotEmpty) break;
+      style = const SpanDecoration();
+    }
     text.write(cursor.take());
     final next = cursor.peekAt(1);
     final escapedMarker =
         cursor.peek == escapeChar &&
-        (next == tableChar || place == TextPlace.block && opensBlock(next));
+        (next == tableChar ||
+            opensLine(cursor.source, cursor.position + 1, place));
     if (escapedMarker) cursor.take();
-    if (decorated) break;
   }
 
   final content = text.toString();
-  final nextStyle = content.endsWith('\n') ? const SpanDecoration() : style;
+  final nextStyle = cursor.peek == '\n' ? const SpanDecoration() : style;
   if (content.isEmpty) return (null, nextStyle);
   final span = TextSpanNode(
     text: content,
@@ -59,7 +63,7 @@ bool _clusterAt(SourceCursor cursor) =>
 bool _endsText(SourceCursor cursor, TextPlace place) {
   final next = cursor.peekAt(1);
   if (next == tableChar) return true;
-  if (place == TextPlace.block && opensBlock(next)) return true;
+  if (opensLine(cursor.source, cursor.position + 1, place)) return true;
   if (next == rawChar) return rawBlockAt(cursor.source, cursor.position + 1);
   return place.boundaries.contains(next);
 }

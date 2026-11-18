@@ -3,9 +3,9 @@
 [日本語](README.ja.md)
 
 A lightweight markup language for Dart that leaves ordinary prose alone.
-`natural_block` parses layout (blocks, rows, tables, alignment), semantic
-decoration (size, tone, emphasis), and raw code regions into a syntax tree
-you can map to widgets. `C++`, `100%`, `a > b`, `10~20`, and
+`natural_block` parses layout (blocks, rows, tables, alignment, spacers),
+semantic decoration (size, tone, emphasis), and raw code regions into a
+syntax tree you can map to widgets. `C++`, `100%`, `a > b`, `10~20`, and
 `you@example.com` need no escaping.
 
 To draw the tree in Flutter, use
@@ -35,8 +35,9 @@ void main() {
 `parse` never throws and returns a `DocumentNode`. The tree is immutable and
 compares structurally:
 
-- `DocumentNode` holds `ColumnNode`s and `RowNode`s; a `RowNode` holds
-  `ColumnNode` cells.
+- `DocumentNode` holds `ColumnNode`s, `RowNode`s and `SpacerNode`s; a
+  `RowNode` holds `CellNode`s as its cells, and a `CellNode` holds
+  `ColumnNode`s and `SpacerNode`s, as a document does.
 - A `ColumnNode` holds content: `TextNode`, `RawNode`, and `TableNode`.
 - A `TextNode` holds `TextSpanNode`s (text with a `SpanDecoration`) and
   `RawSpanNode`s.
@@ -68,10 +69,11 @@ for (final node in document.descendants) {
 | `<` `=` `>` | At the start of a line: a new block, aligned start, center, end | `=Title` |
 | `^` | At the start of a line: a row, cells split by `^`, closed by a `^` | `^Left^Right^` |
 | `~` | At the start of a line or a cell: a table of `^...^` rows, closed by a `~` at the start of a line | below |
+| `\|` | On a line of its own: a spacer, sharing out the height left over; `\|\|` takes twice as much | below |
 
-- A block runs until a line that starts with `<`, `=`, `>` or `^`. Every
-  other line stays in it, blank lines included. A newline is part of the
-  text, and spaces are never trimmed.
+- A block runs until a line that starts with `<`, `=`, `>` or `^`, or a
+  line of `|` alone. Every other line stays in it, blank lines included. A
+  newline is part of the text, and spaces are never trimmed.
 - A row ends at a `^` that ends a line, or at the end of the document. A cell
   can hold several lines (`^Left\nsecond line^Right^`). An empty cell keeps
   its place, so `^Left^^Right^` pushes `Right` to the far edge.
@@ -94,6 +96,27 @@ for (final node in document.descendants) {
   ~
   ```
 
+- Spaces after a spacer are ignored. Where the height is not set, a spacer
+  takes none.
+
+  ```
+  |
+  =Title
+  |
+  ```
+
+- A row's cell is as tall as its row, so a spacer at the head of a cell or
+  of a line in it places the cell's content. A `|^` at the start of a line
+  is a spacer that then closes the cell.
+
+  ```
+  ^Image^|
+  Caption
+  |^
+  ```
+
+- A `|` in a table's cell, or with text after it, is text.
+
 - The last line break of the source, the one an editor adds when saving, is
   ignored.
 
@@ -101,7 +124,7 @@ for (final node in document.descendants) {
 
 A `:` followed by decoration characters forms a cluster. Each character
 applies in order, and the decoration lasts until the end of the line or the
-next block.
+next block. The line break that ends a line is never decorated.
 
 | Cluster | Meaning |
 |---|---|
@@ -155,7 +178,8 @@ A backslash escapes only what would otherwise be markup at that point:
 - Inside a row or a table: `\^`.
 - Inside a cluster: any decoration character. The escape also ends the
   cluster, so `:---\%%%` is `%%%` at -3.
-- At the start of a line or a cell: `\<`, `\=`, `\>`, `\^`, `\~`.
+- At the start of a line or a cell: `\<`, `\=`, `\>`, `\^`, `\~`, and a `\|`
+  that would be a spacer.
 
 Everywhere else a backslash is kept, so `C:\Users\you` needs no escaping. A
 doubled backslash still collapses to one: write `\\\\server` for

@@ -2,10 +2,12 @@ import 'package:natural_block/natural_block.dart';
 
 /// A one-line rendering of [document], for tables of expected results.
 ///
-/// `Col[...]` and `Row[...]` are the layouts, `Table[cell / cell; ...]` a
-/// table, `Raw"..."` a raw block and `raw"..."` a raw run. A text node is its
-/// runs separated by spaces. Alignment is written after the node it belongs
-/// to (`Col<`, `Col=`, `Col>`), and decoration after its run (`"a"{+2 neg}`).
+/// `Col[...]` and `Row[...]` are the layouts, `Space1` a spacer of one `|`,
+/// `Table[cell / cell; ...]` a table, `Raw"..."` a raw block and `raw"..."` a
+/// raw run. A row's cell of one block is that block, and any other cell is
+/// `Cell[...]`. A text node is its runs separated by spaces. Alignment is
+/// written after the node it belongs to (`Col<`, `Col=`, `Col>`), and
+/// decoration after its run (`"a"{+2 neg}`).
 ///
 /// [shapeOnly] leaves out alignment and decoration, keeping only the node
 /// kinds, where runs split, and the text. [rewriteText] rewrites the text of
@@ -28,8 +30,16 @@ class _Show {
 
   String layout(LayoutNode node) => switch (node) {
     ColumnNode() => column(node),
-    RowNode(:final children) => 'Row[${children.map(column).join(', ')}]',
+    RowNode(:final children) => 'Row[${children.map(cell).join(', ')}]',
+    SpacerNode() => spacer(node),
   };
+
+  String cell(CellNode node) => switch (node.children) {
+    [final ColumnNode block] => column(block),
+    final children => 'Cell[${children.map(layout).join(', ')}]',
+  };
+
+  String spacer(SpacerNode node) => 'Space${node.flex}';
 
   String column(ColumnNode node) =>
       'Col${align(node.align)}[${node.children.map(content).join(', ')}]';
@@ -38,10 +48,10 @@ class _Show {
     TextNode(:final children) => children.map(inline).join(' '),
     RawNode(:final text) => 'Raw${quote(text)}',
     TableNode(:final children) =>
-      'Table[${children.map((row) => row.children.map(cell).join(' / ')).join('; ')}]',
+      'Table[${children.map((row) => row.children.map(tableCell).join(' / ')).join('; ')}]',
   };
 
-  String cell(TableCellNode node) =>
+  String tableCell(TableCellNode node) =>
       '${align(node.align)}[${node.children.map(content).join(', ')}]';
 
   String inline(InlineNode node) => switch (node) {

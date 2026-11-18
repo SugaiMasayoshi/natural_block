@@ -30,19 +30,56 @@ void main() {
     'RowNode': (
       () => RowNode(
         children: [
-          ColumnNode(children: [text()]),
-          ColumnNode(children: [text()]),
+          CellNode(
+            children: [
+              ColumnNode(children: [text()]),
+            ],
+          ),
+          CellNode(
+            children: [
+              ColumnNode(children: [text()]),
+            ],
+          ),
         ],
       ),
       [
         RowNode(
           children: [
-            ColumnNode(children: [text()]),
-            ColumnNode(children: [text('b')]),
+            CellNode(
+              children: [
+                ColumnNode(children: [text()]),
+              ],
+            ),
+            CellNode(
+              children: [
+                ColumnNode(children: [text('b')]),
+              ],
+            ),
           ],
         ),
       ],
     ),
+    'CellNode': (
+      () => CellNode(
+        children: [
+          ColumnNode(children: [text()]),
+        ],
+      ),
+      [
+        CellNode(
+          children: [
+            ColumnNode(children: [text('b')]),
+          ],
+        ),
+        CellNode(
+          children: [
+            SpacerNode(),
+            ColumnNode(children: [text()]),
+          ],
+        ),
+      ],
+    ),
+    'SpacerNode': (() => SpacerNode(), [SpacerNode(flex: 2)]),
     'TableNode': (
       () => TableNode(
         children: [
@@ -147,7 +184,7 @@ void main() {
     final column = ColumnNode(children: [text()]);
 
     expect(
-      RowNode(children: [column, column]),
+      CellNode(children: [column, column]),
       isNot(DocumentNode(children: [column, column])),
     );
     expect(RawSpanNode(text: 'a'), isNot(RawNode(text: 'a')));

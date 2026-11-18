@@ -3,6 +3,7 @@ library;
 import 'horizontal_align.dart';
 
 const String rowChar = '^';
+const String spacerChar = '|';
 const String tableChar = '~';
 const String rawChar = '`';
 const String clusterChar = ':';
@@ -35,10 +36,12 @@ enum DecorationAction {
 
 /// Where a run of text is read, which decides what ends it. `^` separates
 /// cells only inside a row or a table; in a block it opens a row at the start
-/// of a line and is text everywhere else.
+/// of a line and is text everywhere else. A row's cell and a table's cell end
+/// runs alike; only a row's cell holds a spacer.
 enum TextPlace {
   block({rawChar}),
-  cell({rowChar, rawChar});
+  rowCell({rowChar, rawChar}),
+  tableCell({rowChar, rawChar});
 
   /// The characters that end a run wherever they are, so the node they
   /// belong to can read them. A `~` ends one only at the start of a line.
@@ -46,7 +49,3 @@ enum TextPlace {
 
   const TextPlace(this.boundaries);
 }
-
-/// Whether a line starting with [first] opens a block of its own.
-bool opensBlock(String first) =>
-    alignMarkers.containsKey(first) || first == rowChar;

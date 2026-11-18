@@ -1,5 +1,15 @@
 ## Unreleased
 
+- Breaking: a line of `|` alone is a `SpacerNode`, space that shares out the
+  height left over where the height is set; `||` takes twice the share. It
+  stands between a document's blocks, and in a row's cell, where `|^` at
+  the start of a line counts too. `\|` writes the line as text.
+- Breaking: a row's cells are `CellNode`s, which stack blocks and spacers
+  as a document does, where they were `ColumnNode`s. A spacer cuts a cell
+  into blocks, each with the cell's alignment; an empty cell holds none.
+- Breaking: the line break that ends a decorated line belongs to the
+  undecorated run after it, where it was the last character of the
+  decorated one. `:!red\nblack` is `"red"` (negative) then `"\nblack"`.
 - Every node records the span it was read from in `start` and `end`,
   counted in the source as `normalizeSource` returns it. Positions take no
   part in equality.

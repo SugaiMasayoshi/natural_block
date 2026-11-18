@@ -79,7 +79,8 @@ void main() {
         final char = source[i];
         final live =
             {'`', ':', r'\'}.contains(char) ||
-            (i == 0 && (char == '<' || char == '^' || char == '~'));
+            (i == 0 && (char == '<' || char == '^' || char == '~')) ||
+            (i == 0 && source.split('').every((c) => c == '|'));
         escaped.write(live ? '\\$char' : char);
       }
 

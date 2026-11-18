@@ -30,15 +30,30 @@ void main() {
     expect(spans('<^a^>b^\nc'), [
       'DocumentNode <^a^>b^\nc',
       'RowNode <^a^>b^\n',
+      'CellNode a',
       'ColumnNode a',
       'TextNode a',
       'TextSpanNode a',
+      'CellNode >b',
       'ColumnNode >b',
       'TextNode b',
       'TextSpanNode b',
       'ColumnNode c',
       'TextNode c',
       'TextSpanNode c',
+    ]);
+  });
+
+  test('a spacer cuts a cell into blocks', () {
+    expect(spans('^|\nb\n|^'), [
+      'DocumentNode ^|\nb\n|^',
+      'RowNode ^|\nb\n|^',
+      'CellNode |\nb\n|',
+      'SpacerNode |',
+      'ColumnNode b\n',
+      'TextNode b',
+      'TextSpanNode b',
+      'SpacerNode |',
     ]);
   });
 

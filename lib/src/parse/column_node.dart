@@ -3,6 +3,7 @@ import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
 import 'content_node.dart';
+import 'line_start.dart';
 
 /// [start] is where the block began, before its alignment marker.
 ColumnNode? parseColumnNode(
@@ -24,7 +25,7 @@ ColumnNode? parseColumnNode(
     atLineStart = cursor.peek == '\n';
     if (atLineStart) {
       cursor.take();
-      if (opensBlock(cursor.peek)) break;
+      if (opensLine(cursor.source, cursor.position, TextPlace.block)) break;
     }
     assert(
       cursor.position > before,
