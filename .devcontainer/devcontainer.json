@@ -1,0 +1,29 @@
+{
+  "name": "natural_block",
+  "image": "dart:stable",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false,
+      "username": "vscode",
+      "userUid": "1000",
+      "userGid": "1000"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Dart-Code.dart-code"
+      ],
+      "settings": {
+        "dart.analysisServerFolding": true,
+        "[dart]": {
+          "editor.formatOnSave": true,
+          "editor.rulers": [80]
+        }
+      }
+    }
+  },
+  "postCreateCommand": "dart pub get",
+  "remoteUser": "vscode"
+}

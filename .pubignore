@@ -2,4 +2,5 @@
 tool/
 .dart_tool/
 .idea/
+.devcontainer/
 *.iml
