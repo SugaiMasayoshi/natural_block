@@ -1,4 +1,4 @@
-## Unreleased
+## 0.3.0
 
 - Breaking: a line of `|` alone is a `SpacerNode`, space that shares out the
   height left over where the height is set; `||` takes twice the share. It
@@ -10,6 +10,8 @@
 - Breaking: the line break that ends a decorated line belongs to the
   undecorated run after it, where it was the last character of the
   decorated one. `:!red\nblack` is `"red"` (negative) then `"\nblack"`.
+- `normalizeSource` returns the source as the parser reads it, with `\r\n`
+  as `\n` and a final line break dropped.
 - Every node records the span it was read from in `start` and `end`,
   counted in the source as `normalizeSource` returns it. Positions take no
   part in equality.
