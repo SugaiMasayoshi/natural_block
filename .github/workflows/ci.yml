@@ -16,3 +16,15 @@ jobs:
       - run: dart analyze --fatal-infos
       - run: dart test
       - run: dart pub publish --dry-run
+
+  # pub.dev scores with the newest stable SDKs, which can deprecate what
+  # passed when the code was written.
+  score:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: dart pub global activate pana
+      - run: dart pub global run pana --no-warning --exit-code-threshold 0 .
