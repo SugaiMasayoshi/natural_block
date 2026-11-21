@@ -102,6 +102,7 @@ void main() {
     'x `a``b` y': 'Col["x " raw"a``b" " y"]',
     'a `\nb\n` c': 'Col["a ", Raw"b", " c"]',
     ':!a`x\ny`b': r'Col["a"{negative}, Raw"x\ny", "b"]',
+    ':++*a `x` b': 'Col["a "{+2 *} raw"x"{+2 *} " b"{+2 *}]',
     'a `b | c': 'Col["a " raw"b | c"]',
     r'a \` b': 'Col["a ` b"]',
   });

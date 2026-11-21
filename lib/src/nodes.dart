@@ -334,23 +334,24 @@ final class TableCellNode extends NaturalBlockNode {
       Object.hash(runtimeType, align, _childrenEquality.hash(children));
 }
 
-/// A run inside a [TextNode].
+/// A run inside a [TextNode]: its text, and the decoration in effect on it.
 sealed class InlineNode extends NaturalBlockNode {
-  InlineNode({super.start, super.end});
-}
-
-/// A run of text with one decoration.
-final class TextSpanNode extends InlineNode {
   final String text;
 
   final SpanDecoration decoration;
 
-  TextSpanNode({
+  InlineNode({
     required this.text,
     this.decoration = const SpanDecoration(),
     super.start,
     super.end,
-  }) : assert(text.isNotEmpty, 'an empty run contributes no node');
+  });
+}
+
+/// A run of text with one decoration.
+final class TextSpanNode extends InlineNode {
+  TextSpanNode({required super.text, super.decoration, super.start, super.end})
+    : assert(text.isNotEmpty, 'an empty run contributes no node');
 
   @override
   String toString() => 'TextSpanNode(text: $text, decoration: $decoration)';
@@ -368,23 +369,24 @@ final class TextSpanNode extends InlineNode {
 }
 
 /// A raw region without a line break: text taken exactly as written, inside
-/// a line.
+/// a line. Its [decoration] is the one in effect around it, which its text
+/// does not change.
 final class RawSpanNode extends InlineNode {
-  final String text;
-
-  RawSpanNode({required this.text, super.start, super.end})
+  RawSpanNode({required super.text, super.decoration, super.start, super.end})
     : assert(text.isNotEmpty, 'an empty raw region contributes no node'),
       assert(!text.contains('\n'), 'a raw region with a line break is a block');
 
   @override
-  String toString() => 'RawSpanNode(text: $text)';
+  String toString() => 'RawSpanNode(text: $text, decoration: $decoration)';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is RawSpanNode && text == other.text;
+    return other is RawSpanNode &&
+        text == other.text &&
+        decoration == other.decoration;
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, text);
+  int get hashCode => Object.hash(runtimeType, text, decoration);
 }

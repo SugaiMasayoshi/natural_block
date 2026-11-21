@@ -1,3 +1,11 @@
+## Unreleased
+
+- Breaking: a `RawSpanNode` carries the `decoration` in effect around it,
+  which its text does not change, and is equal only to one with the same
+  decoration. In ``:++a `x` b``, `x` is two steps larger, as `a` and `b` are.
+  Every `InlineNode` has `text` and `decoration`, so a renderer reads them
+  without telling the two kinds apart.
+
 ## 0.3.0
 
 - Breaking: a line of `|` alone is a `SpacerNode`, space that shares out the

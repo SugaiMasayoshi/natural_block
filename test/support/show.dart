@@ -7,7 +7,7 @@ import 'package:natural_block/natural_block.dart';
 /// raw run. A row's cell of one block is that block, and any other cell is
 /// `Cell[...]`. A text node is its runs separated by spaces. Alignment is
 /// written after the node it belongs to (`Col<`, `Col=`, `Col>`), and
-/// decoration after its run (`"a"{+2 neg}`).
+/// decoration after its run (`"a"{+2 neg}`, `raw"a"{+2}`).
 ///
 /// [shapeOnly] leaves out alignment and decoration, keeping only the node
 /// kinds, where runs split, and the text. [rewriteText] rewrites the text of
@@ -57,7 +57,8 @@ class _Show {
   String inline(InlineNode node) => switch (node) {
     TextSpanNode(:final text, :final decoration) =>
       '${quote(text)}${decorate(decoration)}',
-    RawSpanNode(:final text) => 'raw${quote(text)}',
+    RawSpanNode(:final text, :final decoration) =>
+      'raw${quote(text)}${decorate(decoration)}',
   };
 
   String quote(String s) {

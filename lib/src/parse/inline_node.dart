@@ -13,7 +13,7 @@ import 'text_span_node.dart';
   if (cursor.peek == rawChar) {
     // A block ends the text it interrupts; the column reads it next.
     if (rawBlockAt(cursor.source, cursor.position)) return (null, style);
-    return (parseRawSpanNode(cursor), style);
+    return (parseRawSpanNode(cursor, style), style);
   }
   return parseTextSpanNode(cursor, style, place);
 }

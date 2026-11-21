@@ -1,6 +1,7 @@
 import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
+import '../span_decoration.dart';
 
 /// Whether the region opening at [index] is a block: one that holds a line
 /// break.
@@ -16,11 +17,16 @@ RawNode? parseRawNode(SourceCursor cursor) {
   return RawNode(text: text, start: start, end: cursor.position);
 }
 
-RawSpanNode? parseRawSpanNode(SourceCursor cursor) {
+RawSpanNode? parseRawSpanNode(SourceCursor cursor, SpanDecoration style) {
   final start = cursor.position;
   final text = _parseRegion(cursor);
   if (text.isEmpty) return null;
-  return RawSpanNode(text: text, start: start, end: cursor.position);
+  return RawSpanNode(
+    text: text,
+    decoration: style,
+    start: start,
+    end: cursor.position,
+  );
 }
 
 String _parseRegion(SourceCursor cursor) {
