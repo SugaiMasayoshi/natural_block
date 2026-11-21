@@ -348,10 +348,10 @@ sealed class InlineNode extends NaturalBlockNode {
   });
 }
 
-/// A run of text with one decoration.
+/// A run of text with one decoration. Its text is empty only as the one run
+/// of a blank line with no text beside it.
 final class TextSpanNode extends InlineNode {
-  TextSpanNode({required super.text, super.decoration, super.start, super.end})
-    : assert(text.isNotEmpty, 'an empty run contributes no node');
+  TextSpanNode({required super.text, super.decoration, super.start, super.end});
 
   @override
   String toString() => 'TextSpanNode(text: $text, decoration: $decoration)';

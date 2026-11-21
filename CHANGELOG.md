@@ -1,3 +1,11 @@
+## Unreleased
+
+- Breaking: a blank line after a table, a row or a spacer, with no text
+  beside it to hold its line break, is a `TextNode` of one empty run, where
+  it was dropped. `^A^\n\n=B` is `Row, Col[""], Col=["B"]`, one empty line
+  between, as `A\n\n=B` has. A `TextSpanNode`'s text is empty only there.
+  Blank lines between a table's rows are still nothing.
+
 ## 0.4.0
 
 - Breaking: a `RawSpanNode` carries the `decoration` in effect around it,

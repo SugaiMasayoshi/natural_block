@@ -33,6 +33,15 @@ void main() {
     'a ^ b | c': 'Col["a ^ b | c"]',
   });
 
+  _table('blank lines', {
+    '上\n\n=下': r'Col["上\n"], Col=["下"]',
+    '~\n^A^\n~\n\n=下': 'Col[Table[["A"]], ""], Col=["下"]',
+    '^A^\n\n=下': 'Row[Col["A"]], Col[""], Col=["下"]',
+    '^A^\n\n^B^': 'Row[Col["A"]], Col[""], Row[Col["B"]]',
+    '^A^\n\n\n=下': r'Row[Col["A"]], Col["\n"], Col=["下"]',
+    '^~\n^A^\n~\n\n|^': 'Row[Cell[Col[Table[["A"]], ""], Space1]]',
+  });
+
   _table('spacers', {
     '|\n=タイトル\n|': 'Space1, Col=["タイトル"], Space1',
     '本文\n|\n>出典': 'Col["本文"], Space1, Col>["出典"]',

@@ -74,6 +74,10 @@ for (final node in document.descendants) {
 - A block runs until a line that starts with `<`, `=`, `>` or `^`, or a
   line of `|` alone. Every other line stays in it, blank lines included. A
   newline is part of the text, and spaces are never trimmed.
+- A blank line is an empty line. Next to text it is a line break in that
+  text (`上\n\n=下` is `"上\n"`); after a table, a row or a spacer, with no
+  text to hold it, it is an empty text of its own (`^A^\n\n=下` puts `""`
+  between the row and `下`).
 - A row ends at a `^` that ends a line, or at the end of the document. A cell
   can hold several lines (`^Left\nsecond line^Right^`). An empty cell keeps
   its place, so `^Left^^Right^` pushes `Right` to the far edge.
@@ -84,8 +88,9 @@ for (final node in document.descendants) {
   closes at a `~` at the start of a line inside it, or at the end of the
   document. Its rows are read like rows outside it, so a cell can hold
   several lines, and a row also ends at the line that closes the table. A
-  row may leave out its opening `^`, but not its closing one. A blank line between rows is nothing; write an empty row as
-  `^^`. A column takes its alignment from the first row that has it; a
+  row may leave out its opening `^`, but not its closing one. A table holds
+  only rows, so a blank line between them only spaces out the source; write
+  an empty row as `^^`. A column takes its alignment from the first row that has it; a
   marker on a cell overrides just that cell:
 
   ```
