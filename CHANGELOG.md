@@ -1,4 +1,4 @@
-## Unreleased
+## 0.4.0
 
 - Breaking: a `RawSpanNode` carries the `decoration` in effect around it,
   which its text does not change, and is equal only to one with the same
