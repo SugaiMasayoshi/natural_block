@@ -28,6 +28,7 @@ sealed class NaturalBlockNode {
       RowNode(:final children) => children,
       CellNode(:final children) => children,
       TextNode(:final children) => children,
+      LineNode(:final children) => children,
       TableNode(:final children) => children,
       TableRowNode(:final children) => children,
       TableCellNode(:final children) => children,
@@ -196,13 +197,13 @@ sealed class FlatContentNode extends ContentNode {
   FlatContentNode({super.start, super.end});
 }
 
-/// Text over any number of lines, as runs. Its newlines are in the runs.
+/// Text over one or more lines.
 final class TextNode extends FlatContentNode {
-  final List<InlineNode> children;
+  final List<LineNode> children;
 
-  TextNode({required List<InlineNode> children, super.start, super.end})
+  TextNode({required List<LineNode> children, super.start, super.end})
     : children = List.unmodifiable(children),
-      assert(children.isNotEmpty, 'a text node has at least one run');
+      assert(children.isNotEmpty, 'a text node has at least one line');
 
   @override
   String toString() => 'TextNode(children: $children)';
@@ -211,6 +212,28 @@ final class TextNode extends FlatContentNode {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is TextNode &&
+        _childrenEquality.equals(children, other.children);
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, _childrenEquality.hash(children));
+}
+
+/// One line of a [TextNode], as runs. A blank line has none.
+final class LineNode extends NaturalBlockNode {
+  final List<InlineNode> children;
+
+  LineNode({required List<InlineNode> children, super.start, super.end})
+    : children = List.unmodifiable(children);
+
+  @override
+  String toString() => 'LineNode(children: $children)';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is LineNode &&
         _childrenEquality.equals(children, other.children);
   }
 
@@ -334,7 +357,7 @@ final class TableCellNode extends NaturalBlockNode {
       Object.hash(runtimeType, align, _childrenEquality.hash(children));
 }
 
-/// A run inside a [TextNode]: its text, and the decoration in effect on it.
+/// A run inside a [LineNode]: its text, and the decoration in effect on it.
 sealed class InlineNode extends NaturalBlockNode {
   final String text;
 
@@ -348,10 +371,10 @@ sealed class InlineNode extends NaturalBlockNode {
   });
 }
 
-/// A run of text with one decoration. Its text is empty only as the one run
-/// of a blank line with no text beside it.
+/// A run of text with one decoration.
 final class TextSpanNode extends InlineNode {
-  TextSpanNode({required super.text, super.decoration, super.start, super.end});
+  TextSpanNode({required super.text, super.decoration, super.start, super.end})
+    : assert(text.isNotEmpty, 'an empty run contributes no node');
 
   @override
   String toString() => 'TextSpanNode(text: $text, decoration: $decoration)';

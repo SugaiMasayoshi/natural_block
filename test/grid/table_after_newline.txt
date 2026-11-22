@@ -10,13 +10,17 @@ Col[Table[["aYX"]]]
 Col[Table[["a"] / ["Y"]]]
     ^b  ^~  ^:  ^!  ^\  ^|
 Col[Table[["a"] / []]]
-    ^^  ^`  ^<
+    ^^  ^<
+Col[Table[["a"] / [""]]]
+    ^`
 Col[Table[["a"]]]
-    ^N  ^E  ~`  ~N  ~E
+    ^N  ^E  ~N  ~E
 Col[Table[["a"]], "Y"]
     ~b  ~^  ~:  ~!  ~\  ~<  ~|
 Col[Table[["a"]], "X"]
     ~~
+Col[Table[["a"]], ""]
+    ~`
 Col[Table[["a\n" raw"Y"]]]
     `b  `^  `~  `:  `!  `\  `<  `|
 Col[Table[["a\n"]]]

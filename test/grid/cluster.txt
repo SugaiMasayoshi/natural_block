@@ -7,11 +7,11 @@ Col["X"]
     b`  bN  bE  ^`  ^N  ^E  ~`  ~N  ~E  \\  \N  \E  N`  NN  <`  <N  <E  |`  |N  |E
 Col[raw"Y"]
     `b  `^  `~  `:  `!  `\  `<  `|
-(empty)
+Col[""]
     ``  `N  `E  :`  ::  :!  :N  :E  !`  !:  !!  !N  !E  N~  N<  NE
 Col["Y"]
     :b  :^  :~  :\  :<  :|  !b  !^  !~  !\  !<  !|  \`  \:  \!
-Row[Cell[]]
+Col[""], Row[Cell[]]
     N^
-Space1
+Col[""], Space1
     N|

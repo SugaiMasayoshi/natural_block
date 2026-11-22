@@ -2,8 +2,11 @@ import 'package:natural_block/natural_block.dart';
 import 'package:test/test.dart';
 
 void main() {
-  TextNode text([String s = 'a']) =>
-      TextNode(children: [TextSpanNode(text: s)]);
+  TextNode text([String s = 'a']) => TextNode(
+    children: [
+      LineNode(children: [TextSpanNode(text: s)]),
+    ],
+  );
 
   final cases = <String, (NaturalBlockNode Function(), List<NaturalBlockNode>)>{
     'DocumentNode': (
@@ -126,12 +129,28 @@ void main() {
     'TextNode': (
       () => TextNode(
         children: [
+          LineNode(children: [TextSpanNode(text: 'a')]),
+          LineNode(children: [TextSpanNode(text: 'b')]),
+        ],
+      ),
+      [
+        TextNode(
+          children: [
+            LineNode(children: [TextSpanNode(text: 'b')]),
+            LineNode(children: [TextSpanNode(text: 'a')]),
+          ],
+        ),
+      ],
+    ),
+    'LineNode': (
+      () => LineNode(
+        children: [
           TextSpanNode(text: 'a'),
           TextSpanNode(text: 'b'),
         ],
       ),
       [
-        TextNode(
+        LineNode(
           children: [
             TextSpanNode(text: 'b'),
             TextSpanNode(text: 'a'),

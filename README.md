@@ -39,8 +39,9 @@ compares structurally:
   `RowNode` holds `CellNode`s as its cells, and a `CellNode` holds
   `ColumnNode`s and `SpacerNode`s, as a document does.
 - A `ColumnNode` holds content: `TextNode`, `RawNode`, and `TableNode`.
-- A `TextNode` holds `TextSpanNode`s (text with a `SpanDecoration`) and
-  `RawSpanNode`s.
+- A `TextNode` holds its lines as `LineNode`s, and a `LineNode` holds
+  `TextSpanNode`s (text with a `SpanDecoration`) and `RawSpanNode`s. A blank
+  line holds none.
 - A `TableNode` holds `TableRowNode`s of `TableCellNode`s, and `columns`
   holds each column's alignment.
 
@@ -72,12 +73,12 @@ for (final node in document.descendants) {
 | `\|` | On a line of its own: a spacer, sharing out the height left over; `\|\|` takes twice as much | below |
 
 - A block runs until a line that starts with `<`, `=`, `>` or `^`, or a
-  line of `|` alone. Every other line stays in it, blank lines included. A
-  newline is part of the text, and spaces are never trimmed.
-- A blank line is an empty line. Next to text it is a line break in that
-  text (`上\n\n=下` is `"上\n"`); after a table, a row or a spacer, with no
-  text to hold it, it is an empty text of its own (`^A^\n\n=下` puts `""`
-  between the row and `下`).
+  line of `|` alone. Every other line stays in it, blank lines included, as
+  a line of its text. Spaces are never trimmed.
+- A blank line is a line with nothing on it: `上\n\n=下` is a text of `上`
+  and a blank line, and `^A^\n\n=下` puts a text of one blank line between
+  the row and `下`. A line that holds only decoration, such as `:+`, is
+  blank too.
 - A row ends at a `^` that ends a line, or at the end of the document. A cell
   can hold several lines (`^Left\nsecond line^Right^`). An empty cell keeps
   its place, so `^Left^^Right^` pushes `Right` to the far edge.

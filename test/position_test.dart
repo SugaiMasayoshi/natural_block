@@ -17,11 +17,15 @@ void main() {
       'DocumentNode a\n:*b:* c\n\n>d',
       'ColumnNode a\n:*b:* c\n\n',
       'TextNode a\n:*b:* c\n',
-      'TextSpanNode a\n',
+      'LineNode a',
+      'TextSpanNode a',
+      'LineNode :*b:* c',
       'TextSpanNode :*b',
-      'TextSpanNode :* c\n',
+      'TextSpanNode :* c',
+      'LineNode ',
       'ColumnNode >d',
       'TextNode d',
+      'LineNode d',
       'TextSpanNode d',
     ]);
   });
@@ -33,13 +37,16 @@ void main() {
       'CellNode a',
       'ColumnNode a',
       'TextNode a',
+      'LineNode a',
       'TextSpanNode a',
       'CellNode >b',
       'ColumnNode >b',
       'TextNode b',
+      'LineNode b',
       'TextSpanNode b',
       'ColumnNode c',
       'TextNode c',
+      'LineNode c',
       'TextSpanNode c',
     ]);
   });
@@ -52,6 +59,7 @@ void main() {
       'SpacerNode |',
       'ColumnNode b\n',
       'TextNode b',
+      'LineNode b',
       'TextSpanNode b',
       'SpacerNode |',
     ]);
@@ -65,12 +73,15 @@ void main() {
       'TableRowNode ^a^\n',
       'TableCellNode a',
       'TextNode a',
+      'LineNode a',
       'TextSpanNode a',
       'TableRowNode b^\n',
       'TableCellNode b',
       'TextNode b',
+      'LineNode b',
       'TextSpanNode b',
       'TextNode `r`',
+      'LineNode `r`',
       'RawSpanNode `r`',
     ]);
   });
@@ -102,7 +113,11 @@ void main() {
       children: [
         ColumnNode(
           children: [
-            TextNode(children: [TextSpanNode(text: 'a')]),
+            TextNode(
+              children: [
+                LineNode(children: [TextSpanNode(text: 'a')]),
+              ],
+            ),
           ],
         ),
       ],

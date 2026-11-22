@@ -90,7 +90,11 @@ void main() {
           children: [
             ColumnNode(
               children: [
-                TextNode(children: [TextSpanNode(text: source)]),
+                TextNode(
+                  children: [
+                    LineNode(children: [TextSpanNode(text: source)]),
+                  ],
+                ),
               ],
             ),
           ],

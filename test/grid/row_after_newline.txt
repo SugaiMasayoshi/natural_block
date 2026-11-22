@@ -10,7 +10,9 @@ Row[Col["aYX"]]
 Row[Col["a"], Col["Y"]]
     ^b  ^:  ^!  ^\
 Row[Col["a"], Cell[]]
-    ^^  ^~  ^`  ^<
+    ^^  ^~  ^<
+Row[Col["a"], Col[""]]
+    ^`
 Row[Col["a"]]
     ^N  ^E  ~N  ~E
 Row[Col["a"], Cell[Space1]]
@@ -18,9 +20,11 @@ Row[Col["a"], Cell[Space1]]
 Row[Col["a", Table[["Y"]]]]
     ~b  ~:  ~!  ~\  ~|
 Row[Col["a", Table[[]]]]
-    ~^  ~`  ~<
+    ~^  ~<
 Row[Col["a", Table[["X"]]]]
     ~~
+Row[Col["a", Table[[""]]]]
+    ~`
 Row[Col["a\n" raw"Y"]]
     `b  `^  `~  `:  `!  `\  `<  `|
 Row[Col["a\n"]]

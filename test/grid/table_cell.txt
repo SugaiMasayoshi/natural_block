@@ -8,7 +8,9 @@ Col[Table[["XY"]]]
 Col[Table[["Y"]]]
     ^b  ^~  ^:  ^!  ^\  ^|  \^  \`  \:  \<  Nb  N:  N!  N\  N|  <b  <~  <:  <!  <\  <|
 Col[Table[[]]]
-    ^^  ^`  ^N  ^<  ^E  ``  `N  `E  ::  :!  N^  N`  N<  <^  <`  <N  <E
+    ^^  ^N  ^<  ^E  N^  N<  <^  <N  <E
+Col[Table[[""]]]
+    ^`  ``  `N  `E  ::  :!  N`  <`
 Col[Table[[raw"Y"]]]
     `b  `^  `~  `:  `!  `\  `<  `|
 (empty)

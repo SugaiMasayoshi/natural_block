@@ -8,25 +8,29 @@ Col["X"]
 Row[Col["Y"]]
     ^b  ^:  ^!  ^\
 Row[Cell[]]
-    ^^  ^~  ^`  ^N  ^<  ^E  <^
+    ^^  ^~  ^N  ^<  ^E  <^
+Row[Col[""]]
+    ^`
 Row[Cell[Space1]]
     ^|
 Col[Table[["Y"]]]
     ~b  ~:  ~!  ~\  ~|
 Col[Table[[]]]
-    ~^  ~`  ~<
+    ~^  ~<
 Col[Table[["X"]]]
     ~~
+Col[Table[[""]]]
+    ~`
 (empty)
-    ~N  ~E  ``  `N  `E  ::  :!  NE  <~  <`  <N  <E
+    ~N  ~E  NE  <~  <N  <E
 Col[raw"Y"]
     `b  `^  `~  `:  `!  `\  `<  `|
+Col[""]
+    ``  `N  `E  ::  :!  N~  N<  <`
 Col["Y"]
     \^  \~  \`  \:  \<  \|  <b  <:  <!  <\  <|
 Col[""], Row[Cell[]]
     N^
-Col[""]
-    N~  N<
 Col[""], Space1
     N|
 Space1

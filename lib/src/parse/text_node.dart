@@ -1,33 +1,29 @@
 import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
-import '../span_decoration.dart';
-import 'inline_node.dart';
+import 'line_node.dart';
+import 'line_start.dart';
 
 TextNode? parseTextNode(SourceCursor cursor, TextPlace place) {
   final start = cursor.position;
-  final children = <InlineNode>[];
-  var style = const SpanDecoration();
+  final lines = <LineNode>[];
+  bool opensMarkupAt(int index) =>
+      cursor.source.length > index && cursor.source[index] == tableChar ||
+      opensLine(cursor.source, index, place);
 
-  int before;
-  do {
-    before = cursor.position;
-    final (node, next) = parseInlineNode(cursor, style, place);
-    style = next;
-    if (node != null) children.add(node);
-  } while (cursor.position > before);
+  while (true) {
+    final line = parseLineNode(cursor, place);
+    // A line with nothing on it before a cell's end or a raw block is theirs.
+    final endsLine = cursor.isEnd || cursor.peek == '\n';
+    if (line.children.isNotEmpty || endsLine) lines.add(line);
 
-  if (children.isNotEmpty) {
-    return TextNode(children: children, start: start, end: cursor.position);
+    if (cursor.peek != '\n' || opensMarkupAt(cursor.position + 1)) break;
+    cursor.take();
+    final escapedMarker =
+        cursor.peek == escapeChar && opensMarkupAt(cursor.position + 1);
+    if (escapedMarker) cursor.take();
   }
 
-  // A blank line with no text beside it to hold its line break.
-  final at = cursor.position;
-  final startsLine = at == 0 || cursor.source[at - 1] == '\n';
-  if (cursor.peek != '\n' || !startsLine) return null;
-  return TextNode(
-    children: [TextSpanNode(text: '', start: at, end: at)],
-    start: at,
-    end: at,
-  );
+  if (lines.isEmpty) return null;
+  return TextNode(children: lines, start: start, end: lines.last.end);
 }

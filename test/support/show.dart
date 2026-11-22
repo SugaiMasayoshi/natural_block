@@ -5,7 +5,8 @@ import 'package:natural_block/natural_block.dart';
 /// `Col[...]` and `Row[...]` are the layouts, `Space1` a spacer of one `|`,
 /// `Table[cell / cell; ...]` a table, `Raw"..."` a raw block and `raw"..."` a
 /// raw run. A row's cell of one block is that block, and any other cell is
-/// `Cell[...]`. A text node is its runs separated by spaces. Alignment is
+/// `Cell[...]`. A text node is its runs separated by spaces, its lines joined
+/// by `\n` within one run where the decoration allows. Alignment is
 /// written after the node it belongs to (`Col<`, `Col=`, `Col>`), and
 /// decoration after its run (`"a"{+2 neg}`, `raw"a"{+2}`).
 ///
@@ -45,7 +46,10 @@ class _Show {
       'Col${align(node.align)}[${node.children.map(content).join(', ')}]';
 
   String content(ContentNode node) => switch (node) {
-    TextNode(:final children) => children.map(inline).join(' '),
+    TextNode() => switch (_flatten(node)) {
+      [] => '""',
+      final runs => runs.map(inline).join(' '),
+    },
     RawNode(:final text) => 'Raw${quote(text)}',
     TableNode(:final children) =>
       'Table[${children.map((row) => row.children.map(tableCell).join(' / ')).join('; ')}]',
@@ -90,4 +94,29 @@ class _Show {
     ];
     return '{${parts.join(' ')}}';
   }
+}
+
+/// The runs of [text] with its lines joined by line breaks, as one string
+/// per decoration, so the tables read as they did when line breaks were text.
+List<InlineNode> _flatten(TextNode text) {
+  final runs = <InlineNode>[];
+  void add(InlineNode run) {
+    final previous = runs.lastOrNull;
+    if (run is TextSpanNode &&
+        previous is TextSpanNode &&
+        previous.decoration == run.decoration) {
+      runs[runs.length - 1] = TextSpanNode(
+        text: previous.text + run.text,
+        decoration: run.decoration,
+      );
+    } else {
+      runs.add(run);
+    }
+  }
+
+  for (final (index, line) in text.children.indexed) {
+    if (index > 0) add(TextSpanNode(text: '\n'));
+    line.children.forEach(add);
+  }
+  return runs;
 }

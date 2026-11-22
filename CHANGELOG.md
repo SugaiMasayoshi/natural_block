@@ -1,10 +1,16 @@
 ## Unreleased
 
-- Breaking: a blank line after a table, a row or a spacer, with no text
-  beside it to hold its line break, is a `TextNode` of one empty run, where
-  it was dropped. `^A^\n\n=B` is `Row, Col[""], Col=["B"]`, one empty line
-  between, as `A\n\n=B` has. A `TextSpanNode`'s text is empty only there.
-  Blank lines between a table's rows are still nothing.
+- Breaking: a `TextNode` holds its lines as `LineNode`s, each holding the
+  runs written on it, where it held runs with the line breaks in their text.
+  A blank line is a `LineNode` with no runs. A run's text never holds a line
+  break, and is never empty.
+- Breaking: a blank line after a table, a row or a spacer is a text of one
+  blank line, where it was dropped, so `^A^\n\n=B` has one empty line
+  between, as `A\n\n=B` has. Blank lines between a table's rows are still
+  nothing.
+- A line that holds only decoration, or only an empty raw region, is a blank
+  line, where it could disappear: `:+\n` before a raw block, or at the end
+  of the document.
 
 ## 0.4.0
 

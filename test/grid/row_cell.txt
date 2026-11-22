@@ -8,19 +8,25 @@ Row[Col["a"], Col["XY"]]
 Row[Col["a"], Cell[], Col["Y"]]
     ^b  ^:  ^!  ^\
 Row[Col["a"], Cell[], Cell[]]
-    ^^  ^~  ^`  ^<
+    ^^  ^~  ^<
+Row[Col["a"], Cell[], Col[""]]
+    ^`
 Row[Col["a"], Cell[]]
-    ^N  ^E  ~N  ~E  ``  `N  `E  ::  :!  <^  <~  <`  <N  <E
+    ^N  ^E  ~N  ~E  <^  <~  <N  <E
 Row[Col["a"], Cell[], Cell[Space1]]
     ^|
 Row[Col["a"], Col[Table[["Y"]]]]
     ~b  ~:  ~!  ~\  ~|
 Row[Col["a"], Col[Table[[]]]]
-    ~^  ~`  ~<
+    ~^  ~<
 Row[Col["a"], Col[Table[["X"]]]]
     ~~
+Row[Col["a"], Col[Table[[""]]]]
+    ~`
 Row[Col["a"], Col[raw"Y"]]
     `b  `^  `~  `:  `!  `\  `<  `|
+Row[Col["a"], Col[""]]
+    ``  `N  `E  ::  :!  <`
 Row[Col["a"], Col["Y"]]
     \^  \~  \`  \:  \<  \|  <b  <:  <!  <\
 Row[Col["a"]], Col["Y"]
@@ -28,7 +34,9 @@ Row[Col["a"]], Col["Y"]
 Row[Col["a"]], Row[Cell[]]
     N^
 Row[Col["a"]]
-    N~  N`  NN  N<  NE
+    N~  NN  N<  NE
+Row[Col["a"]], Col[""]
+    N`
 Row[Col["a"]], Space1
     N|
 Row[Col["a"], Cell[Space1]]
