@@ -3,31 +3,32 @@ import '../nodes.dart';
 import '../source_cursor.dart';
 import 'table_row_node.dart';
 
+/// Whether a `~` stands alone on the line starting at [position], which
+/// opens a table or closes the one it is in.
+bool tableAt(String source, int position) =>
+    position < source.length &&
+    source[position] == tableChar &&
+    (position + 1 == source.length || source[position + 1] == '\n');
+
 TableNode? parseTableNode(SourceCursor cursor) {
   final start = cursor.position;
   cursor.take();
+  if (cursor.peek == '\n') cursor.take();
 
   final rows = <TableRowNode>[];
-
-  // Every row ends at the start of a line, so only the first can start
-  // elsewhere: on the line of the opening `~`.
-  var atLineStart = false;
-  bool closesTable() => atLineStart && cursor.peek == tableChar;
-
-  while (!cursor.isEnd && !closesTable()) {
+  while (!cursor.isEnd && !tableAt(cursor.source, cursor.position)) {
     final before = cursor.position;
     if (cursor.peek == '\n') {
       cursor.take();
     } else {
       rows.add(parseTableRowNode(cursor));
     }
-    atLineStart = true;
     assert(
       cursor.position > before,
       'table row parse made no progress at ${cursor.position}',
     );
   }
-  if (cursor.peek == tableChar) cursor.take();
+  if (!cursor.isEnd) cursor.take();
 
   if (rows.isEmpty) return null;
   return TableNode(children: rows, start: start, end: cursor.position);

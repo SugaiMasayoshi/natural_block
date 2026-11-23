@@ -75,7 +75,7 @@ void main() {
     _table('structure', {
       '~\n^A^B^\n^C^D^\n~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
       '~\nA^B^\nC^D^\n~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
-      '~^A^B^\n~': 'Col[Table[["A"] / ["B"]]]',
+      '~^A^B^\n~': 'Col["~^A^B^"]',
       '~\n^A^B^\n\n^C^D^\n~': 'Col[Table[["A"] / ["B"]; ["C"] / ["D"]]]',
       '~\n^^\n^A^\n~': 'Col[Table[[]; ["A"]]]',
       '~\n^A\n2行目^B^\n~': 'Col[Table[["A", "2行目"] / ["B"]]]',
@@ -83,7 +83,7 @@ void main() {
       '~\n<品名^>価格^\nりんご^150^\n~':
           'Col[Table[<["品名"] / >["価格"]; ["りんご"] / ["150"]]]',
       '前の行\n~\n^A^B^\n~\n次の行': 'Col["前の行", Table[["A"] / ["B"]], "次の行"]',
-      '^~\n^A^B^\n~^右^': 'Row[Col[Table[["A"] / ["B"]]], Col["右"]]',
+      '^~\n^A^B^\n~\n^右^': 'Row[Col[Table[["A"] / ["B"]]], Col["右"]]',
       '^左\n~\n^A^B^\n~\n^右^': 'Row[Col["左", Table[["A"] / ["B"]]], Col["右"]]',
       '=~\n^A^B^\n~': 'Col=[Table[["A"] / ["B"]]]',
       '~\n^10~20^人^\n~': 'Col[Table[["10~20"] / ["人"]]]',
@@ -154,7 +154,8 @@ void main() {
     r'A\^B': r'Col["A\\^B"]',
     r'^A\^B^': 'Row[Col["A^B"]]',
     r'^\\^B^': r'Row[Col["\\"], Col["B"]]',
-    r'\~/.bashrc': 'Col["~/.bashrc"]',
+    '~/.bashrc': 'Col["~/.bashrc"]',
+    r'\~/.bashrc': r'Col["\\~/.bashrc"]',
     r'=\|': 'Col=["|"]',
     r'=\=x': 'Col=["=x"]',
     r'10\~20': r'Col["10\\~20"]',

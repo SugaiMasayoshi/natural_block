@@ -68,7 +68,7 @@ for (final node in document.descendants) {
 |---|---|---|
 | `<` `=` `>` | At the start of a line: a new block, aligned start, center, end | `=Title` |
 | `^` | At the start of a line: a row, cells split by `^`, closed by a `^` | `^Left^Right^` |
-| `~` | At the start of a line or a cell: a table of `^...^` rows, closed by a `~` at the start of a line | below |
+| `~` | On a line of its own: a table of `^...^` rows, closed by another `~` on a line of its own | below |
 | `\|` | On a line of its own: a spacer, sharing out the height left over; `\|\|` takes twice as much | below |
 
 - A block runs until a line that starts with `<`, `=`, `>` or `^`, or a
@@ -84,9 +84,11 @@ for (final node in document.descendants) {
 - A marker at the start of a line aligns the block it opens; one after a `^`
   aligns that cell. `=^A^B^>C^` centers every cell that does not say
   otherwise. Only one marker is read: `<>a` is a start-aligned `>a`.
-- A table opens at a `~` at the start of a line or of a row's cell, and
-  closes at a `~` at the start of a line inside it, or at the end of the
-  document. Its rows are read like rows outside it, so a cell can hold
+- A table opens at a `~` alone on its line, at the start of a line or of a
+  row's cell, and closes at the next `~` alone on its line, or at the end of
+  the document. A `~` with anything after it on its line is text, so
+  `~/.bashrc` needs no escaping. Inside a row's cell, the closing `~` takes
+  its own line, and the `^` that ends the cell goes on the next. Its rows are read like rows outside it, so a cell can hold
   several lines, and a row also ends at the line that closes the table. A
   row may leave out its opening `^`, but not its closing one. A table holds
   only rows, so a blank line between them only spaces out the source; write
@@ -189,8 +191,8 @@ A backslash escapes only what would otherwise be markup at that point:
 - Inside a row or a table: `\^`.
 - Inside a cluster: any decoration character. The escape also ends the
   cluster, so `:---\%%%` is `%%%` at -3.
-- At the start of a line or a cell: `\<`, `\=`, `\>`, `\^`, `\~`, and a `\|`
-  that would be a spacer.
+- At the start of a line or a cell: `\<`, `\=`, `\>`, `\^`, and a `\~` or
+  `\|` that would open a table or a spacer.
 
 Everywhere else a backslash is kept, so `C:\Users\you` needs no escaping. A
 doubled backslash still collapses to one: write `\\\\server` for

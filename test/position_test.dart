@@ -60,10 +60,10 @@ void main() {
   });
 
   test('a table runs from its opening ~ to its closing ~', () {
-    expect(spans('~^a^\nb^\n~\n`r`'), [
-      'DocumentNode ~^a^\nb^\n~\n`r`',
-      'ColumnNode ~^a^\nb^\n~\n`r`',
-      'TableNode ~^a^\nb^\n~',
+    expect(spans('~\n^a^\nb^\n~\n`r`'), [
+      'DocumentNode ~\n^a^\nb^\n~\n`r`',
+      'ColumnNode ~\n^a^\nb^\n~\n`r`',
+      'TableNode ~\n^a^\nb^\n~',
       'TableRowNode ^a^\n',
       'TableCellNode a',
       'TextNode a',

@@ -49,14 +49,14 @@ const Map<String, String> gridContexts = {
   'document': '',
   'text': 'a',
   'row_cell': '^a^',
-  'table_cell': '~',
+  'table_cell': '~\n',
   'decorated': ':!a',
   'cluster': ':!',
   'cluster_escape': r':!\',
-  'table_row': '~a^\n',
+  'table_row': '~\na^\n',
   'after_newline': 'a\n',
   'row_after_newline': '^a\n',
-  'table_after_newline': '~a\n',
+  'table_after_newline': '~\na\n',
 };
 
 /// What the source ends with after the pair, so a decision that looks past

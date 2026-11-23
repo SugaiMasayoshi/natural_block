@@ -3,6 +3,7 @@ import '../nodes.dart';
 import '../source_cursor.dart';
 import 'align.dart';
 import 'flat_content_node.dart';
+import 'table_node.dart';
 
 TableCellNode parseTableCellNode(SourceCursor cursor) {
   final start = cursor.position;
@@ -10,7 +11,7 @@ TableCellNode parseTableCellNode(SourceCursor cursor) {
   final children = <FlatContentNode>[];
 
   var atLineStart = false;
-  bool closesTable() => atLineStart && cursor.peek == tableChar;
+  bool closesTable() => atLineStart && tableAt(cursor.source, cursor.position);
   var atCellStart = true;
 
   while (!cursor.isEnd && cursor.peek != rowChar && !closesTable()) {

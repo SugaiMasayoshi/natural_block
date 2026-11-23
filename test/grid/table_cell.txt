@@ -1,8 +1,8 @@
-# prefix: "~"
+# prefix: "~\n"
 Col[Table[["XX"]]]
     bb  ~~  !!  ||
 Col[Table[["X"]]]
-    b^  b`  bN  bE  ~^  ~`  ~N  ~E  :^  :`  :N  :E  !^  !`  !N  !E  \\  \N  \E  <<  |^  |`  |N  |E
+    b^  b`  bN  bE  ~^  ~`  :^  :`  :N  :E  !^  !`  !N  !E  \\  \N  \E  <<  |^  |`  |N  |E
 Col[Table[["XY"]]]
     b~  b:  b!  b\  b<  b|  ~b  ~:  ~!  ~\  ~<  ~|  :b  :~  :\  :<  :|  !b  !~  !:  !\  !<  !|  \b  \!  \|  |b  |~  |:  |!  |\  |<
 Col[Table[["Y"]]]
@@ -11,7 +11,7 @@ Col[Table[[]]]
     ^^  ^N  ^<  ^E  N^  N<  <^  <N  <E
 Col[Table[[""]]]
     ^`  ``  `N  `E  ::  :!  N`  <`
+(empty)
+    ~N  ~E  N~  NN  NE
 Col[Table[[raw"Y"]]]
     `b  `^  `~  `:  `!  `\  `<  `|
-(empty)
-    N~  NN  NE

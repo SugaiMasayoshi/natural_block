@@ -1,5 +1,11 @@
 ## Unreleased
 
+- Breaking: a `~` opens a table only alone on its line, and closes one only
+  alone on its line, so `~/.bashrc` and `~ 約100円` at the start of a line
+  are text where they opened a table that took in the rest of the document.
+  A table's first row goes on the line after its `~`, and in a row's cell
+  the closing `~` takes its own line before the `^` that ends the cell. A
+  `\~` that would open nothing keeps its backslash, as `10\~20` does.
 - Breaking: a `TextNode` is one line, holding the runs written on it, where
   it held the runs of several lines with the line breaks in their text.
   Lines written one after another are `TextNode`s side by side in their

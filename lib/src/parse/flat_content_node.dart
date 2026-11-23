@@ -3,6 +3,7 @@ import '../nodes.dart';
 import '../source_cursor.dart';
 import 'layout_node.dart';
 import 'raw.dart';
+import 'table_node.dart';
 import 'text_node.dart';
 
 /// [atLineStart] is whether the cursor starts a line or a cell, the only
@@ -17,7 +18,7 @@ FlatContentNode? parseFlatContentNode(
     final escapedMarker =
         cursor.peek == escapeChar &&
         (layoutOpensAt(cursor.source, cursor.position + 1, place) ||
-            cursor.peekAt(1) == tableChar);
+            tableAt(cursor.source, cursor.position + 1));
     if (escapedMarker) cursor.take();
   }
   return parseTextNode(cursor, place);

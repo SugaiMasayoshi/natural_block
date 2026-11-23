@@ -1,10 +1,10 @@
 # prefix: ""
 Col["XX"]
-    bb  !!
+    bb  ~~  !!
 Col["XY"]
-    b^  b~  b:  b!  b\  b<  b|  :b  :^  :~  :\  :<  :|  !b  !^  !~  !:  !\  !<  !|  \b  \!  |b  |^  |~  |:  |!  |\  |<
+    b^  b~  b:  b!  b\  b<  b|  ~b  ~^  ~:  ~!  ~\  ~<  ~|  :b  :^  :~  :\  :<  :|  !b  !^  !~  !:  !\  !<  !|  \b  \!  |b  |^  |~  |:  |!  |\  |<
 Col["X"]
-    b`  bN  bE  :`  :N  :E  !`  !N  !E  \\  \N  \E  <<  |`
+    b`  bN  bE  ~`  :`  :N  :E  !`  !N  !E  \\  \N  \E  <<  |`
 Row[Col["Y"]]
     ^b  ^:  ^!  ^\
 Row[Cell[]]
@@ -13,14 +13,6 @@ Row[Col[""]]
     ^`
 Row[Cell[Space1]]
     ^|
-Col[Table[["Y"]]]
-    ~b  ~:  ~!  ~\  ~|
-Col[Table[[]]]
-    ~^  ~<
-Col[Table[["X"]]]
-    ~~
-Col[Table[[""]]]
-    ~`
 (empty)
     ~N  ~E  NE  <~  <N  <E
 Col[raw"Y"]

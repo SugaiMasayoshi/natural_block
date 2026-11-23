@@ -1,10 +1,10 @@
 # prefix: "^a^"
 Row[Col["a"], Col["XX"]]
-    bb  !!
+    bb  ~~  !!
 Row[Col["a"], Col["X"]]
-    b^  b`  bN  bE  :^  :`  :N  :E  !^  !`  !N  !E  \\  \N  \E  <<  |`
+    b^  b`  bN  bE  ~^  ~`  :^  :`  :N  :E  !^  !`  !N  !E  \\  \N  \E  <<  |`
 Row[Col["a"], Col["XY"]]
-    b~  b:  b!  b\  b<  b|  :b  :~  :\  :<  :|  !b  !~  !:  !\  !<  !|  \b  \!  |b  |~  |:  |!  |\  |<
+    b~  b:  b!  b\  b<  b|  ~b  ~:  ~!  ~\  ~<  ~|  :b  :~  :\  :<  :|  !b  !~  !:  !\  !<  !|  \b  \!  |b  |~  |:  |!  |\  |<
 Row[Col["a"], Cell[], Col["Y"]]
     ^b  ^:  ^!  ^\
 Row[Col["a"], Cell[], Cell[]]
@@ -15,14 +15,6 @@ Row[Col["a"], Cell[]]
     ^N  ^E  ~N  ~E  <^  <~  <N  <E
 Row[Col["a"], Cell[], Cell[Space1]]
     ^|
-Row[Col["a"], Col[Table[["Y"]]]]
-    ~b  ~:  ~!  ~\  ~|
-Row[Col["a"], Col[Table[[]]]]
-    ~^  ~<
-Row[Col["a"], Col[Table[["X"]]]]
-    ~~
-Row[Col["a"], Col[Table[[""]]]]
-    ~`
 Row[Col["a"], Col[raw"Y"]]
     `b  `^  `~  `:  `!  `\  `<  `|
 Row[Col["a"], Col[""]]
