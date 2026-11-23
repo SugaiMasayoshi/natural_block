@@ -170,8 +170,9 @@ cat file.txt | grep foo | wc -l
 ````
 
 - A fence of three or more backticks at the start of a line or a cell that
-  does not close on its line opens a block (`RawNode`), even after
-  decoration. The block runs to the next line that starts with a fence as
+  does not close on its line opens a block (`RawNode`). Decoration written
+  before the fence is the block's: ```` :+``` ```` draws the code a step
+  larger. The block runs to the next line that starts with a fence as
   long, or to the end of the document, and anything after the closing fence
   continues as text. What follows the
   opening fence on its line is the block's first line: ```` ```dart ````

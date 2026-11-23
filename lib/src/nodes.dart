@@ -242,25 +242,33 @@ final class LineNode extends NaturalBlockNode {
       Object.hash(runtimeType, _childrenEquality.hash(children));
 }
 
-/// A raw region with a line break inside: text taken exactly as written,
-/// drawn as a block.
+/// A raw block: text taken exactly as written, drawn as a block. Its
+/// [decoration] is the one written before its fence.
 final class RawNode extends FlatContentNode {
   final String text;
 
-  RawNode({required this.text, super.start, super.end})
-    : assert(text.isNotEmpty, 'an empty raw region contributes no node');
+  final SpanDecoration decoration;
+
+  RawNode({
+    required this.text,
+    this.decoration = const SpanDecoration(),
+    super.start,
+    super.end,
+  }) : assert(text.isNotEmpty, 'an empty raw region contributes no node');
 
   @override
-  String toString() => 'RawNode(text: $text)';
+  String toString() => 'RawNode(text: $text, decoration: $decoration)';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is RawNode && text == other.text;
+    return other is RawNode &&
+        text == other.text &&
+        decoration == other.decoration;
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, text);
+  int get hashCode => Object.hash(runtimeType, text, decoration);
 }
 
 /// A table written between `~`: rows whose columns line up.

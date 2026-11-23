@@ -19,6 +19,10 @@
   document into code. A block opened partway through a line, as
   `` a ```\nx\n``` `` was, or fenced with fewer than three backticks, is
   now inline.
+- Breaking: a `RawNode` carries the `decoration` written before its fence,
+  as a `RawSpanNode` carries the one around it, and is equal only to one
+  with the same decoration. ```` :+``` ```` draws its code a step larger,
+  where the decoration was dropped.
 
 ## 0.4.0
 

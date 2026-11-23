@@ -165,8 +165,20 @@ void main() {
         TextSpanNode(text: 'a', decoration: SpanDecoration(isEmphasized: true)),
       ],
     ),
-    'RawNode': (() => RawNode(text: 'a'), [RawNode(text: 'b')]),
-    'RawSpanNode': (() => RawSpanNode(text: 'a'), [RawSpanNode(text: 'b')]),
+    'RawNode': (
+      () => RawNode(text: 'a'),
+      [
+        RawNode(text: 'b'),
+        RawNode(text: 'a', decoration: SpanDecoration(isEmphasized: true)),
+      ],
+    ),
+    'RawSpanNode': (
+      () => RawSpanNode(text: 'a'),
+      [
+        RawSpanNode(text: 'b'),
+        RawSpanNode(text: 'a', decoration: SpanDecoration(isEmphasized: true)),
+      ],
+    ),
   };
 
   cases.forEach((name, c) {

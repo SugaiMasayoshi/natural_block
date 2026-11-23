@@ -50,7 +50,8 @@ class _Show {
       [] => '""',
       final runs => runs.map(inline).join(' '),
     },
-    RawNode(:final text) => 'Raw${quote(text)}',
+    RawNode(:final text, :final decoration) =>
+      'Raw${quote(text)}${decorate(decoration)}',
     TableNode(:final children) =>
       'Table[${children.map((row) => row.children.map(tableCell).join(' / ')).join('; ')}]',
   };

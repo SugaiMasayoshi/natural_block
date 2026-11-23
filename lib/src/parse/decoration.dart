@@ -3,6 +3,10 @@ import '../source_cursor.dart';
 import '../span_decoration.dart';
 import 'span_decoration.dart';
 
+bool clusterAt(SourceCursor cursor) =>
+    cursor.peek == clusterChar &&
+    DecorationAction.chars.contains(cursor.peekAt(1));
+
 SpanDecoration parseCluster(SourceCursor cursor, SpanDecoration style) {
   cursor.take();
 

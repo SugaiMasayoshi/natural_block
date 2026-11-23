@@ -17,12 +17,14 @@ bool rawBlockAt(String source, int index) {
   return _closerIn(source, fenceStart + fence, lineEnd, fence) == null;
 }
 
-/// A block runs from the line of its fence to the next line that starts with
+/// A block takes the decoration written before its fence, and runs from the
+/// line of its fence to the next line that starts with
 /// a fence as long, or to the end of the document. The line break right
 /// after the opening fence and the one before the closing fence are left out.
 RawNode? parseRawNode(SourceCursor cursor) {
   final start = cursor.position;
-  cursor.jumpTo(skipClusters(cursor.source, start));
+  var style = const SpanDecoration();
+  if (clusterAt(cursor)) style = parseCluster(cursor, style);
   final source = cursor.source;
   final fence = _fenceAt(source, cursor.position);
   final fenceEnd = cursor.position + fence;
@@ -40,6 +42,7 @@ RawNode? parseRawNode(SourceCursor cursor) {
   if (contentEnd <= contentStart) return null;
   return RawNode(
     text: source.substring(contentStart, contentEnd),
+    decoration: style,
     start: start,
     end: cursor.position,
   );

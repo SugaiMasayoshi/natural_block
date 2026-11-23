@@ -11,7 +11,7 @@ import 'decoration.dart';
 ) {
   final start = cursor.position;
   var style = incoming;
-  if (_clusterAt(cursor)) style = parseCluster(cursor, style);
+  if (clusterAt(cursor)) style = parseCluster(cursor, style);
   final markup = {...place.boundaries, clusterChar};
 
   final text = StringBuffer();
@@ -34,7 +34,3 @@ import 'decoration.dart';
   );
   return (span, style);
 }
-
-bool _clusterAt(SourceCursor cursor) =>
-    cursor.peek == clusterChar &&
-    DecorationAction.chars.contains(cursor.peekAt(1));
