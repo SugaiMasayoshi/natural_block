@@ -1,9 +1,16 @@
 ## Unreleased
 
-- Breaking: a `TextNode` holds its lines as `LineNode`s, each holding the
-  runs written on it, where it held runs with the line breaks in their text.
-  A blank line is a `LineNode` with no runs. A run's text never holds a line
-  break, and is never empty.
+- Breaking: a `TextNode` is one line, holding the runs written on it, where
+  it held the runs of several lines with the line breaks in their text.
+  Lines written one after another are `TextNode`s side by side in their
+  block or cell, and a blank line is a `TextNode` with no runs. A run's text
+  never holds a line break, and is never empty.
+- Breaking: a blank line at the end of the document is dropped, as it was
+  after a table or a raw block, so a slide does not grow by the line left
+  before the next one.
+- A `\` at the start of a line or a cell keeps the markup after it as text
+  wherever that markup could open something, after an alignment marker
+  too: `=\|` is a centred `|`, where it kept the backslash.
 - Breaking: a blank line after a table, a row or a spacer is a text of one
   blank line, where it was dropped, so `^A^\n\n=B` has one empty line
   between, as `A\n\n=B` has. Blank lines between a table's rows are still

@@ -1,33 +1,29 @@
 import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
-import 'line_node.dart';
-import 'line_start.dart';
-import 'raw.dart';
+import '../span_decoration.dart';
+import 'inline_node.dart';
 
+/// The runs up to the end of the line or a boundary. A line with nothing on
+/// it before a cell's end is the cell's, not a blank line.
 TextNode? parseTextNode(SourceCursor cursor, TextPlace place) {
   final start = cursor.position;
-  final lines = <LineNode>[];
-  bool opensMarkupAt(int index) =>
-      cursor.source.length > index && cursor.source[index] == tableChar ||
-      opensLine(cursor.source, index, place);
+  final children = <InlineNode>[];
+  var style = const SpanDecoration();
 
-  while (true) {
-    final line = parseLineNode(cursor, place);
-    // A line with nothing on it before a cell's end is the cell's.
-    final endsLine = cursor.isEnd || cursor.peek == '\n';
-    if (line.children.isNotEmpty || endsLine) lines.add(line);
+  int before;
+  do {
+    before = cursor.position;
+    final InlineNode? node;
+    (node, style) = parseInlineNode(cursor, style, place);
+    if (node != null) children.add(node);
+  } while (cursor.position > before);
 
-    final nextLine = cursor.position + 1;
-    final nextLineIsOthers =
-        opensMarkupAt(nextLine) || rawBlockAt(cursor.source, nextLine);
-    if (cursor.peek != '\n' || nextLineIsOthers) break;
-    cursor.take();
-    final escapedMarker =
-        cursor.peek == escapeChar && opensMarkupAt(cursor.position + 1);
-    if (escapedMarker) cursor.take();
-  }
-
-  if (lines.isEmpty) return null;
-  return TextNode(children: lines, start: start, end: lines.last.end);
+  final endsLine = cursor.isEnd || cursor.peek == '\n';
+  if (children.isEmpty && !endsLine) return null;
+  return TextNode(
+    children: children,
+    start: start,
+    end: children.lastOrNull?.end ?? start,
+  );
 }

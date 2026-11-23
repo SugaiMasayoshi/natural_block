@@ -70,11 +70,6 @@ CellNode _parseCell(SourceCursor cursor, HorizontalAlign align, int start) {
         blockStart = cursor.position;
         continue;
       }
-      final escapedSpacer =
-          cursor.peek == escapeChar &&
-          spacerAt(cursor.source, cursor.position + 1, TextPlace.rowCell) !=
-              null;
-      if (escapedSpacer) cursor.take();
     }
 
     final content = parseContentNode(

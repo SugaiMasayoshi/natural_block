@@ -11,11 +11,6 @@ ContentNode? parseContentNode(
   TextPlace place, {
   required bool atLineStart,
 }) {
-  if (atLineStart) {
-    if (cursor.peek == tableChar) return parseTableNode(cursor);
-    final escapedTable =
-        cursor.peek == escapeChar && cursor.peekAt(1) == tableChar;
-    if (escapedTable) cursor.take();
-  }
+  if (atLineStart && cursor.peek == tableChar) return parseTableNode(cursor);
   return parseFlatContentNode(cursor, place, atLineStart: atLineStart);
 }

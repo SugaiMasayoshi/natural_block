@@ -39,9 +39,8 @@ void main() {
   セルとして `CellNode` を持ち、`CellNode` は文書と同じく `ColumnNode` と
   `SpacerNode` を持ちます。
 - `ColumnNode` は中身として `TextNode`、`RawNode`、`TableNode` を持ちます。
-- `TextNode` は行ごとに `LineNode` を持ち、`LineNode` は `TextSpanNode`
-  （`SpanDecoration` 付きの文字）と `RawSpanNode` を持ちます。空行は何も
-  持ちません。
+- `TextNode` は1行で、`TextSpanNode`（`SpanDecoration` 付きの文字）と
+  `RawSpanNode` を持ちます。空行は何も持ちません。
 - `TableNode` は `TableCellNode` からなる `TableRowNode` を持ち、`columns` に各列
   の寄せを持ちます。
 

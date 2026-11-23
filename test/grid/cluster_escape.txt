@@ -13,15 +13,15 @@ Col["X"]
     ``  `N  `E  :`  :N  :E  !`  !N  !E  \`  \N  \E
 Col["XX"]
     ::  !!  \\
-Col["\\" "XY"]
+Col["\\", "Y"]
     Nb  N:  N!
 Col["\\"], Row[Cell[]]
     N^
 Col["\\"]
-    N~  N<  NE
-Col["\\" "X"]
-    N`  NN
-Col["Y" "XY"]
+    N~  NN  N<  NE
+Col["\\", ""]
+    N`
+Col["Y", "Y"]
     N\
 Col["\\"], Space1
     N|

@@ -2,9 +2,9 @@
 Col["XX"]
     bb  !!
 Col["XY"]
-    b^  b~  b:  b!  b\  b<  b|  :b  :^  :~  :\  :<  :|  !b  !^  !~  !:  !\  !<  !|  \b  \!  Nb  N:  N!  N\  |b  |^  |~  |:  |!  |\  |<
+    b^  b~  b:  b!  b\  b<  b|  :b  :^  :~  :\  :<  :|  !b  !^  !~  !:  !\  !<  !|  \b  \!  |b  |^  |~  |:  |!  |\  |<
 Col["X"]
-    b`  bN  bE  :`  :N  :E  !`  !N  !E  \\  \N  \E  N`  NN  <<  |`
+    b`  bN  bE  :`  :N  :E  !`  !N  !E  \\  \N  \E  <<  |`
 Row[Col["Y"]]
     ^b  ^:  ^!  ^\
 Row[Cell[]]
@@ -26,11 +26,15 @@ Col[Table[[""]]]
 Col[raw"Y"]
     `b  `^  `~  `:  `!  `\  `<  `|
 Col[""]
-    ``  `N  `E  ::  :!  N~  N<  <`
+    ``  `N  `E  ::  :!  N~  NN  N<  <`
 Col["Y"]
     \^  \~  \`  \:  \<  \|  <b  <:  <!  <\  <|
+Col["", "Y"]
+    Nb  N:  N!  N\
 Col[""], Row[Cell[]]
     N^
+Col["", ""]
+    N`
 Col[""], Space1
     N|
 Space1

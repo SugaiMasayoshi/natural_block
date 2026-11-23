@@ -8,14 +8,14 @@ Col["aX"]
 Col["a" raw"Y"]
     `b  `^  `~  `:  `!  `\  `<  `|
 Col["a"]
-    ``  `N  `E  ::  :!  N~  N<  NE
+    ``  `N  `E  ::  :!  N~  NN  N<  NE
 Col["aY"]
     \`  \:
-Col["a" "XY"]
+Col["a", "Y"]
     Nb  N:  N!  N\
 Col["a"], Row[Cell[]]
     N^
-Col["a" "X"]
-    N`  NN
+Col["a", ""]
+    N`
 Col["a"], Space1
     N|

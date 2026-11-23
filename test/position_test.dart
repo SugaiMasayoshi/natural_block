@@ -16,16 +16,14 @@ void main() {
     expect(spans('a\n:*b:* c\n\n>d'), [
       'DocumentNode a\n:*b:* c\n\n>d',
       'ColumnNode a\n:*b:* c\n\n',
-      'TextNode a\n:*b:* c\n',
-      'LineNode a',
+      'TextNode a',
       'TextSpanNode a',
-      'LineNode :*b:* c',
+      'TextNode :*b:* c',
       'TextSpanNode :*b',
       'TextSpanNode :* c',
-      'LineNode ',
+      'TextNode ',
       'ColumnNode >d',
       'TextNode d',
-      'LineNode d',
       'TextSpanNode d',
     ]);
   });
@@ -37,16 +35,13 @@ void main() {
       'CellNode a',
       'ColumnNode a',
       'TextNode a',
-      'LineNode a',
       'TextSpanNode a',
       'CellNode >b',
       'ColumnNode >b',
       'TextNode b',
-      'LineNode b',
       'TextSpanNode b',
       'ColumnNode c',
       'TextNode c',
-      'LineNode c',
       'TextSpanNode c',
     ]);
   });
@@ -59,7 +54,6 @@ void main() {
       'SpacerNode |',
       'ColumnNode b\n',
       'TextNode b',
-      'LineNode b',
       'TextSpanNode b',
       'SpacerNode |',
     ]);
@@ -73,15 +67,12 @@ void main() {
       'TableRowNode ^a^\n',
       'TableCellNode a',
       'TextNode a',
-      'LineNode a',
       'TextSpanNode a',
       'TableRowNode b^\n',
       'TableCellNode b',
       'TextNode b',
-      'LineNode b',
       'TextSpanNode b',
       'TextNode `r`',
-      'LineNode `r`',
       'RawSpanNode `r`',
     ]);
   });
@@ -113,11 +104,7 @@ void main() {
       children: [
         ColumnNode(
           children: [
-            TextNode(
-              children: [
-                LineNode(children: [TextSpanNode(text: 'a')]),
-              ],
-            ),
+            TextNode(children: [TextSpanNode(text: 'a')]),
           ],
         ),
       ],

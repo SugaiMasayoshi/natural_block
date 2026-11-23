@@ -39,9 +39,8 @@ compares structurally:
   `RowNode` holds `CellNode`s as its cells, and a `CellNode` holds
   `ColumnNode`s and `SpacerNode`s, as a document does.
 - A `ColumnNode` holds content: `TextNode`, `RawNode`, and `TableNode`.
-- A `TextNode` holds its lines as `LineNode`s, and a `LineNode` holds
-  `TextSpanNode`s (text with a `SpanDecoration`) and `RawSpanNode`s. A blank
-  line holds none.
+- A `TextNode` is one line, holding `TextSpanNode`s (text with a
+  `SpanDecoration`) and `RawSpanNode`s. A blank line holds none.
 - A `TableNode` holds `TableRowNode`s of `TableCellNode`s, and `columns`
   holds each column's alignment.
 

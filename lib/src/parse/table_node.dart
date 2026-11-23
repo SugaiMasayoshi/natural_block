@@ -19,11 +19,6 @@ TableNode? parseTableNode(SourceCursor cursor) {
     if (cursor.peek == '\n') {
       cursor.take();
     } else {
-      final escapedClose =
-          atLineStart &&
-          cursor.peek == escapeChar &&
-          cursor.peekAt(1) == tableChar;
-      if (escapedClose) cursor.take();
       rows.add(parseTableRowNode(cursor));
     }
     atLineStart = true;
