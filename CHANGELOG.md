@@ -11,6 +11,14 @@
 - A line that holds only decoration, or only an empty raw region, is a blank
   line, where it could disappear: `:+\n` before a raw block, or at the end
   of the document.
+- Breaking: a raw block opens only at the start of a line or a cell, at a
+  fence of three or more backticks that does not close on its line, and
+  closes at the next line that starts with a fence as long. An inline
+  region stays on its line, closing at the end of the line when nothing
+  closes it, so a forgotten backtick no longer turns the rest of the
+  document into code. A block opened partway through a line, as
+  `` a ```\nx\n``` `` was, or fenced with fewer than three backticks, is
+  now inline.
 
 ## 0.4.0
 

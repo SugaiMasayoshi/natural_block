@@ -25,3 +25,19 @@ SpanDecoration parseCluster(SourceCursor cursor, SpanDecoration style) {
   }
   return result;
 }
+
+/// Where the clusters opening at [index] end, or [index] when none opens
+/// there.
+int skipClusters(String source, int index) {
+  var end = index;
+  while (end + 1 < source.length &&
+      source[end] == clusterChar &&
+      DecorationAction.chars.contains(source[end + 1])) {
+    end += 1;
+    while (end < source.length &&
+        DecorationAction.chars.contains(source[end])) {
+      end += 1;
+    }
+  }
+  return end;
+}

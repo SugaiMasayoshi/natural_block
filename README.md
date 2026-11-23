@@ -161,20 +161,25 @@ A payload that takes an argument is written `name(<argument>)`, as
 Text between `` ` `` fences is taken exactly as written: no separators,
 decoration, or escapes.
 
-```text
+````text
 比較は`a == b`です
 
-`
-cat file.txt | grep foo | wc -l
-`
 ```
+cat file.txt | grep foo | wc -l
+```
+````
 
-- A region with a line break inside is a block (`RawNode`); one without is
-  inline (`RawSpanNode`). The newline right against each fence is dropped.
-- A region closes at a run of exactly as many backticks as opened it, so
-  ``` `` ``` can contain single backticks.
-- An empty region produces nothing. An unclosed one runs to the end of the
-  document.
+- A fence of three or more backticks at the start of a line or a cell that
+  does not close on its line opens a block (`RawNode`), even after
+  decoration. The block runs to the next line that starts with a fence as
+  long, or to the end of the document, and anything after the closing fence
+  continues as text. What follows the
+  opening fence on its line is the block's first line: ```` ```dart ````
+  starts with `dart`. The line breaks right against the fences are dropped.
+- Any other region is inline (`RawSpanNode`) and stays on its line: it
+  closes at a run of exactly as many backticks as opened it, so ``` `` ```
+  can contain single backticks, or at the end of the line.
+- An empty region produces nothing.
 
 ### Escaping
 

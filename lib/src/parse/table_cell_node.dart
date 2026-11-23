@@ -11,10 +11,16 @@ TableCellNode parseTableCellNode(SourceCursor cursor) {
 
   var atLineStart = false;
   bool closesTable() => atLineStart && cursor.peek == tableChar;
+  var atCellStart = true;
 
   while (!cursor.isEnd && cursor.peek != rowChar && !closesTable()) {
     final before = cursor.position;
-    final content = parseFlatContentNode(cursor, TextPlace.tableCell);
+    final content = parseFlatContentNode(
+      cursor,
+      TextPlace.tableCell,
+      atLineStart: atLineStart || atCellStart,
+    );
+    atCellStart = false;
     if (content != null) children.add(content);
     atLineStart = cursor.peek == '\n';
     if (atLineStart) cursor.take();

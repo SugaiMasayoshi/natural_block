@@ -3,6 +3,7 @@ import '../nodes.dart';
 import '../source_cursor.dart';
 import 'line_node.dart';
 import 'line_start.dart';
+import 'raw.dart';
 
 TextNode? parseTextNode(SourceCursor cursor, TextPlace place) {
   final start = cursor.position;
@@ -13,11 +14,14 @@ TextNode? parseTextNode(SourceCursor cursor, TextPlace place) {
 
   while (true) {
     final line = parseLineNode(cursor, place);
-    // A line with nothing on it before a cell's end or a raw block is theirs.
+    // A line with nothing on it before a cell's end is the cell's.
     final endsLine = cursor.isEnd || cursor.peek == '\n';
     if (line.children.isNotEmpty || endsLine) lines.add(line);
 
-    if (cursor.peek != '\n' || opensMarkupAt(cursor.position + 1)) break;
+    final nextLine = cursor.position + 1;
+    final nextLineIsOthers =
+        opensMarkupAt(nextLine) || rawBlockAt(cursor.source, nextLine);
+    if (cursor.peek != '\n' || nextLineIsOthers) break;
     cursor.take();
     final escapedMarker =
         cursor.peek == escapeChar && opensMarkupAt(cursor.position + 1);

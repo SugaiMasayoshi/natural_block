@@ -5,7 +5,7 @@ import 'flat_content_node.dart';
 import 'table_node.dart';
 
 /// [atLineStart] is whether the cursor starts a line or a cell, the only
-/// place a `~` opens a table.
+/// place a `~` opens a table or a fence a raw block.
 ContentNode? parseContentNode(
   SourceCursor cursor,
   TextPlace place, {
@@ -17,5 +17,5 @@ ContentNode? parseContentNode(
         cursor.peek == escapeChar && cursor.peekAt(1) == tableChar;
     if (escapedTable) cursor.take();
   }
-  return parseFlatContentNode(cursor, place);
+  return parseFlatContentNode(cursor, place, atLineStart: atLineStart);
 }

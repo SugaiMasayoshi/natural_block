@@ -4,8 +4,15 @@ import '../source_cursor.dart';
 import 'raw.dart';
 import 'text_node.dart';
 
-FlatContentNode? parseFlatContentNode(SourceCursor cursor, TextPlace place) {
-  if (rawBlockAt(cursor.source, cursor.position)) return parseRawNode(cursor);
-
+/// [atLineStart] is whether the cursor starts a line or a cell, the only
+/// place a raw block opens.
+FlatContentNode? parseFlatContentNode(
+  SourceCursor cursor,
+  TextPlace place, {
+  required bool atLineStart,
+}) {
+  if (atLineStart && rawBlockAt(cursor.source, cursor.position)) {
+    return parseRawNode(cursor);
+  }
   return parseTextNode(cursor, place);
 }

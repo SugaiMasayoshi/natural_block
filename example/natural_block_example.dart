@@ -39,9 +39,9 @@ and its alignment holds until the next one.
 
   _show('Raw regions', r'''
 Compare `a == b` inline, or fence a block:
-`
+```
 cat file.txt | grep foo | wc -l
-`
+```
 ''');
 
   _show('Escaping', r'''
