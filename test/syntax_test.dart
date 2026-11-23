@@ -46,7 +46,7 @@ void main() {
     '|\n=タイトル\n|': 'Space1, Col=["タイトル"], Space1',
     '本文\n|\n>出典': 'Col["本文"], Space1, Col>["出典"]',
     '||\n=タイトル\n|': 'Space2, Col=["タイトル"], Space1',
-    '|  \n本文': 'Space1, Col["本文"]',
+    '|  \n本文': 'Col["|  ", "本文"]',
     '本文\n\n|\n\n出典': 'Col["本文", ""], Space1, Col["", "出典"]',
     '^画像^|\n説明\n|^': 'Row[Col["画像"], Cell[Space1, Col["説明"], Space1]]',
     '^=上\n|\n下^': 'Row[Cell[Col=["上"], Space1, Col=["下"]]]',

@@ -1,5 +1,8 @@
 ## Unreleased
 
+- Breaking: a spacer is a line of `|` alone, with nothing after it, where
+  spaces after it were ignored. A line of `|  ` is text, as a `~` with
+  spaces after it is.
 - Breaking: a `~` opens a table only alone on its line, and closes one only
   alone on its line, so `~/.bashrc` and `~ 約100円` at the start of a line
   are text where they opened a table that took in the rest of the document.

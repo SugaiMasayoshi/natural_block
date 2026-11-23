@@ -103,8 +103,8 @@ for (final node in document.descendants) {
   ~
   ```
 
-- Spaces after a spacer are ignored. Where the height is not set, a spacer
-  takes none.
+- A spacer is `|` alone: a line of `|  ` with spaces after it is text.
+  Where the height is not set, a spacer takes none.
 
   ```
   |
