@@ -3,7 +3,7 @@ import '../markup.dart';
 import '../nodes.dart';
 import '../source_cursor.dart';
 import 'align.dart';
-import 'content_node.dart';
+import 'column_node.dart';
 import 'spacer_node.dart';
 
 /// A row from its opening `^` to the `^` that ends a line, or to the end of
@@ -43,49 +43,16 @@ RowNode parseRowNode(SourceCursor cursor, HorizontalAlign align, int start) {
 /// [start] is where the cell began, before its alignment marker.
 CellNode _parseCell(SourceCursor cursor, HorizontalAlign align, int start) {
   final children = <FlatLayoutNode>[];
-  var contents = <ContentNode>[];
-  var blockStart = start;
-  void endBlock(int end) {
-    if (contents.isNotEmpty) {
-      children.add(
-        ColumnNode(
-          children: contents,
-          align: align,
-          start: blockStart,
-          end: end,
-        ),
-      );
-    }
-    contents = [];
-  }
-
-  var atLineStart = true;
   while (!cursor.isEnd && cursor.peek != rowChar) {
-    final before = cursor.position;
-    if (atLineStart) {
-      if (parseSpacerNode(cursor, TextPlace.rowCell) case final spacer?) {
-        endBlock(before);
-        children.add(spacer);
-        if (cursor.peek == '\n') cursor.take();
-        blockStart = cursor.position;
-        continue;
-      }
+    if (parseSpacerNode(cursor, TextPlace.rowCell) case final spacer?) {
+      children.add(spacer);
+      if (cursor.peek == '\n') cursor.take();
+      continue;
     }
-
-    final content = parseContentNode(
-      cursor,
-      TextPlace.rowCell,
-      atLineStart: atLineStart,
-    );
-    if (content != null) contents.add(content);
-    atLineStart = cursor.peek == '\n';
-    if (atLineStart) cursor.take();
-    assert(
-      cursor.position > before,
-      'cell content parse made no progress at ${cursor.position}',
-    );
+    final blockStart = children.isEmpty ? start : cursor.position;
+    final block = parseColumnNode(cursor, align, blockStart, TextPlace.rowCell);
+    if (block != null) children.add(block);
   }
-  endBlock(cursor.position);
 
   return CellNode(children: children, start: start, end: cursor.position);
 }

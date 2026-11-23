@@ -23,5 +23,5 @@ LayoutNode? parseLayoutNode(SourceCursor cursor) {
   }
   final align = parseAlign(cursor);
   if (cursor.peek == rowChar) return parseRowNode(cursor, align, start);
-  return parseColumnNode(cursor, align, start);
+  return parseColumnNode(cursor, align, start, TextPlace.block);
 }
