@@ -3,8 +3,7 @@ import '../nodes.dart';
 import '../source_cursor.dart';
 
 /// How many `|` the spacer at [position] is written with, or null when there
-/// is none: `|` alone on its line. In a row's cell it may also end at the `^`
-/// that closes the cell.
+/// is none: `|` alone on its line.
 int? spacerAt(String source, int position, TextPlace place) {
   if (place == TextPlace.tableCell) return null;
   var index = position;
@@ -13,10 +12,7 @@ int? spacerAt(String source, int position, TextPlace place) {
   }
   final flex = index - position;
   if (flex == 0) return null;
-  final ends =
-      index == source.length ||
-      source[index] == '\n' ||
-      place == TextPlace.rowCell && source[index] == rowChar;
+  final ends = index == source.length || source[index] == '\n';
   return ends ? flex : null;
 }
 

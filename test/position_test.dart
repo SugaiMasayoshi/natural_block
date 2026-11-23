@@ -47,10 +47,10 @@ void main() {
   });
 
   test('a spacer cuts a cell into blocks', () {
-    expect(spans('^|\nb\n|^'), [
-      'DocumentNode ^|\nb\n|^',
-      'RowNode ^|\nb\n|^',
-      'CellNode |\nb\n|',
+    expect(spans('^|\nb\n|\n^'), [
+      'DocumentNode ^|\nb\n|\n^',
+      'RowNode ^|\nb\n|\n^',
+      'CellNode |\nb\n|\n',
       'SpacerNode |',
       'ColumnNode b\n',
       'TextNode b',

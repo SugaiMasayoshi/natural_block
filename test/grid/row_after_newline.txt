@@ -2,7 +2,7 @@
 Row[Col["a", "XX"]]
     bb  ~~  !!  <<
 Row[Col["a", "X"]]
-    b^  b`  bN  bE  ~^  ~`  :^  :`  :N  :E  !^  !`  !N  !E  \\  \N  \E  <^  <`  <N  <E  |`
+    b^  b`  bN  bE  ~^  ~`  :^  :`  :N  :E  !^  !`  !N  !E  \\  \N  \E  <^  <`  <N  <E  |^  |`
 Row[Col["a", "XY"]]
     b~  b:  b!  b\  b<  b|  ~b  ~:  ~!  ~\  ~<  ~|  :b  :~  :\  :<  :|  !b  !~  !:  !\  !<  !|  \b  \!  \<  <b  <~  <:  <!  <\  <|  |b  |~  |:  |!  |\  |<
 Row[Col["a"], Col["Y"]]
@@ -28,6 +28,6 @@ Row[Col["a", "", ""]]
 Row[Cell[Col["a", ""], Space1]]
     N|
 Row[Cell[Col["a"], Space1]]
-    |^  |N  |E
+    |N  |E
 Row[Cell[Col["a"], Space2]]
     ||

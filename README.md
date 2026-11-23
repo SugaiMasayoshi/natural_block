@@ -113,13 +113,14 @@ for (final node in document.descendants) {
   ```
 
 - A row's cell is as tall as its row, so a spacer at the head of a cell or
-  of a line in it places the cell's content. A `|^` at the start of a line
-  is a spacer that then closes the cell.
+  of a line in it places the cell's content. The `^` that closes the cell
+  after a spacer goes on the next line.
 
   ```
   ^Image^|
   Caption
-  |^
+  |
+  ^
   ```
 
 - A `|` in a table's cell, or with text after it, is text.

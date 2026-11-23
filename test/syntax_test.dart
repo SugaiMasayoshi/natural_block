@@ -39,7 +39,7 @@ void main() {
     '^A^\n\n=下': 'Row[Col["A"]], Col[""], Col=["下"]',
     '^A^\n\n^B^': 'Row[Col["A"]], Col[""], Row[Col["B"]]',
     '^A^\n\n\n=下': 'Row[Col["A"]], Col["", ""], Col=["下"]',
-    '^~\n^A^\n~\n\n|^': 'Row[Cell[Col[Table[["A"]], ""], Space1]]',
+    '^~\n^A^\n~\n\n|\n^': 'Row[Cell[Col[Table[["A"]], ""], Space1]]',
   });
 
   _table('spacers', {
@@ -48,7 +48,8 @@ void main() {
     '||\n=タイトル\n|': 'Space2, Col=["タイトル"], Space1',
     '|  \n本文': 'Col["|  ", "本文"]',
     '本文\n\n|\n\n出典': 'Col["本文", ""], Space1, Col["", "出典"]',
-    '^画像^|\n説明\n|^': 'Row[Col["画像"], Cell[Space1, Col["説明"], Space1]]',
+    '^画像^|\n説明\n|\n^': 'Row[Col["画像"], Cell[Space1, Col["説明"], Space1]]',
+    '^説明\n|^': 'Row[Col["説明", "|"]]',
     '^=上\n|\n下^': 'Row[Cell[Col=["上"], Space1, Col=["下"]]]',
     '|本文': 'Col["|本文"]',
     '^画像^|説明|^': 'Row[Col["画像"], Col["|説明|"]]',
